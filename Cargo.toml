@@ -1,0 +1,212 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/core/backend",
+    "crates/core/frontend",
+    "crates/core/permissions",
+    "crates/core/plugin-protocol",
+    "crates/core/plugin-sdk",
+    "crates/core/telemetry",
+    "crates/core/secret",
+    "crates/core/transport",
+    "crates/plugins/cli",
+    "crates/plugins/rbac",
+    "crates/plugins/local",
+    "crates/plugins/github",
+    "crates/plugins/oidc",
+    "crates/plugins/knowledge-base",
+    "crates/plugins/resource-definitions",
+    "crates/plugins/service-map",
+    "crates/plugins/tech-radar",
+    "crates/plugins/watercooler",
+    "crates/plugins/calendar",
+    "crates/plugins/calendar-events",
+    "crates/plugins/process",
+    "crates/plugins/automation",
+    "crates/plugins/infra",
+    "crates/plugins/notifications",
+    "crates/plugins/software-templates",
+    "crates/plugins/flags",
+    "crates/plugins/dora",
+    "crates/plugins/cicd",
+    "crates/plugins/reliability",
+    "crates/plugins/eol",
+    "crates/plugins/jira",
+    "crates/plugins/roadmap",
+    "crates/plugins/faux-data",
+    "crates/plugins/dns",
+    "crates/plugins/kubernetes",
+    "crates/plugins/rota",
+    "crates/plugins/vacuum",
+    "crates/plugins/insights",
+    "crates/plugins/maturity",
+    "crates/plugins/secrets",
+    "crates/plugins/agent",
+    "crates/plugins/grafana",
+    "crates/plugins/architecture",
+    "crates/fabric/consensus",
+    "crates/fabric/cachebus",
+    "crates/fabric/servicebus",
+    "crates/fabric/eventbus",
+    "crates/workers/service",
+    "crates/workers/frontend-probe",
+    "crates/workers/backend-probe",
+    "crates/workers/persistence-probe",
+    "crates/workers/servicebus-probe",
+    "crates/workers/cachebus-probe",
+    "crates/workers/eventbus-probe",
+    "crates/workers/plugin-probe",
+    "crates/workers/task-worker/cron-tasks",
+    "crates/workers/task-worker/background-tasks",
+    "crates/workers/task-worker/immediate-tasks",
+]
+exclude = ["crates/core/plugin-sdk/examples", "spikes"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "UNLICENSED"
+publish = false
+
+[workspace.dependencies]
+# Internal crates
+doc-backend = { path = "crates/core/backend" }
+doc-permissions = { path = "crates/core/permissions" }
+doc-plugin-protocol = { path = "crates/core/plugin-protocol" }
+doc-plugin-sdk = { path = "crates/core/plugin-sdk" }
+doc-consensus = { path = "crates/fabric/consensus" }
+doc-telemetry = { path = "crates/core/telemetry" }
+doc-secret = { path = "crates/core/secret" }
+doc-transport = { path = "crates/core/transport" }
+doc-cachebus = { path = "crates/fabric/cachebus" }
+doc-servicebus = { path = "crates/fabric/servicebus" }
+doc-eventbus = { path = "crates/fabric/eventbus" }
+doc-frontend-probe = { path = "crates/workers/frontend-probe" }
+doc-backend-probe = { path = "crates/workers/backend-probe" }
+doc-persistence-probe = { path = "crates/workers/persistence-probe" }
+doc-servicebus-probe = { path = "crates/workers/servicebus-probe" }
+doc-cachebus-probe = { path = "crates/workers/cachebus-probe" }
+doc-eventbus-probe = { path = "crates/workers/eventbus-probe" }
+doc-plugin-probe = { path = "crates/workers/plugin-probe" }
+doc-cron-tasks = { path = "crates/workers/task-worker/cron-tasks" }
+doc-background-tasks = { path = "crates/workers/task-worker/background-tasks" }
+doc-immediate-tasks = { path = "crates/workers/task-worker/immediate-tasks" }
+
+# Async runtime and HTTP
+tokio = { version = "1.53", features = ["macros", "rt-multi-thread", "net", "time", "sync", "signal", "fs", "io-util"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3"
+bytes = "1"
+http = "1"
+ipnet = "2"
+http-body = "1"
+http-body-util = "0.1"
+hyper = "1"
+hyper-util = { version = "0.1", features = ["tokio", "server", "server-auto", "server-graceful"] }
+axum = { version = "0.8", features = ["macros"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.7", features = ["trace", "timeout", "request-id", "set-header"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "json", "http2", "charset", "query", "form", "stream"] }
+
+# QUIC + HTTP/3 and TLS. quiche carries both protocols, so there is no separate h3 crate (ADR-0001).
+quiche = "0.30"
+tokio-quiche = "0.20"
+# Matches the BoringSSL binding quiche links, so the private CA loads through one crate version.
+boring = "5.2"
+rustls = { version = "0.23.45", default-features = false, features = ["ring", "std", "logging", "tls12"] }
+rustls-pki-types = { version = "1", features = ["std"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12", "logging"] }
+x509-parser = "0.18"
+rcgen = { version = "0.14", default-features = false, features = ["crypto", "ring", "pem", "x509-parser"] }
+
+# Consensus and storage
+openraft = { version = "0.9.25", features = ["serde", "storage-v2"] }
+redb = "4.3"
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "tls-rustls-ring-webpki", "postgres", "macros", "migrate", "uuid", "chrono", "json"] }
+
+# Serialisation and configuration
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml_ng = "0.10"
+toml = "1"
+humantime-serde = "1.1"
+
+# Errors, identifiers and time
+thiserror = "2"
+anyhow = "1"
+uuid = { version = "1.26", features = ["v4", "v7", "serde"] }
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std", "serde"] }
+croner = "4"
+chrono-tz = "0.10"
+semver = { version = "1", features = ["serde"] }
+regex = "1"
+
+# Crypto and secrets
+sha2 = "0.11"
+hmac = "0.13"
+subtle = "2.6"
+getrandom = "0.4"
+base64 = "0.23"
+ring = "0.17"
+
+# Email
+lettre = { version = "0.11", default-features = false, features = ["builder", "hostname", "smtp-transport", "tokio1", "tokio1-rustls", "ring", "webpki-roots"] }
+
+# Archives
+flate2 = "1"
+tar = "0.4"
+# Only reading deflated zips, as git hosts and `git archive --format=zip` make them.
+zip = { version = "8.6", default-features = false, features = ["deflate-flate2"] }
+hex = "0.4"
+argon2 = "0.6"
+zeroize = "1.9"
+
+# Observability
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["json", "env-filter"] }
+opentelemetry = "0.32"
+opentelemetry_sdk = { version = "0.32", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.32", default-features = false, features = ["http-proto", "reqwest-blocking-client", "trace", "metrics", "logs"] }
+opentelemetry-appender-tracing = "0.32"
+tracing-opentelemetry = "0.33"
+
+# Everything else
+async-trait = "0.1"
+parking_lot = "0.12"
+clap = { version = "4.6", features = ["derive", "env"] }
+askama = "0.16"
+comrak = { version = "0.55", default-features = false }
+ammonia = "4.2"
+aws-sdk-s3 = { version = "1.148", default-features = false, features = ["rt-tokio", "default-https-client", "behavior-version-latest"] }
+rrule = "0.14"
+url = "2.5"
+indexmap = { version = "2.14", features = ["serde"] }
+socket2 = { version = "0.6", features = ["all"] }
+# DNS messages, parsed and built for the DNS plugin; only the wire format, no resolver or server.
+hickory-proto = { version = "0.26", default-features = false, features = ["std"] }
+tempfile = "3.27"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"
+mem_forget = "warn"
+needless_pass_by_value = "warn"
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.release]
+lto = "thin"
+strip = "debuginfo"

@@ -1,0 +1,13 @@
+target/
+**/target/
+.git/
+spikes/
+docs/
+.env
+*.md
+!README.md
+.vscode/
+.idea/
+# Bootstrap output: the CA's private key and every token. No image needs them.
+secrets/
+secrets.*/

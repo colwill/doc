@@ -1,0 +1,17 @@
+# Build output
+/target/
+**/target/
+
+# Local configuration and secrets
+.env
+*.local.toml
+/secrets/
+/secrets.*/
+*.pem
+*.key
+
+# Editors and OS files
+.idea/
+*.swp
+.DS_Store
+.exc/
