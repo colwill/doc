@@ -1,0 +1,37 @@
+[package]
+name = "doc-plugin-sdk"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# examples/hello is its own package, not an example target of this one.
+autoexamples = false
+
+[lints]
+workspace = true
+
+[features]
+reqwest = ["dep:reqwest"]
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+bytes.workspace = true
+chrono.workspace = true
+hex.workspace = true
+http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+opentelemetry.workspace = true
+reqwest = { workspace = true, optional = true }
+tracing.workspace = true
+uuid.workspace = true
+
+doc-plugin-protocol.workspace = true
+doc-telemetry.workspace = true
+doc-transport.workspace = true

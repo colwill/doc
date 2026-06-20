@@ -1,0 +1,42 @@
+# Standalone on purpose: a plugin is built separately from the platform.
+[workspace]
+
+[package]
+name = "doc-hello-plugin"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "UNLICENSED"
+publish = false
+
+# Deliberately outside the workspace: a plugin is built separately from the platform, and this is
+# what proves an author can do that with nothing but a path to the SDK.
+
+[features]
+default = ["synchronous"]
+synchronous = []
+long-running = []
+one-shot = []
+task = []
+# Failure variants, so T20 can check what the backend does when `load` never succeeds.
+panic-on-load = []
+hang-on-load = []
+# T21's checks, run from inside `load`: `tour` makes every backend API call and logs the answers,
+# `trespass` tries everything a plugin must not do and logs whether each was refused.
+tour = []
+trespass = []
+# T62's declaration changes, one per version: `mood` adds a field, `mood-deprecated` deprecates it,
+# and a build with neither removes it.
+mood = []
+mood-deprecated = []
+
+[dependencies]
+doc-plugin-sdk = { path = "../.." }
+async-trait = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1.53", features = ["macros", "rt-multi-thread", "time", "sync"] }
+tracing = "0.1.44"
+
+[profile.release]
+strip = "debuginfo"
