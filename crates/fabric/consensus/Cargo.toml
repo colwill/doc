@@ -1,0 +1,32 @@
+[package]
+name = "doc-consensus"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+bytes.workspace = true
+doc-secret.workspace = true
+doc-telemetry.workspace = true
+doc-transport.workspace = true
+http.workspace = true
+openraft.workspace = true
+opentelemetry.workspace = true
+parking_lot.workspace = true
+redb.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tracing-subscriber.workspace = true
