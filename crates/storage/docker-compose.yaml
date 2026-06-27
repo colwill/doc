@@ -1,0 +1,59 @@
+name: ${DOC_STACK:-doc}-storage
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:-dev-only-change-me}
+      POSTGRES_DB: ${DOC_DB:-doc}
+      DOC_DB: ${DOC_DB:-doc}
+      DOC_OWNER_USER: ${DOC_OWNER_USER:-doc_owner}
+      DOC_OWNER_PASSWORD: ${DOC_OWNER_PASSWORD:-dev-only-change-me}
+      DOC_APP_USER: ${DOC_APP_USER:-doc_app}
+      DOC_APP_PASSWORD: ${DOC_APP_PASSWORD:-dev-only-change-me}
+      DOC_PLUGINS_DB: ${DOC_PLUGINS_DB:-doc_plugins}
+      DOC_DATA_USER: ${DOC_DATA_USER:-doc_data}
+      DOC_DATA_PASSWORD: ${DOC_DATA_PASSWORD:-dev-only-change-me}
+    ports:
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    networks: [doc]
+
+  # The init scripts run only when the volume is new, so `just up` and `just dev` run the plugin data
+  # one again each time, which is how a database made before T62 gets it. It is a profile of its own
+  # because it exits when done, which `up --wait` would count as a failure.
+  bootstrap:
+    image: postgres:17-alpine
+    profiles: [bootstrap]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:-dev-only-change-me}
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      DOC_PLUGINS_DB: ${DOC_PLUGINS_DB:-doc_plugins}
+      DOC_DATA_USER: ${DOC_DATA_USER:-doc_data}
+      DOC_DATA_PASSWORD: ${DOC_DATA_PASSWORD:-dev-only-change-me}
+    volumes:
+      - ./postgres/init/20-doc-plugins.sh:/setup.sh:ro
+    entrypoint: ["bash", "/setup.sh"]
+    networks: [doc]
+
+volumes:
+  postgres-data: {}
+
+networks:
+  doc:
+    name: ${DOC_NETWORK:-doc}
