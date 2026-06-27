@@ -1,0 +1,175 @@
+name: ${DOC_STACK:-doc}-fabric
+
+x-bus: &bus
+  build:
+    context: ../..
+    dockerfile: crates/core/Dockerfile
+  restart: unless-stopped
+  # A node holds a QUIC connection to every peer and client; Docker's default 1024 is too low.
+  ulimits:
+    nofile: { soft: 65535, hard: 65535 }
+  environment: &bus-env
+    DOC_SECRETS_DIR: /secrets
+    DOC_BIND: 0.0.0.0:4433
+    RUST_LOG: ${DOC_BUS_LOG:-info,openraft=warn,quiche=warn,tokio_quiche=warn}
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+  networks: [doc]
+
+x-eventbus: &eventbus
+  <<: *bus
+  build:
+    context: ../..
+    dockerfile: crates/core/Dockerfile
+    args:
+      BIN: doc-eventbus
+      FEATURES: server
+  image: doc/eventbus:${DOC_IMAGE_TAG:-dev}
+
+x-servicebus: &servicebus
+  <<: *bus
+  build:
+    context: ../..
+    dockerfile: crates/core/Dockerfile
+    args:
+      BIN: doc-servicebus
+      FEATURES: server
+  image: doc/servicebus:${DOC_IMAGE_TAG:-dev}
+
+x-cachebus: &cachebus
+  <<: *bus
+  build:
+    context: ../..
+    dockerfile: crates/core/Dockerfile
+    args:
+      BIN: doc-cachebus
+      FEATURES: server
+  image: doc/cachebus:${DOC_IMAGE_TAG:-dev}
+
+services:
+  eventbus-1:
+    <<: *eventbus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "1"
+      DOC_ADVERTISE: eventbus-1:4433
+      DOC_PEERS: 1=eventbus-1:4433,2=eventbus-2:4433,3=eventbus-3:4433
+    volumes: [eventbus-1-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14431:4433/udp"]
+
+  eventbus-2:
+    <<: *eventbus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "2"
+      DOC_ADVERTISE: eventbus-2:4433
+      DOC_PEERS: 1=eventbus-1:4433,2=eventbus-2:4433,3=eventbus-3:4433
+    volumes: [eventbus-2-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14432:4433/udp"]
+
+  eventbus-3:
+    <<: *eventbus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "3"
+      DOC_ADVERTISE: eventbus-3:4433
+      DOC_PEERS: 1=eventbus-1:4433,2=eventbus-2:4433,3=eventbus-3:4433
+    volumes: [eventbus-3-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14433:4433/udp"]
+
+  servicebus-1:
+    <<: *servicebus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "1"
+      DOC_ADVERTISE: servicebus-1:4433
+      DOC_PEERS: 1=servicebus-1:4433,2=servicebus-2:4433,3=servicebus-3:4433
+    volumes: [servicebus-1-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14441:4433/udp"]
+
+  servicebus-2:
+    <<: *servicebus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "2"
+      DOC_ADVERTISE: servicebus-2:4433
+      DOC_PEERS: 1=servicebus-1:4433,2=servicebus-2:4433,3=servicebus-3:4433
+    volumes: [servicebus-2-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14442:4433/udp"]
+
+  servicebus-3:
+    <<: *servicebus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "3"
+      DOC_ADVERTISE: servicebus-3:4433
+      DOC_PEERS: 1=servicebus-1:4433,2=servicebus-2:4433,3=servicebus-3:4433
+    volumes: [servicebus-3-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14443:4433/udp"]
+
+  cachebus-1:
+    <<: *cachebus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "1"
+      DOC_ADVERTISE: cachebus-1:4433
+      DOC_PEERS: 1=cachebus-1:4433,2=cachebus-2:4433,3=cachebus-3:4433
+    volumes: [cachebus-1-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14451:4433/udp"]
+
+  cachebus-2:
+    <<: *cachebus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "2"
+      DOC_ADVERTISE: cachebus-2:4433
+      DOC_PEERS: 1=cachebus-1:4433,2=cachebus-2:4433,3=cachebus-3:4433
+    volumes: [cachebus-2-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14452:4433/udp"]
+
+  cachebus-3:
+    <<: *cachebus
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "3"
+      DOC_ADVERTISE: cachebus-3:4433
+      DOC_PEERS: 1=cachebus-1:4433,2=cachebus-2:4433,3=cachebus-3:4433
+    volumes: [cachebus-3-data:/data, secrets:/secrets:ro]
+    ports: ["${FABRIC_BIND:-127.0.0.1}:14453:4433/udp"]
+
+  # Grafana with the OpenTelemetry pipeline behind it (logs, metrics and traces).
+  telemetry:
+    image: grafana/otel-lgtm:0.29.0@sha256:6e14b923e0130b8b294ca5bcc7c94d54e899d150817e6c3ed82d9b665afe5499
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    ports:
+      - "${TELEMETRY_BIND:-127.0.0.1}:${GRAFANA_PORT:-3900}:3000"
+      - "${TELEMETRY_BIND:-127.0.0.1}:${OTLP_GRPC_PORT:-4317}:4317"
+      - "${TELEMETRY_BIND:-127.0.0.1}:${OTLP_HTTP_PORT:-4318}:4318"
+    volumes:
+      - telemetry-data:/data
+      - ./telemetry/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro
+      - ./telemetry/dashboards:/otel-lgtm/doc-dashboards:ro
+    networks: [doc]
+
+volumes:
+  eventbus-1-data: {}
+  eventbus-2-data: {}
+  eventbus-3-data: {}
+  servicebus-1-data: {}
+  servicebus-2-data: {}
+  servicebus-3-data: {}
+  cachebus-1-data: {}
+  cachebus-2-data: {}
+  cachebus-3-data: {}
+  telemetry-data: {}
+  # Filled by the bootstrap job in crates/core, which `just up` runs first.
+  secrets:
+    name: ${DOC_STACK:-doc}-core_secrets
+    external: true
+
+networks:
+  doc:
+    name: ${DOC_NETWORK:-doc}
+    external: true

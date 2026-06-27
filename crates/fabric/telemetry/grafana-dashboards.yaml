@@ -1,0 +1,22 @@
+# Replaces the file baked into grafana/otel-lgtm, which also provisions a JVM dashboard we
+# have no use for. Keeps the two RED dashboards and adds DOC's own, from ./dashboards.
+
+apiVersion: 1
+
+providers:
+  - name: "DOC"
+    folder: "DOC"
+    type: file
+    options:
+      path: /otel-lgtm/doc-dashboards
+      foldersFromFilesStructure: false
+  - name: "RED Metrics (classic histogram)"
+    type: file
+    options:
+      path: /otel-lgtm/grafana-dashboard-red-metrics-classic.json
+      foldersFromFilesStructure: false
+  - name: "RED Metrics (exponential/native histogram)"
+    type: file
+    options:
+      path: /otel-lgtm/grafana-dashboard-red-metrics-native.json
+      foldersFromFilesStructure: false
