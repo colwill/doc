@@ -1,0 +1,192 @@
+# Every file here was copied verbatim out of the pinned npm tarball named in its package
+# block; nothing was rebuilt, minified or edited. Re-check the hashes with `just verify-assets`.
+
+[[package]]
+name = "nhsuk-frontend"
+version = "10.6.1"
+license = "MIT"
+repository = "https://github.com/nhsuk/nhsuk-frontend"
+tarball = "https://registry.npmjs.org/nhsuk-frontend/-/nhsuk-frontend-10.6.1.tgz"
+tarball_sha256 = "1af037bcb75237c4208809d3ac9a06522ccf61b2268221268ead3985bceb060b"
+member_prefix = "package/dist/nhsuk/"
+files = [
+    { path = "nhsuk/nhsuk-frontend-10.6.1.min.css", member = "nhsuk-frontend-10.6.1.min.css", bytes = 278141, sha256 = "9bf2be59da16f34ce7550a66962d8998921e13e7d87e3258d8bd1bedfed1a830" },
+    { path = "nhsuk/assets/images/nhsuk-icon-arrow-down.svg", member = "assets/images/nhsuk-icon-arrow-down.svg", bytes = 333, sha256 = "413e412e70e61d4b26e608507cc009ae952eb57e3a3126f55587a7cc0ee453b8" },
+    { path = "nhsuk/assets/images/nhsuk-icon-arrow-up.svg", member = "assets/images/nhsuk-icon-arrow-up.svg", bytes = 325, sha256 = "b8bee584537e8cc275eb49974427b84e9722ac22ab76adb1b32420e3266785d7" },
+    { path = "nhsuk/assets/images/nhsuk-icon-arrow-up-down.svg", member = "assets/images/nhsuk-icon-arrow-up-down.svg", bytes = 485, sha256 = "e5b217ca77e17e98e533c4272d2c41b88aadce5470e3af454a3359538734281b" },
+    { path = "nhsuk/assets/images/nhsuk-icon-cross.svg", member = "assets/images/nhsuk-icon-cross.svg", bytes = 418, sha256 = "694bdf45a657c8b88c958f33ab724ddcd875b8dfa2006cdd27f6d861b0a306fb" },
+]
+
+[[package]]
+name = "nhsapp-frontend"
+version = "5.2.0"
+license = "MIT"
+repository = "https://github.com/nhsuk/nhsapp-frontend"
+tarball = "https://registry.npmjs.org/nhsapp-frontend/-/nhsapp-frontend-5.2.0.tgz"
+tarball_sha256 = "022957774da6c334d94261edf8ab8d340b452be7e025edda6f7f139ef9029322"
+member_prefix = "package/dist/"
+files = [
+    { path = "nhsapp/nhsapp-5.2.0.min.css", member = "nhsapp-5.2.0.min.css", bytes = 34774, sha256 = "2aa5dcb103a2ea8936e1d7657619de5437dd1f4025d76454f3deb2369a9153c6" },
+    { path = "nhsapp/assets/icons/account-filled.svg", member = "assets/icons/account-filled.svg", bytes = 1239, sha256 = "e3e47b1be8a7b8540c52628ff2d1253ec088a9f648ea1e369019ad1b28c0f34c" },
+    { path = "nhsapp/assets/icons/account.svg", member = "assets/icons/account.svg", bytes = 576, sha256 = "ca0a9f2d45127322d389d98048b2a612a131ea6a6c4bf7e16dc72d52aedfa3fd" },
+    { path = "nhsapp/assets/icons/calendar.svg", member = "assets/icons/calendar.svg", bytes = 2504, sha256 = "6d305478748c78c3332eaaf7b2e3a0da5a3533e44af9a7d4c1d59ad10b522995" },
+    { path = "nhsapp/assets/icons/chevron-right.svg", member = "assets/icons/chevron-right.svg", bytes = 401, sha256 = "9065d3f35398e921fbf06a0ea5e5ff2b70f409a707936547621ee40af9025bdf" },
+    { path = "nhsapp/assets/icons/clock.svg", member = "assets/icons/clock.svg", bytes = 744, sha256 = "08eeabd4a92dbc47b123494320322ff4d7071f7c25adc5c0d07714f728f94421" },
+    { path = "nhsapp/assets/icons/cross-filled.svg", member = "assets/icons/cross-filled.svg", bytes = 456, sha256 = "9aaa5d7325ce241736abe399c7a16fb7c9e70639f74be5cdbd06843b612aa7e0" },
+    { path = "nhsapp/assets/icons/cross.svg", member = "assets/icons/cross.svg", bytes = 766, sha256 = "8550647bfa205cdf5980458a549602517177444d2e9d3e67c8ec361dc8d20462" },
+    { path = "nhsapp/assets/icons/download.svg", member = "assets/icons/download.svg", bytes = 1206, sha256 = "7e376328d4e738fa85d6a4cc4b69a8a69235209c181e872c793a0a831f029f12" },
+    { path = "nhsapp/assets/icons/email.svg", member = "assets/icons/email.svg", bytes = 2688, sha256 = "04883be836f57c7a4c3196a241fbbc010395fd97def6e57af22b5d144a64727c" },
+    { path = "nhsapp/assets/icons/filter.svg", member = "assets/icons/filter.svg", bytes = 827, sha256 = "050158d70300ad6da855a0269690a560f760da403fbcab9302cfb60251fe0db9" },
+    { path = "nhsapp/assets/icons/heart-filled.svg", member = "assets/icons/heart-filled.svg", bytes = 516, sha256 = "05aa434eb886938c225cb433074db0aa52fbfbafd118b4091a96a62e89b84963" },
+    { path = "nhsapp/assets/icons/heart.svg", member = "assets/icons/heart.svg", bytes = 831, sha256 = "9b139986ffd9e8932761cd4baeab22cf3fe96c9cdcc91d7df571088f373994b7" },
+    { path = "nhsapp/assets/icons/help.svg", member = "assets/icons/help.svg", bytes = 1121, sha256 = "934eef1c22df61b1474b71c094b7473f7908d7b995b1a684339ea02c5d2e057f" },
+    { path = "nhsapp/assets/icons/home-filled.svg", member = "assets/icons/home-filled.svg", bytes = 541, sha256 = "2a26fe2c6f0f66321246472de7871ae3dfd29a5753853ea8fcc4af104134f8da" },
+    { path = "nhsapp/assets/icons/home.svg", member = "assets/icons/home.svg", bytes = 646, sha256 = "17ccd3a6d8499c24464fa198f1ab7e9ac4fe4c28225aa3e6cf1685f568a22e54" },
+    { path = "nhsapp/assets/icons/letter.svg", member = "assets/icons/letter.svg", bytes = 961, sha256 = "9431cdfe09691572266e8c446807e35304952956c6bd11d095f94c3fbc9290d7" },
+    { path = "nhsapp/assets/icons/messages-filled.svg", member = "assets/icons/messages-filled.svg", bytes = 532, sha256 = "4d2b89e05225a77324fc85d37a3f1bc2e5171f4d49a89dc418936e7c85f19d52" },
+    { path = "nhsapp/assets/icons/messages-unread-filled.svg", member = "assets/icons/messages-unread-filled.svg", bytes = 681, sha256 = "2d05f4070721f6aa31a07ff2a6ec36ac6831e9a035078b2a0f08318bbac223f3" },
+    { path = "nhsapp/assets/icons/messages-unread.svg", member = "assets/icons/messages-unread.svg", bytes = 622, sha256 = "d8e1aaadfd88cc09620f9e431c12848641b83192a0f92cc2f544e8e90a0588c6" },
+    { path = "nhsapp/assets/icons/messages.svg", member = "assets/icons/messages.svg", bytes = 534, sha256 = "08ae544b22db9e3fc1918877d2690000a552e7ac95be1b35d5071b3a9e2cdf42" },
+    { path = "nhsapp/assets/icons/night.svg", member = "assets/icons/night.svg", bytes = 1252, sha256 = "83c9b25a55f87480cf87c4bd816cc9e6417f7544970f3a5f0e96c5ba66b7ee65" },
+    { path = "nhsapp/assets/icons/phone-call.svg", member = "assets/icons/phone-call.svg", bytes = 3649, sha256 = "21107adb4078d0de6e5eca4a04ff572b595b13fa1779928dd4c010c3067468c5" },
+    { path = "nhsapp/assets/icons/sort.svg", member = "assets/icons/sort.svg", bytes = 489, sha256 = "707db2c3876bec59f99607d6f49311cabe3dbe7099495d46a1e414e9b79b30af" },
+    { path = "nhsapp/assets/icons/switch-profile.svg", member = "assets/icons/switch-profile.svg", bytes = 1113, sha256 = "4179dbd20404d80efa93337ea7da4a787d59e667f39fabc8db31a32a96c79662" },
+]
+
+[[package]]
+name = "htmx.org"
+version = "4.0.0"
+license = "BSD-0-Clause"
+repository = "https://github.com/bigskysoftware/htmx"
+tarball = "https://registry.npmjs.org/htmx.org/-/htmx.org-4.0.0.tgz"
+tarball_sha256 = "f252cb573805081541b9a89bf1cf177aaa56ce73de1bfee02f9c89d5510f174d"
+member_prefix = "package/dist/"
+files = [
+    { path = "htmx/htmx-4.0.0.min.js", member = "htmx.min.js", bytes = 36716, sha256 = "e484d9171a9db30a39c8f16e3d709d4137f3211c659f8e6125816635033d593f" },
+]
+
+[[package]]
+name = "@alpinejs/csp"
+version = "3.17.3"
+license = "MIT"
+repository = "https://github.com/alpinejs/alpine"
+tarball = "https://registry.npmjs.org/@alpinejs/csp/-/csp-3.17.3.tgz"
+tarball_sha256 = "8c43bcb33b2997836d8cdfbf83f7db1485e5f2fd39cb1d78fc5bf73fa114b1a3"
+member_prefix = "package/dist/"
+files = [
+    { path = "alpine/alpine-csp-3.17.3.min.js", member = "cdn.min.js", bytes = 72193, sha256 = "f1c158764047ac0e4b34956ed5d3aff09b3acc26d98fe890753a1fa17a5ef441" },
+]
+
+[[package]]
+name = "chart.js"
+version = "4.5.1"
+license = "MIT"
+repository = "https://github.com/chartjs/Chart.js"
+tarball = "https://registry.npmjs.org/chart.js/-/chart.js-4.5.1.tgz"
+tarball_sha256 = "f540d98468457ac7a0aabb32006dfb066297e096c5ea063a5d80aa973d1c337a"
+member_prefix = "package/dist/"
+files = [
+    { path = "chartjs/chart-4.5.1.umd.min.js", member = "chart.umd.min.js", bytes = 208522, sha256 = "48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a" },
+]
+[[package]]
+name = "@fontsource/montserrat"
+version = "5.3.0"
+license = "OFL-1.1"
+repository = "https://github.com/JulietaUla/Montserrat"
+tarball = "https://registry.npmjs.org/@fontsource/montserrat/-/montserrat-5.3.0.tgz"
+tarball_sha256 = "919dce59bbe45ace8a517c1e9de5076282bfeb97e8aa8f5f2dc989451c14c7cb"
+member_prefix = "package/"
+files = [
+    { path = "montserrat/montserrat-latin-800-normal.woff2", member = "files/montserrat-latin-800-normal.woff2", bytes = 19012, sha256 = "ba826fb84c2e961578adf3a08b5778b87905d4443445d1d56d84f9f157d5ea4b" },
+    { path = "montserrat/LICENSE", member = "LICENSE", bytes = 4509, sha256 = "f429f739351287574c0c3175a9222bb3e49c7cad3f568a04f2c08d74c107724e" },
+]
+
+# Vendored for a wordmark that is now set in the logo instead. Nothing loads it: it is kept on
+# disk, and hash-checked, so putting it back is one line in assets.rs and one @font-face rule.
+[[package]]
+name = "@fontsource/montez"
+version = "5.3.0"
+license = "Apache-2.0"
+repository = "https://github.com/google/fonts"
+tarball = "https://registry.npmjs.org/@fontsource/montez/-/montez-5.3.0.tgz"
+tarball_sha256 = "0ce4b4d6fd6ea8f2b8f5f8a22a06e10c4d64f4b37420e8d2fe26149a96b99d55"
+member_prefix = "package/"
+files = [
+    { path = "montez/montez-latin-400-normal.woff2", member = "files/montez-latin-400-normal.woff2", bytes = 22208, sha256 = "cd598077f6398caf6ff916545d9cea436044223db826672ebdeefa729fa326da" },
+    { path = "montez/LICENSE", member = "LICENSE", bytes = 11489, sha256 = "890f8cfa1a7a00c10e651dbf73ac843e2c33d5a30bea7cb9a4c745f44bbff204" },
+]
+
+# The page editor (doc-editor.js): Squire edits the formatted page, DOMPurify cleans what is
+# pasted into it, marked turns Markdown into the page and Turndown turns the page back into
+# Markdown. None of them is loaded until a page has an editor on it.
+[[package]]
+name = "squire-rte"
+version = "2.4.9"
+license = "MIT"
+repository = "https://github.com/fastmail/Squire"
+tarball = "https://registry.npmjs.org/squire-rte/-/squire-rte-2.4.9.tgz"
+tarball_sha256 = "74a93d647da09e4e0b6e84a5126aad1c8780d0b7ad2ee2351f0b878bb913d840"
+member_prefix = "package/"
+files = [
+    { path = "squire/squire-2.4.9.js", member = "dist/squire.js", bytes = 60254, sha256 = "2fc7ce78b2e3a73bc81d3d143725fea4e424a778434f5982d53db233599ab981" },
+    { path = "squire/LICENSE", member = "LICENSE", bytes = 1088, sha256 = "dfc8ece415ad5f0d71c5d40165465854e087ac3f4e150fa25bd169b4b48cad69" },
+]
+
+[[package]]
+name = "dompurify"
+version = "3.4.16"
+license = "MPL-2.0 OR Apache-2.0"
+repository = "https://github.com/cure53/DOMPurify"
+tarball = "https://registry.npmjs.org/dompurify/-/dompurify-3.4.16.tgz"
+tarball_sha256 = "d288ced25e6bda3e5fc76d1fc9bca899260cf886e005e84f232e686ada57f1b4"
+member_prefix = "package/"
+files = [
+    { path = "dompurify/purify-3.4.16.min.js", member = "dist/purify.min.js", bytes = 28885, sha256 = "2c90a9b46d6463f26038a29b686e82bc91de01fdac9d5229e7cfe3b360134ea2" },
+    { path = "dompurify/LICENSE", member = "LICENSE", bytes = 11358, sha256 = "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30" },
+]
+
+[[package]]
+name = "marked"
+version = "18.0.14"
+license = "MIT"
+repository = "https://github.com/markedjs/marked"
+tarball = "https://registry.npmjs.org/marked/-/marked-18.0.14.tgz"
+tarball_sha256 = "f74bd78902b6e83c4c488d6ea979c15619a11dbd0d8e21f4246bdd357c19c091"
+member_prefix = "package/"
+files = [
+    { path = "marked/marked-18.0.14.umd.js", member = "lib/marked.umd.js", bytes = 46891, sha256 = "21568877a938d2c4e7d74e27f18e60da96bb73a68809610ca39216e1efebae62" },
+    { path = "marked/LICENSE", member = "LICENSE", bytes = 2942, sha256 = "8e3a3f82f59a60958f56ca08f445647c32a4733dc7ca6c2c46f6eb898471ab9c" },
+]
+
+[[package]]
+name = "turndown"
+version = "7.2.4"
+license = "MIT"
+repository = "https://github.com/mixmark-io/turndown"
+tarball = "https://registry.npmjs.org/turndown/-/turndown-7.2.4.tgz"
+tarball_sha256 = "05f61bc3f0aeca5e5cd7f1b5492e26b9040bb00708cd41fb1b0f7b216e296fa0"
+member_prefix = "package/"
+files = [
+    { path = "turndown/turndown-7.2.4.browser.umd.js", member = "lib/turndown.browser.umd.js", bytes = 26946, sha256 = "cdf933e0a2085df3c64d6c763331f04345f6c3b25746216e8f1426c9c5253045" },
+    { path = "turndown/LICENSE", member = "LICENSE", bytes = 1069, sha256 = "a055e3a15db4b4cbb5af381230eba085603126d7d5d8c4dae45ee85b877a9729" },
+]
+
+[[package]]
+name = "turndown-plugin-gfm"
+version = "1.0.2"
+license = "MIT"
+repository = "https://github.com/mixmark-io/turndown-plugin-gfm"
+tarball = "https://registry.npmjs.org/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.2.tgz"
+tarball_sha256 = "6ec83633b3b6b92305f9b1f079c70cf210605ef7a084a2c80ccb4499029962ae"
+member_prefix = "package/"
+files = [
+    { path = "turndown/turndown-plugin-gfm-1.0.2.js", member = "dist/turndown-plugin-gfm.js", bytes = 4191, sha256 = "cf744cc1b7580f06d64ce236a4ff2630a53d389eccf2133a09d71ca443511912" },
+    { path = "turndown/LICENSE-gfm", member = "LICENSE", bytes = 1069, sha256 = "a055e3a15db4b4cbb5af381230eba085603126d7d5d8c4dae45ee85b877a9729" },
+]
+
+[notes]
+fonts ="nhsuk-frontend's @font-face rules point at https://assets.nhs.uk/fonts/FrutigerLTW01-55Roman and -65Bold (.woff2/.woff). Frutiger is licensed to the NHS and not to us, so it is deliberately not vendored; the declared stack falls back to arial, sans-serif. Montserrat ExtraBold sets the instance name beside the logo; it is OFL-1.1 and its LICENSE is vendored beside it, as that licence requires when the font is redistributed. Montez was an earlier wordmark, Apache-2.0, kept but unused. Only latin subsets are taken, and only .woff2 — every browser we support reads it."
+serving = "nhsuk-frontend-10.6.1.min.css resolves its four icons at the absolute path /assets/images/, so nhsuk/ and nhsapp/ have to be served at the site root. Their asset subtrees do not collide."
+licences = "Squire's build and Turndown's carry no licence comment of their own, so every editor package's LICENSE is vendored beside its file. They are kept on disk, not served."
+source_maps = "The nhsuk, chart.js, Squire and DOMPurify files end in a sourceMappingURL comment. The .map files are not vendored, so devtools will 404 on them; the files are kept byte-identical to upstream rather than edited."
+layering = "nhsapp-frontend is a CSS layer on top of nhsuk-frontend, not a replacement: load nhsuk first, then nhsapp."

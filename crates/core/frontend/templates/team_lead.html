@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/teams/{{ detail.team.id }}/members">{{ detail.team.title }}</a></span>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    <h2>Who leads it</h2>
+    <p class="doc-hint">One of its people. They arrange it: its positions, and who holds which.</p>
+    <form action="/teams/{{ detail.team.id }}/lead" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-lead">Lead</label>
+        <select class="doc-select" id="team-lead" name="user">
+          <option value="">Nobody</option>
+          {%- for member in detail.members %}
+          <option value="{{ member.user_id }}"{% if self.leads(member) %} selected{% endif %}>{{ member.login }}{% if let Some(name) = member.name %} ({{ name }}){% endif %}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Save</button>
+        <a class="doc-button doc-button--secondary" href="/teams/{{ detail.team.id }}/members">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+<div id="plugins-panel" hx-get="/plugins/panel" hx-trigger="doc-plugin-state from:body" hx-swap="outerHTML">
+  {%- if sections.is_empty() %}
+  <p class="doc-empty">No plugins are known yet.</p>
+  {%- endif %}
+  {%- for section in sections %}
+  <h2 id="{{ section.anchor }}">{{ section.name }}</h2>
+  <table class="doc-table doc-table--plugins" aria-labelledby="{{ section.anchor }}">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Plugin</th>
+        <th class="doc-table__header" scope="col">Version</th>
+        <th class="doc-table__header" scope="col">Classification</th>
+        <th class="doc-table__header" scope="col">State</th>
+        <th class="doc-table__header" scope="col">Last error</th>
+        {%- if writes %}
+        <th class="doc-table__header" scope="col">Actions</th>
+        {%- endif %}
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for plugin in section.items %}
+      {%- let (class, word) = Self::badge(plugin.state) %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row"><a href="/plugins/{{ plugin.id }}">{{ plugin.id }}</a></th>
+        <td class="doc-table__cell">{{ plugin.version.as_deref().unwrap_or("-") }}</td>
+        <td class="doc-table__cell">{{ plugin.classification.as_deref().unwrap_or("-") }}</td>
+        <td class="doc-table__cell">
+          {%- if let Some(off) = plugin.turned_off %}
+          <strong class="doc-badge doc-badge--unknown">Turned off</strong>
+          <span class="doc-hint">{% if let Some(by) = off.by %}by {{ by }}, {% endif %}{{ Self::when(off.at) }}</span>
+          {%- else %}
+          <strong class="doc-badge doc-badge--{{ class }}">{{ word }}</strong>
+          {%- if let Some(since) = plugin.since %}
+          <span class="doc-hint">since {{ Self::when(since) }}</span>
+          {%- endif %}
+          {%- endif %}
+        </td>
+        <td class="doc-table__cell">
+          {%- if let Some(error) = plugin.last_error %}
+          <details class="nhsuk-details">
+            <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">{% if let Some(at) = plugin.last_error_at %}{{ Self::when(at) }}{% else %}Show{% endif %}</span></summary>
+            <div class="nhsuk-details__text"><pre class="doc-code">{{ error }}</pre></div>
+          </details>
+          {%- else %}-{%- endif %}
+        </td>
+        {%- if writes %}
+        <td class="doc-table__cell">
+          <a class="doc-button doc-button--secondary doc-button--small" href="/plugins/{{ plugin.id }}">Edit<span class="nhsuk-u-visually-hidden"> {{ plugin.id }}</span></a>
+        </td>
+        {%- endif %}
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endfor %}
+</div>

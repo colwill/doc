@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">Everyone DOC knows: each is one person, with every account they sign in with. Somebody added by an approved email address can sign in with a DOC password before their organisation's SSO is set up.</p>
+{% endblock %}
+
+{% block page_actions %}
+<div class="doc-page-header__actions">
+  <a class="doc-button doc-button--secondary" href="/users/new">Add a person</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-full">
+    {%- if users.is_empty() %}
+    <p class="doc-empty">Nobody yet.</p>
+    {%- else %}
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">User</th>
+          <th class="doc-table__header" scope="col">Organisation</th>
+          <th class="doc-table__header" scope="col">Accounts</th>
+          <th class="doc-table__header" scope="col">Last signed in</th>
+          <th class="doc-table__header" scope="col">State</th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for user in users %}
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">
+            <a href="/users/{{ user.id }}">{{ user.login }}</a>
+            {%- if let Some(name) = user.name %}<br /><span class="doc-hint">{{ name }}</span>{% endif %}
+          </th>
+          <td class="doc-table__cell">{{ user.organisation }}</td>
+          <td class="doc-table__cell">
+            {%- if user.accounts.is_empty() %}None yet{% endif %}
+            {%- for (provider, login) in user.accounts %}{{ provider }}: {{ login }}{% if !loop.last %}<br />{% endif %}{% endfor %}
+          </td>
+          <td class="doc-table__cell">{{ user.signed_in.as_deref().unwrap_or("Never") }}</td>
+          <td class="doc-table__cell">{% if user.disabled %}<strong class="doc-badge doc-badge--down">Disabled</strong>{% else %}<strong class="doc-badge doc-badge--up">Active</strong>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

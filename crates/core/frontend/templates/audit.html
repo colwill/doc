@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- if chrome.admin %}
+{%- let tab = "audit" %}
+{%- include "admin_tabs.html" %}
+{%- endif %}
+<form action="/audit" method="get">
+  <div class="doc-form-group">
+    <label class="doc-label" for="action">Action starts with</label>
+    <span class="doc-hint" id="action-hint">Such as <code>plugin.rbac.</code> or <code>auth.sign-in</code>.</span>
+    <input class="doc-input" id="action" name="action" type="text" value="{{ filter.action }}" aria-describedby="action-hint" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="actor">Done by</label>
+    <input class="doc-input" id="actor" name="actor" type="text" value="{{ filter.actor }}" />
+  </div>
+  <button class="doc-button doc-button--secondary" type="submit">Filter</button>
+</form>
+{%- if entries.is_empty() %}
+<p class="doc-empty">Nothing matches.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">When</th>
+      <th class="doc-table__header" scope="col">Who</th>
+      <th class="doc-table__header" scope="col">Action</th>
+      <th class="doc-table__header" scope="col">Subject</th>
+      <th class="doc-table__header" scope="col">Detail</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for entry in entries %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ Self::when(entry.at) }}</td>
+      <td class="doc-table__cell">{{ entry.actor_label.as_deref().unwrap_or(entry.actor_kind.as_str()) }}</td>
+      <td class="doc-table__cell"><code>{{ entry.action }}</code></td>
+      <td class="doc-table__cell">{{ entry.subject.as_deref().unwrap_or("") }}</td>
+      <td class="doc-table__cell"><pre class="doc-code">{{ Self::detail(entry.detail) }}</pre></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if let Some(older) = older %}
+<p><a class="doc-button doc-button--secondary" href="/audit?{{ older }}">Older entries</a></p>
+{%- endif %}
+{% endblock %}

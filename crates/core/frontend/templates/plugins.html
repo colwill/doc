@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- if chrome.admin %}
+{%- let tab = "plugins" %}
+{%- include "admin_tabs.html" %}
+{%- endif %}
+{{ panel|safe }}
+{% endblock %}

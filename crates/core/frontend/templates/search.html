@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{%- macro pages_section() %}
+<h2 id="pages">Pages</h2>
+{%- if pages.is_empty() %}
+<p class="doc-empty">No pages match "{{ text }}".</p>
+{%- else %}
+<p class="doc-results__count">{{ pages.len() }} {% if pages.len() == 1 %}page{% else %}pages{% endif %}</p>
+<ul class="doc-results">
+  {%- for page in pages %}
+  <li class="doc-results__item">
+    <a class="doc-results__title" href="{{ page.href }}">{{ page.label }}</a>
+    {%- if let Some(description) = page.description %}
+    <p class="doc-results__description">{{ description }}</p>
+    {%- endif %}
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endmacro %}
+
+{%- macro resources_section() %}
+{%- if !resources.is_empty() %}
+<h2 id="catalogue">In the Catalogue</h2>
+<p class="doc-results__count">{{ resources.len() }} {% if resources.len() == 1 %}result{% else %}results{% endif %}</p>
+<ul class="doc-results">
+  {%- for resource in resources %}
+  <li class="doc-results__item">
+    <a class="doc-results__title" href="{{ resource.href }}">{{ resource.title }}</a>
+    <p class="doc-results__meta"><span>{{ resource.kind }}</span></p>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endmacro %}
+
+{%- macro discussions_section() %}
+{%- if !discussions.is_empty() %}
+<h2 id="discussions">Discussions</h2>
+<p class="doc-results__count">{{ discussions.len() }} {% if discussions.len() == 1 %}result{% else %}results{% endif %}</p>
+<ul class="doc-results">
+  {%- for discussion in discussions %}
+  <li class="doc-results__item">
+    <a class="doc-results__title" href="{{ discussion.href }}">{{ discussion.title }}</a>
+    <p class="doc-results__meta"><span>{{ discussion.detail }}</span></p>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endmacro %}
+
+{%- macro documents_section() %}
+{%- if searches_documents %}
+<h2 id="documentation">Documentation</h2>
+{%- if let Some(documents) = documents %}
+{%- if documents.is_empty() %}
+<p class="doc-empty">No documents match "{{ text }}".</p>
+{%- else %}
+<p class="doc-results__count">{{ documents.len() }} {% if documents.len() == 1 %}result{% else %}results{% endif %}</p>
+<ul class="doc-results">
+  {%- for document in documents %}
+  <li class="doc-results__item">
+    <a class="doc-results__title" href="{{ document.href }}">{{ document.title }}</a>
+    <p class="doc-results__meta"><span>{{ document.space }}</span></p>
+    <p class="doc-results__snippet">{% for stretch in document.snippet %}{% if stretch.matched %}<mark>{{ stretch.text }}</mark>{% else %}{{ stretch.text }}{% endif %}{% endfor %}</p>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- else %}
+<p class="doc-error-message" role="alert">Documentation could not be searched just now. Try again, or search on the Knowledge page.</p>
+{%- endif %}
+{%- endif %}
+{%- endmacro %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- include "search_form.html" %}
+
+    {%- if !text.is_empty() %}
+    {#- Whichever section belongs to the page this search was opened from goes first; the rest
+        keep their usual order, so a search with no page of its own reads exactly as before. -#}
+    {%- if focus == "resources" %}{% call resources_section() %}{% endcall %}{% endif %}
+    {%- if focus == "discussions" %}{% call discussions_section() %}{% endcall %}{% endif %}
+    {%- if focus == "documents" %}{% call documents_section() %}{% endcall %}{% endif %}
+    {% call pages_section() %}{% endcall %}
+    {%- if focus != "resources" %}{% call resources_section() %}{% endcall %}{% endif %}
+    {%- if focus != "discussions" %}{% call discussions_section() %}{% endcall %}{% endif %}
+    {%- if focus != "documents" %}{% call documents_section() %}{% endcall %}{% endif %}
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

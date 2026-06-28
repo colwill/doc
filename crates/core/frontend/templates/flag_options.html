@@ -1,0 +1,12 @@
+{%- if let Some(unavailable) = unavailable %}
+<p class="doc-combo__empty">{{ unavailable }} Type the flag's key instead.</p>
+{%- else if flags.is_empty() %}
+<p class="doc-combo__empty">{% if text.is_empty() %}No flag the platform reads is true or false yet.{% else %}No true-or-false flag the platform reads is called anything like “{{ text }}”.{% endif %}</p>
+{%- else %}
+{%- for flag in flags %}
+<button class="doc-combo__option" type="button" role="option" aria-selected="false" data-value="{{ flag.key }}">
+  <span class="doc-combo__name">{{ flag.key }}</span>
+  <span class="doc-combo__title">{% if flag.on %}On now{% else %}Off now{% endif %}</span>
+</button>
+{%- endfor %}
+{%- endif %}

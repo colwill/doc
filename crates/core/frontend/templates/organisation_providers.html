@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/organisations/{{ organisation.id }}/sign-in">{{ organisation.title }}</a></span>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="providers-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="providers-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <h2>Signing in</h2>
+    <p class="doc-hint">Its people sign in with these, and someone new who signs in with one joins it. Each serves one organisation.</p>
+    <form action="/organisations/{{ organisation.id }}/providers" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <fieldset class="doc-form-group">
+        <legend class="nhsuk-u-visually-hidden">Sign-in methods</legend>
+        {%- for provider in providers %}
+        <label class="doc-label"><input type="checkbox" name="provider" value="{{ provider.id }}"{% if self.chosen(provider) %} checked{% endif %}{% if self.taken(provider) %} disabled{% endif %} /> {{ provider.title }}{% if !provider.running %} <span class="doc-hint">(not running)</span>{% endif %}{% if self.taken(provider) %} <span class="doc-hint">(another organisation's)</span>{% endif %}</label>
+        {%- endfor %}
+      </fieldset>
+      <div class="doc-form-group">
+        <label class="doc-label" for="organisation-domains">Approved email domains</label>
+        <span class="doc-hint" id="organisation-domains-hint">One on each line, such as <code>acme.com</code>. An administrator or a team lead can add somebody by an address in one, and they sign in with a DOC password until SSO is set up. Each belongs to one organisation.</span>
+        <textarea class="doc-textarea" id="organisation-domains" name="domains" rows="4" aria-describedby="organisation-domains-hint">{% for domain in organisation.domains %}{{ domain }}
+{% endfor %}</textarea>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Save</button>
+        <a class="doc-button doc-button--secondary" href="/organisations/{{ organisation.id }}/sign-in">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

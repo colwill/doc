@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block page_actions %}
+{%- if let Some(actions) = actions %}
+<div class="doc-page-header__actions">
+  {{ actions|safe }}
+</div>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+{%- if let Some(faux) = faux %}
+{{ faux.render().unwrap_or_default()|safe }}
+{%- endif %}
+{%- for link in missing %}
+<div class="nhsuk-inset-text doc-link-notice">
+  <p>{{ link.plugins() }} works with your {{ link.name }} account, which is not linked yet.</p>
+  <form action="/account/links/{{ link.provider }}" method="post">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <input type="hidden" name="return_to" value="{{ here }}" />
+    <button class="doc-button doc-button--secondary doc-button--small" type="submit">Link your {{ link.name }} account</button>
+  </form>
+</div>
+{%- endfor %}
+{{ fragment|safe }}
+{% endblock %}

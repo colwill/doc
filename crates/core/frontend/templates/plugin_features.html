@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- let plugin_id = plugin.clone() %}
+{%- let settings_tab = tabs.settings %}
+{%- let features_tab = tabs.features %}
+{%- let tokens_tab = tabs.tokens %}
+{%- let tab = "features" %}
+{%- include "plugin_tabs.html" %}
+
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    <h2>Features</h2>
+    <p class="nhsuk-lede-text">What {{ plugin }} does. A feature that is off pauses the work it is for, including its schedules.</p>
+
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="features-error" role="alert" tabindex="-1">
+      <h3 class="nhsuk-error-summary__title" id="features-error">That was refused</h3>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if let Some(notice) = notice %}
+    <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+    {%- endif %}
+
+    {%- if features.is_empty() %}
+    <p class="doc-empty">{{ plugin }} declares no features.</p>
+    {%- else %}
+    <form action="/plugins/{{ plugin }}/features" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      {%- for feature in features %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="feature-{{ feature.name }}">
+          <input id="feature-{{ feature.name }}" name="feature-{{ feature.name }}" type="checkbox" value="on"{% if feature.enabled %} checked{% endif %}{% if !writes %} disabled{% endif %} />
+          {% if feature.label.is_empty() %}{{ feature.name }}{% else %}{{ feature.label }}{% endif %}
+        </label>
+        {%- if !feature.description.is_empty() %}
+        <span class="doc-hint">{{ feature.description }}</span>
+        {%- endif %}
+        {%- if !feature.warning.is_empty() %}
+        <div class="nhsuk-warning-callout">
+          <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Before you turn this on</span></h3>
+          <p>{{ feature.warning }}</p>
+        </div>
+        {%- endif %}
+      </div>
+      {%- endfor %}
+      {%- if writes %}
+      <button class="doc-button" type="submit">Save features</button>
+      {%- else %}
+      <p class="doc-hint">You may see these features but not switch them.</p>
+      {%- endif %}
+    </form>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

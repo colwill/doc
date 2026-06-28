@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/tokens">Access tokens</a></span>
+{% endblock %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">A token acts as you from the command line or a script. Its secret is shown once, when it is made.</p>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="token-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="token-error">The token was not created</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <form action="/tokens" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="token-name">Name</label>
+        <span class="doc-hint" id="token-name-hint">What it is for, such as "laptop" or "deploy script".</span>
+        <input class="doc-input" id="token-name" name="name" type="text" maxlength="64" value="{{ values.name }}" aria-describedby="token-name-hint" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="token-days">Expires after (days)</label>
+        <span class="doc-hint" id="token-days-hint">1 to 365. Leave it empty for a token that never expires.</span>
+        <input class="doc-input" id="token-days" name="days" type="text" inputmode="numeric" value="{{ values.days }}" aria-describedby="token-days-hint" />
+      </div>
+      <button class="doc-button" type="submit">Create token</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

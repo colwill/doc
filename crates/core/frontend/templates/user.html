@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+
+{% block page_actions %}
+<div class="doc-page-header__actions">
+  {%- if self.on("overview") %}
+  {%- if moves %}
+  <a class="doc-button doc-button--secondary" href="/users/{{ user.id }}/organisation">Move to another organisation</a>
+  {%- endif %}
+  {%- if merges %}
+  <a class="doc-button doc-button--secondary" href="/users/{{ user.id }}/merge">Merge in a user</a>
+  {%- endif %}
+  <form action="/users/{{ user.id }}/disabled" method="post">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    {%- if user.disabled %}
+    <input type="hidden" name="disabled" value="false" />
+    <button class="doc-button doc-button--secondary" type="submit">Enable</button>
+    {%- else %}
+    <input type="hidden" name="disabled" value="true" />
+    <button class="doc-button doc-button--warning" type="submit">Disable</button>
+    {%- endif %}
+  </form>
+  {%- else if self.on("accounts") %}
+  <a class="doc-button doc-button--secondary" href="/users/{{ user.id }}/identities/new">Link an account</a>
+  {%- endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="doc-with-contents">
+  {%- let sections_label = "This user" %}
+  {%- include "contents.html" %}
+  <div class="doc-with-contents__main">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="user-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="user-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if let Some(notice) = notice %}
+    <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+    {%- endif %}
+
+    {%- if self.on("overview") %}
+    <h2>Overview</h2>
+    <dl class="doc-summary">
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Organisation</dt>
+        <dd class="doc-summary__value">{% if let Some(organisation) = user.organisation %}<a href="/organisations/{{ organisation.id }}">{{ organisation.title }}</a>{% endif %}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Name</dt>
+        <dd class="doc-summary__value">{{ user.name.as_deref().unwrap_or("Not given") }}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Email address</dt>
+        <dd class="doc-summary__value">{{ user.email.as_deref().unwrap_or("Not given") }}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Signed in</dt>
+        <dd class="doc-summary__value">
+          {%- if let Some(first) = first_signed_in %}First {{ first }}, last {{ last_signed_in.as_deref().unwrap_or(first) }}{% else %}Never: added before they sign in{% endif %}
+        </dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">State</dt>
+        <dd class="doc-summary__value">{% if user.disabled %}<strong class="doc-badge doc-badge--down">Disabled</strong>{% else %}<strong class="doc-badge doc-badge--up">Active</strong>{% endif %}</dd>
+      </div>
+    </dl>
+    <p><a href="/p/rbac/principals/user/{{ user.id }}">Their groups, permissions and attributes</a></p>
+
+    {%- else if self.on("teams") %}
+    <h2>Teams</h2>
+    {%- if user.teams.is_empty() %}
+    <p class="doc-empty">In no team yet.</p>
+    {%- else %}
+    <ul class="nhsuk-list nhsuk-list--bullet">
+      {%- for team in user.teams %}
+      <li><a href="/teams/{{ team.id }}">{{ team.title }}</a>{% if team.source == "default" %} <span class="doc-hint">as everyone is, to a default team</span>{% else if team.source == "provider" %} <span class="doc-hint">from its provider</span>{% endif %}</li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+
+    {%- else if self.on("accounts") %}
+    <h2>Accounts</h2>
+    {%- if accounts.is_empty() %}
+    <p class="doc-empty">No accounts yet, so they cannot sign in. Link one with Link an account.</p>
+    {%- else %}
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">Account</th>
+          <th class="doc-table__header" scope="col">ID</th>
+          <th class="doc-table__header" scope="col">Linked</th>
+          <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Action</span></th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for account in accounts %}
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">{{ account.provider }}<br /><span class="doc-hint">{{ account.login }}</span>{% if let Some(manage) = account.manage %}<br /><a href="{{ manage }}">Manage its password</a>{% endif %}</th>
+          <td class="doc-table__cell"><code>{{ account.external_id }}</code></td>
+          <td class="doc-table__cell">
+            {{ account.how }}.
+            {%- if let Some(used) = account.last_used %} Last used {{ used }}.{% else %} Not used yet.{% endif %}
+            {%- if let Some(reported) = account.reported %}<br /><span class="doc-hint">Says: {{ reported }}</span>{% endif %}
+          </td>
+          <td class="doc-table__cell">
+            <form action="/users/{{ user.id }}/identities/{{ account.id }}/unlink" method="post">
+              <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+              <button class="doc-button doc-button--warning doc-button--small" type="submit">Unlink<span class="nhsuk-u-visually-hidden"> {{ account.provider }} account {{ account.login }}</span></button>
+            </form>
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- endif %}
+
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">A service account acts for a tool or pipeline rather than a person. You own the ones you create, or give them to a team you are in so that its members manage them too, and can grant them no more than your own access.</p>
+{% endblock %}
+
+{% block page_actions %}
+<div class="doc-page-header__actions">
+  <a class="doc-button doc-button--secondary" href="/service-accounts/new">Add a service account</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-full">
+
+    {%- if accounts.is_empty() %}
+    <p class="doc-empty">You have no service accounts yet.</p>
+    {%- else %}
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">Name</th>
+          <th class="doc-table__header" scope="col">Description</th>
+          <th class="doc-table__header" scope="col">Owner</th>
+          <th class="doc-table__header" scope="col">Created</th>
+          <th class="doc-table__header" scope="col">State</th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for (account, owner) in accounts %}
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row"><a href="/service-accounts/{{ account.id }}">{{ account.name }}</a></th>
+          <td class="doc-table__cell">{{ account.description.as_deref().unwrap_or("") }}</td>
+          <td class="doc-table__cell">{% if let Some(href) = owner.href %}<a href="{{ href }}">{{ owner.label }}</a>{% else %}{{ owner.label }}{% endif %}</td>
+          <td class="doc-table__cell">{{ Self::when(account.created_at) }}</td>
+          <td class="doc-table__cell">{% if account.disabled %}<strong class="doc-badge doc-badge--down">Disabled</strong>{% else %}<strong class="doc-badge doc-badge--up">Active</strong>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- endif %}
+
+  </div>
+</div>
+{% endblock %}

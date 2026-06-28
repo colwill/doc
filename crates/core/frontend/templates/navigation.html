@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-full">
+    {%- let tab = "navbar" %}
+    {%- include "admin_tabs.html" %}
+    <p class="nhsuk-lede-text">How the navigation bar is arranged, for everyone. Each person still sees only the pages they can open.</p>
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="navigation-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="navigation-error">The navigation was not saved</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if saved %}
+    <div class="nhsuk-inset-text" role="status"><p>Saved. Everyone sees the new navigation on their next page.</p></div>
+    {%- endif %}
+    <ul class="nhsuk-list nhsuk-list--bullet">
+      <li><strong>Drag a row by its handle</strong> to put the pages in order, or move one with the up and down arrow keys once its handle has focus. The <strong>Order</strong> numbers follow along; they say where a row is, not what to type. A menu sits where its first page would.</li>
+      <li><strong>Menu</strong> gathers pages under one name, such as "Access". Leave it empty to keep the menu the page asks for, or type <code>-</code> to keep the page on the bar itself.</li>
+      <li><strong>Label</strong> renames a page. Leave it empty to keep its own name.</li>
+      <li>Add links of your own to any page of this platform, such as <code>/p/rbac/people</code> labelled "Users".</li>
+      <li>Pages added later, such as a new plugin's, appear at the end until arranged.</li>
+    </ul>
+
+    <form action="/navigation" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+
+      <h3>The bar itself</h3>
+      <p>What the bar holds, left to right. Drag a menu to move it and its pages together. <strong>Admin</strong> is always last.</p>
+      {%- if tops.is_empty() %}
+      <p class="doc-empty">Nothing is on the bar yet.</p>
+      {%- else %}
+      <table class="doc-table doc-arrange">
+        <thead class="doc-table__head">
+          <tr>
+            <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Drag to reorder</span></th>
+            <th class="doc-table__header" scope="col">Order</th>
+            <th class="doc-table__header" scope="col">On the bar</th>
+          </tr>
+        </thead>
+        <tbody data-reorder>
+          {%- for top in tops %}
+          {%- let at = loop.index0 %}
+          <tr class="doc-table__row">
+            <td class="doc-table__cell doc-arrange__grip">
+              <button class="doc-arrange__handle" type="button" data-reorder-handle data-reorder-name="{{ top.label }}" aria-label="Move {{ top.label }}: drag it, or use the up and down arrow keys">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm9-12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+              </button>
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input doc-arrange__order" data-reorder-order name="toporder.{{ at }}" type="text" inputmode="numeric" value="{{ Self::order(at) }}" readonly aria-label="Where {{ top.label }} is, counted from the top" />
+              <input type="hidden" name="top.{{ at }}" value="{{ top.key }}" />
+            </td>
+            <th class="doc-table__header" scope="row">
+              {{ top.label }}
+              {%- if top.menu %}<br /><span class="doc-hint">A menu, with its pages inside it</span>
+              {%- else %}<br /><span class="doc-hint">A page on the bar itself</span>{% endif %}
+            </th>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+      {%- endif %}
+
+      <h3>The pages</h3>
+      <datalist id="navigation-menus">
+        {%- for group in groups %}
+        <option value="{{ group }}"></option>
+        {%- endfor %}
+      </datalist>
+      <table class="doc-table doc-arrange">
+        <thead class="doc-table__head">
+          <tr>
+            <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Drag to reorder</span></th>
+            <th class="doc-table__header" scope="col">Order</th>
+            <th class="doc-table__header" scope="col">Page</th>
+            <th class="doc-table__header" scope="col">Label</th>
+            <th class="doc-table__header" scope="col">Menu</th>
+            <th class="doc-table__header" scope="col">Shown</th>
+          </tr>
+        </thead>
+        <tbody data-reorder>
+          {%- for row in rows %}
+          {%- let at = loop.index0 %}
+          <tr class="doc-table__row">
+            <td class="doc-table__cell doc-arrange__grip">
+              <button class="doc-arrange__handle" type="button" data-reorder-handle data-reorder-name="{% if row.known %}{{ row.offered }}{% else %}{{ row.href }}{% endif %}" aria-label="Move {% if row.known %}{{ row.offered }}{% else %}{{ row.href }}{% endif %}: drag it, or use the up and down arrow keys">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm9-12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+              </button>
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input doc-arrange__order" data-reorder-order name="order.{{ at }}" type="text" inputmode="numeric" value="{{ Self::order(at) }}" readonly aria-label="Where {{ row.href }} is, counted from the top" />
+              <input type="hidden" name="href.{{ at }}" value="{{ row.href }}" />
+              {%- if row.kept %}<input type="hidden" name="kept.{{ at }}" value="1" />{% endif %}
+            </td>
+            <td class="doc-table__cell">
+              {%- if row.known %}
+              {{ row.offered }}
+              <input type="hidden" name="offered.{{ at }}" value="{{ row.offered }}" />
+              <br /><code>{{ row.href }}</code>
+              {%- if row.footer %}<br /><span class="doc-hint">In the footer: it can be renamed or hidden here, but the footer keeps its own order.</span>{% endif %}
+              {%- else %}
+              <code>{{ row.href }}</code><br /><span class="doc-hint">Your own link</span>
+              {%- endif %}
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input" name="label.{{ at }}" type="text" maxlength="60" value="{{ row.label }}" placeholder="{{ row.offered }}" aria-label="Label for {{ row.href }}" />
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input" name="group.{{ at }}" type="text" maxlength="60" list="navigation-menus" value="{{ row.group }}" aria-label="Menu for {{ row.href }}" />
+            </td>
+            <td class="doc-table__cell">
+              <label class="doc-arrange__check"><input type="checkbox" name="shown.{{ at }}" {% if row.shown %}checked{% endif %} /> Shown</label>
+              {%- if !row.known %}
+              <label class="doc-arrange__check"><input type="checkbox" name="remove.{{ at }}" /> Remove</label>
+              {%- endif %}
+            </td>
+          </tr>
+          {%- endfor %}
+          {%- for at in spare %}
+          <tr class="doc-table__row">
+            <td class="doc-table__cell doc-arrange__grip">
+              <button class="doc-arrange__handle" type="button" data-reorder-handle data-reorder-name="the new link" aria-label="Move the new link: drag it, or use the up and down arrow keys">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm9-12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+              </button>
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input doc-arrange__order" data-reorder-order name="order.{{ at }}" type="text" inputmode="numeric" value="" readonly aria-label="Where the new link is, counted from the top" />
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input" name="href.{{ at }}" type="text" maxlength="512" placeholder="/p/rbac/people" aria-label="Page for a new link" />
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input" name="label.{{ at }}" type="text" maxlength="60" aria-label="Label for a new link" />
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input" name="group.{{ at }}" type="text" maxlength="60" list="navigation-menus" aria-label="Menu for a new link" />
+            </td>
+            <td class="doc-table__cell">
+              <label class="doc-arrange__check"><input type="checkbox" name="shown.{{ at }}" checked /> Shown</label>
+            </td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Save the navigation</button>
+        <button class="doc-button doc-button--secondary" type="submit" name="reset" value="1">Go back to the default</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

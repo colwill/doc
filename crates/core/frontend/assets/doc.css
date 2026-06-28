@@ -1,0 +1,6092 @@
+
+:root {
+  --doc-primary-colour: #3d415c; 
+  --doc-primary-hover-colour: #8389b6;
+  --doc-primary-active-colour: #2e005c;
+  /* Focus: a lilac block with the same corner as buttons and cards. NHS uses yellow with a black
+     underline; the underline is what has to stand out from what is behind it, so here it is the
+     deepest purple on the ramp and the block itself can be light. */
+  --doc-focus-radius: 4px;
+  --doc-focus-colour: #d9bfff;
+  --doc-focus-text-colour: #1a0033;
+  --doc-focus-underline-colour: var(--doc-primary-active-colour);
+  /* The hairline that divides a dark band: under the header's top row, and above the footer's
+     version. */
+  --doc-band-rule-colour: #576272;
+
+  --nhsuk-blue-colour: var(--doc-primary-colour);
+  --nhsuk-brand-colour: var(--doc-primary-colour);
+  --nhsuk-link-colour: var(--doc-primary-colour);
+  --nhsuk-link-active-colour: var(--doc-primary-active-colour);
+  --nhsuk-login-button-colour: var(--doc-primary-colour);
+  --nhsuk-login-button-hover-colour: var(--doc-primary-hover-colour);
+  --nhsuk-login-button-active-colour: var(--doc-primary-active-colour);
+  --nhsuk-secondary-button-border-colour: var(--doc-primary-colour);
+  --nhsuk-secondary-button-shadow-colour: var(--doc-primary-colour);
+  --nhsuk-secondary-button-text-colour: var(--doc-primary-colour);
+  --nhsuk-focus-colour: var(--doc-focus-colour);
+  --nhsuk-focus-text-colour: var(--doc-focus-text-colour);
+}
+
+:focus,
+:focus-visible {
+  border-radius: var(--doc-focus-radius);
+}
+
+/* nhsuk-frontend writes the yellow into its own rules as well as reading its token, so what it
+   styles is said again here. Anything drawn as text takes the block and its underline... */
+a:focus,
+summary:focus,
+.nhsuk-button:focus,
+.nhsuk-skip-link:focus,
+.nhsuk-back-link__link:focus,
+.nhsuk-breadcrumb__link:focus,
+.nhsuk-details__summary:focus,
+.nhsuk-header__navigation-link:focus,
+.nhsuk-header__service-name[href]:focus,
+.nhsuk-header__service-logo:focus,
+.nhsuk-header__account-link:focus,
+.nhsuk-header__account-button:focus,
+.nhsuk-footer__list-item-link:focus,
+.nhsuk-pagination__link:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow:
+    0 -2px var(--doc-focus-colour),
+    0 4px var(--doc-focus-underline-colour);
+  border-radius: var(--doc-focus-radius);
+  color: var(--doc-focus-text-colour);
+  text-decoration: none;
+}
+
+/* ...and anything you type in takes the ring, which leaves what you are typing legible. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  border-color: var(--doc-focus-underline-colour);
+  border-radius: var(--doc-focus-radius);
+}
+
+/* Selected text, so a selection looks like it belongs to the same palette. */
+::selection {
+  background-color: var(--doc-focus-colour);
+  color: var(--doc-focus-text-colour);
+}
+
+.nhsuk-header,
+.nhsuk-do-dont-list__label,
+.nhsuk-notification-banner__header,
+.nhsuk-panel--interruption,
+.nhsuk-table__heading-tab {
+  background-color: var(--doc-primary-colour);
+}
+
+/* The header band is runcfg's: its primary 700 through 600 to 800, from the top left corner to the
+   bottom right. The navigation row and the landing page's hero are inside the header, so they let
+   its gradient through rather than each painting one of its own. */
+.nhsuk-header {
+  background-image: linear-gradient(to bottom right, var(--doc-primary-colour), #52577a, #292b3d);
+}
+
+/* Every other page paints the band as tall as the landing page's header and shows its top, so the
+   navigation rows look as they do above the hero rather than holding the whole gradient. The
+   heights are the landing page's, measured: it settles at 437px from a tablet up, and varies with
+   how its heading wraps on a phone. The landing page itself keeps its own size. */
+.nhsuk-header:not(:has(.nhsuk-hero)) {
+  --doc-band-height: 440px;
+  background-repeat: no-repeat;
+  background-size: 100% max(100%, var(--doc-band-height));
+}
+
+@media (min-width: 40.0625em) {
+  .nhsuk-header:not(:has(.nhsuk-hero)) {
+    --doc-band-height: 437px;
+  }
+}
+
+.nhsuk-header__navigation,
+.nhsuk-hero {
+  background-color: transparent;
+}
+
+a,
+.nhsuk-link,
+.nhsuk-link--no-visited-state,
+.nhsuk-link--no-visited-state:visited,
+.nhsuk-action-link,
+.nhsuk-back-link,
+.nhsuk-back-link:visited,
+.nhsuk-breadcrumb__link,
+.nhsuk-breadcrumb__link:visited,
+.nhsuk-details__summary-text,
+.nhsuk-notification-banner__link,
+.nhsuk-notification-banner__link:visited {
+  color: var(--doc-primary-colour);
+}
+
+/* The rule under the logo is drawn as a shadow, not a border: the footer's hairline, so the two
+   bands are divided alike. nhsuk hides it below its own 40.0525em breakpoint, so that arm is
+   repeated here rather than overridden away. */
+.nhsuk-header__navigation-container {
+  box-shadow: 0 -1px 0 0 var(--doc-band-rule-colour);
+}
+
+@media (max-width: 40.0525em) {
+  .nhsuk-header__navigation-container {
+    box-shadow: none;
+  }
+}
+
+/* Rows put in order by dragging them, or with the arrow keys on their handle. */
+.doc-arrange__grip {
+  width: 3rem;
+  padding-right: 8px;
+}
+
+.doc-arrange__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  cursor: grab;
+}
+
+.doc-arrange__handle:hover {
+  border-color: var(--nhsuk-border-colour, #d8dde0);
+  color: var(--doc-primary-colour);
+}
+
+/* The order is shown, not asked for: it follows the row, and dragging is what changes it. */
+.doc-arrange__order[readonly] {
+  border-color: transparent;
+  background: none;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: default;
+}
+
+.doc-arrange__handle:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  box-shadow: 0 4px 0 var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  border-radius: var(--doc-focus-radius);
+}
+
+.doc-arrange__handle:active {
+  cursor: grabbing;
+}
+
+.doc-arrange__row--dragging {
+  opacity: 0.45;
+  outline: 2px dashed var(--doc-primary-colour);
+}
+
+/* `Admin` sits at the far end of the bar, so an administrator's own tools are plainly apart. The
+   notifications bell (below) carries the margin that pulls both of them to the right, since two
+   adjacent auto margins would split the free space and open a gap between them; `Admin` just
+   follows it in visual order with none of its own. */
+.doc-menu--end {
+  order: 2;
+}
+
+/* The bell: always present for a signed-in user, so it is what pulls the trailing group of the
+   bar to the right; `Admin`, when it is there too, trails it with no gap (see `.doc-menu--end`). */
+.doc-notifications-item {
+  order: 1;
+  margin-left: auto;
+}
+
+.doc-notifications {
+  position: relative;
+}
+
+.doc-notifications__toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+}
+
+.doc-notifications__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.doc-notifications__icon {
+  display: block;
+  fill: currentcolor;
+}
+
+.doc-notifications__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2em;
+  height: 1.2em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background-color: var(--doc-primary-colour);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* A set width, since its rows never wrap: shrink-to-fit would size it to the longest title. Doubled
+   classes so it wins over `.doc-menu__list`, which comes later. On a phone it spans the screen
+   inside the gutter, fixed to the viewport but left at its own height by `top: auto`. */
+.doc-menu__list.doc-notifications__panel {
+  right: 0;
+  left: auto;
+  width: 28rem;
+  max-width: calc(100vw - 32px);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 40.0525em) {
+  .doc-menu__list.doc-notifications__panel {
+    position: fixed;
+    top: auto;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+.doc-notifications__empty {
+  padding: 16px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-notification-rows {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-notification-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-notification-row:last-child {
+  border-bottom: none;
+}
+
+.doc-notification-row--more {
+  justify-content: center;
+}
+
+.doc-notification-row--unread {
+  background-color: #f0f4f5;
+}
+
+/* The one the bell was followed to: marked, and scrolled to clear of the header's edge. */
+.doc-notification-row--shown {
+  border-left: 4px solid var(--doc-primary-colour);
+  background-color: #efe5fa;
+  scroll-margin-top: 16px;
+}
+
+.doc-notification-row--shown:focus {
+  outline: none;
+}
+
+.doc-notification-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-notification-row__title {
+  display: block;
+  font-weight: 600;
+}
+
+.doc-notification-row__text {
+  margin: 2px 0;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-notification-row__when {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.85em;
+}
+
+.doc-notification-row__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* The bell's rows: one line each — what sent it, its title (cut short, with the rest of it and the
+   body in the tooltip), when, and a tick that marks it read and takes it out of the bell. Only
+   unread notifications are listed, so every row carries the unread marker on its left edge. */
+.doc-bell-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-bell-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 4px 8px 4px 13px;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  border-left: 3px solid var(--doc-primary-colour);
+  background-color: #fff;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.doc-bell-row:hover,
+.doc-bell-row:focus-within {
+  background-color: #f0f4f5;
+}
+
+.doc-bell-row__source {
+  flex: none;
+  max-width: 9rem;
+  overflow: hidden;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: #efe5fa;
+  color: #3d007b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-notification-row__body .doc-bell-row__source {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.doc-bell-row__title,
+.doc-bell-row__title:visited {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #212b32;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.doc-bell-row__title,
+a.doc-bell-row__title:visited {
+  color: var(--doc-primary-colour);
+  text-decoration: none;
+}
+
+a.doc-bell-row__title:hover {
+  text-decoration: underline;
+}
+
+.doc-bell-row__when {
+  flex: none;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.doc-bell-row__read {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: none;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  cursor: pointer;
+  fill: currentcolor;
+}
+
+.doc-bell-row__read:hover {
+  border-color: var(--doc-primary-colour);
+  color: var(--doc-primary-colour);
+}
+
+.doc-bell-row__read:focus-visible {
+  outline: 3px solid #ffeb3b;
+  box-shadow: 0 0 0 1px #212b32;
+}
+
+/* The footer, drawn as Runcfg draws its own: a dark band with the brand at the start and the
+   footer's links at the end — the platform's health, your own tokens and help, kept out of the
+   bar — then a rule and the version under them, centred. The brand is the header's, the instance
+   name and the knockout plate, which shows the band through its letters as the header's does.
+   Runcfg's colours, except the small line: its #6b7280 is 3.7:1 on the band, short of the 4.5:1
+   small text needs, so it is a step lighter. */
+.doc-footer {
+  padding: 48px 0;
+  background-color: #111827;
+  color: #9ca3af;
+}
+
+.doc-footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+}
+
+.doc-footer .doc-brand:not(:focus) {
+  text-decoration: none;
+}
+
+.doc-footer-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Grey until pointed at, then white. Not while focused, which takes the focus block like any
+   link; `:not(:focus)` is also what outranks the visited colour nhsuk gives every link. */
+.doc-footer-nav__link:not(:focus) {
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 150ms;
+}
+
+.doc-footer-nav__link:not(:focus):hover {
+  color: #fff;
+}
+
+.doc-footer-nav__link {
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.doc-footer__meta {
+  margin: 32px 0 0;
+  padding-top: 32px;
+  border-top: 1px solid var(--doc-band-rule-colour);
+  color: #7c8493;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Too narrow to stand side by side: the brand above the links, both centred. */
+@media (max-width: 40.0525em) {
+  .doc-footer__top {
+    flex-direction: column;
+  }
+
+  .doc-footer-nav__list {
+    justify-content: center;
+    gap: 8px 24px;
+  }
+}
+
+.nhsuk-inset-text {
+  border-left-color: var(--doc-primary-colour);
+}
+
+.nhsuk-notification-banner {
+  border-color: var(--doc-primary-colour);
+}
+
+/* The wordmark. `logo.png` is a knockout plate — the letters are holes in an opaque white
+   field — so the header band behind it shows through them. Relative URLs so they resolve next
+   to this file whether it is served from its hashed path or its plain one. */
+
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("vendor/montserrat/montserrat-latin-800-normal.woff2") format("woff2");
+}
+
+/* The brand, the same in the header and the footer: the instance name, then the plate, both sized
+   from the brand's own font size, so the plate stays 1.1667 times the name's size and the name's
+   cap height matches the plate's letters. nhsuk lays the service name out as a column, and makes
+   it `display: block` when it is the only child of the service block; either one drops the logo
+   below the instance name, and both outrank a single class, so this is scoped to beat them. */
+.nhsuk-header__service .doc-brand,
+.doc-footer .doc-brand {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  font-family: "Montserrat", arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* The footer's is half the header's. */
+.doc-footer .doc-brand {
+  font-size: 0.75rem;
+}
+
+.doc-brand__instance {
+  color: #fff;
+}
+
+.doc-logo {
+  display: block;
+  flex-shrink: 0;
+  height: 1.1667em;
+  width: auto;
+  max-width: none;
+  border-radius: 0.125rem;
+}
+
+.doc-brand__instance + .doc-logo {
+  margin-left: 0.25em;
+}
+
+/* Focused, the brand turns dark on the focus colour as any focused text does: the instance name
+   takes the focus text colour, and the white plate goes dark so its knocked-out letters show the
+   focus colour through it rather than fading into white. */
+.doc-brand:focus .doc-brand__instance {
+  color: var(--doc-focus-text-colour);
+}
+
+.doc-brand:focus .doc-logo {
+  filter: brightness(0);
+}
+
+/* Where the system chooses the colours, the focus colour is not behind it to show through. */
+@media (forced-colors: active) {
+  .doc-brand:focus .doc-logo {
+    filter: none;
+  }
+}
+
+.nhsuk-header__service {
+  display: flex;
+  align-items: center;
+}
+
+/* Who is signed in, and the way out, at the far end of the header. */
+.doc-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* The header's search takes the free space before it, so the two sit together on the right. */
+  margin: 0 0 0 12px;
+}
+
+.doc-account__name {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* The name leads to your account page. */
+a.doc-account__name,
+a.doc-account__name:visited {
+  color: #fff;
+  text-decoration: none;
+}
+
+a.doc-account__name:hover {
+  text-decoration: underline;
+}
+
+a.doc-account__name:focus {
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 -2px var(--doc-focus-colour), 0 4px var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  outline: 4px solid transparent;
+  text-decoration: none;
+  border-radius: var(--doc-focus-radius);
+}
+
+/* HTMX's own indicator styles are an inline <style>, which the CSP refuses, so they live here. */
+.htmx-indicator {
+  opacity: 0;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+/* Buttons */
+
+/* A button carries the gap under it, the way the rest of a form's parts do, so whatever comes
+   next — another section's heading, a field, a table — is not flush against it. Wherever
+   something else already spaces the button, the rule below hands the gap back. */
+.doc-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 12px 16px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background-color: var(--nhsuk-button-colour, #007f3b);
+  box-shadow: 0 4px 0 var(--nhsuk-button-shadow-colour, #00401e);
+  color: var(--nhsuk-button-text-colour, #fff);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.doc-button:visited,
+.doc-button:hover,
+.doc-button:active {
+  color: var(--nhsuk-button-text-colour, #fff);
+  text-decoration: none;
+}
+
+.doc-button:hover {
+  background-color: var(--nhsuk-button-hover-colour, #00662f);
+}
+
+.doc-button:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.doc-button:focus-visible {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 4px 0 var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+}
+
+.doc-button[disabled],
+.doc-button[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.doc-button--secondary,
+.doc-button--secondary:visited,
+.doc-button--secondary:hover,
+.doc-button--secondary:active {
+  border-color: var(--nhsuk-secondary-button-border-colour, #5b00b8);
+  background-color: var(--nhsuk-secondary-button-solid-background-colour, #fff);
+  box-shadow: 0 4px 0 var(--nhsuk-secondary-button-shadow-colour, #5b00b8);
+  color: var(--nhsuk-secondary-button-text-colour, #5b00b8);
+}
+
+.doc-button--secondary:hover {
+  background-color: var(--nhsuk-secondary-button-hover-colour, #d9e7f4);
+}
+
+.doc-button--warning,
+.doc-button--warning:visited,
+.doc-button--warning:hover,
+.doc-button--warning:active {
+  background-color: var(--nhsuk-warning-button-colour, #d5281b);
+  box-shadow: 0 4px 0 var(--nhsuk-warning-button-shadow-colour, #6b140e);
+  color: var(--nhsuk-button-text-colour, #fff);
+}
+
+.doc-button--warning:hover {
+  background-color: var(--nhsuk-warning-button-hover-colour, #aa2016);
+}
+
+.doc-button--small {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+}
+
+/* Rows, toolbars and cells lay their buttons out themselves, so a button in one takes no gap. */
+.doc-button-group .doc-button,
+.doc-field-row .doc-button,
+.doc-table__cell .doc-button,
+.doc-table__header .doc-button,
+.doc-summary__value .doc-button,
+.doc-card__heading .doc-button,
+.doc-card__footer .doc-button,
+.doc-account .doc-button {
+  margin-bottom: 0;
+}
+
+/* A field and the one button that acts on it, side by side: the field takes the room that is
+   left and the button sits at its end, so the two line up rather than the button hanging under
+   the field. Where there is no room for both they fold onto two lines. */
+.doc-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 36rem;
+  margin-bottom: 24px;
+}
+
+.doc-field-row > :first-child {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+/* The field fills the row, which is what holds the width the field would have had. */
+.doc-field-row .doc-combo,
+.doc-field-row .doc-input,
+.doc-field-row .doc-select {
+  max-width: none;
+}
+
+.doc-field-row .doc-button {
+  flex: none;
+}
+
+.doc-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Cards */
+
+.doc-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-card__heading {
+  margin: 0 0 8px;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.32;
+}
+
+.doc-card__content {
+  flex-grow: 1;
+}
+
+.doc-card__content > :last-child,
+.doc-card__footer > :last-child {
+  margin-bottom: 0;
+}
+
+.doc-card__footer {
+  margin: 24px -24px -24px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  font-size: 0.875rem;
+  line-height: 1.71;
+}
+
+.doc-card-group {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  margin-bottom: 24px;
+}
+
+.doc-card-group .doc-card {
+  margin-bottom: 0;
+}
+
+/* For cards that carry a table rather than a sentence. */
+.doc-card-group--wide {
+  grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+}
+
+.doc-card__content > .doc-table {
+  margin-bottom: 8px;
+}
+
+/* Tables */
+
+.doc-table {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 40px;
+  border-spacing: 0;
+  border-collapse: collapse;
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.doc-table__caption {
+  margin-bottom: 8px;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.42;
+  text-align: left;
+}
+
+.doc-table__header,
+.doc-table__cell {
+  padding: 8px 16px 8px 0;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-table__header {
+  font-weight: 600;
+}
+
+.doc-table__head .doc-table__header {
+  border-bottom: 2px solid var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-table__header--numeric,
+.doc-table__cell--numeric,
+.doc-table__header--end,
+.doc-table__cell--end {
+  text-align: right;
+}
+
+.doc-table__header--centred,
+.doc-table__cell--centred {
+  text-align: center;
+}
+
+/* A heading that sorts its table when pressed, A to Z and then Z to A. It reads as the heading it
+   is, with a pair of arrows after it: both faint until the column is sorted by, then the one that
+   says which way. The heading's own `aria-sort` says the same to a screen reader. */
+.doc-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.doc-table__sort:not(:focus) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.doc-table__sort:not(:focus):hover {
+  text-decoration: underline;
+}
+
+.doc-table__sort-icon {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-table__sort-icon::before,
+.doc-table__sort-icon::after {
+  content: "";
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  opacity: 0.3;
+}
+
+.doc-table__sort-icon::before {
+  border-bottom: 5px solid currentcolor;
+}
+
+.doc-table__sort-icon::after {
+  border-top: 5px solid currentcolor;
+}
+
+[aria-sort="ascending"] .doc-table__sort-icon::before,
+[aria-sort="descending"] .doc-table__sort-icon::after {
+  opacity: 1;
+}
+
+/* A table stays inside the page: code in a cell, such as a JSON detail, wraps wherever it must
+   rather than widening it, and a long word elsewhere breaks only when nothing else fits. */
+.doc-table__cell {
+  overflow-wrap: break-word;
+}
+
+.doc-table__cell .doc-code {
+  display: block;
+  margin: 0;
+  padding: 4px 8px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* In a cell a `code` names one thing, such as a permission, so it reads on its own line. */
+.doc-table__cell code.doc-code,
+.doc-table__header code.doc-code {
+  display: block;
+  padding: 0;
+}
+
+/* One of a set of tables drawn one after another, such as one per kind: fixed columns, so each
+   column starts in the same place in every table rather than wherever its own contents put it. */
+.doc-table--fixed {
+  table-layout: fixed;
+}
+
+/* Too narrow for every column: the table scrolls sideways in its own box, not the page. */
+@media (max-width: 40.0525em) {
+  .doc-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+.doc-table__body .doc-table__row:last-child .doc-table__cell,
+.doc-table__body .doc-table__row:last-child .doc-table__header {
+  border-bottom: 0;
+}
+
+/* A row a filter has hidden: `tr` already carries a `display` of its own from the table layout
+   module, which `[hidden]`'s plain rule does not reliably win against, so it is said again here. */
+.doc-table__row[hidden] {
+  display: none;
+}
+
+/* Forms */
+
+.doc-form-group {
+  margin-bottom: 24px;
+}
+
+.doc-form-group--error {
+  padding-left: 16px;
+  border-left: 4px solid var(--nhsuk-error-colour, #d5281b);
+}
+
+.doc-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.doc-hint {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* A hint beside something rather than under it, such as a note in a legend. */
+.doc-hint--inline {
+  display: inline;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.doc-error-message {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--nhsuk-error-colour, #d5281b);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.doc-input,
+.doc-select,
+.doc-textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  padding: 8px;
+  border: 2px solid var(--nhsuk-input-border-colour, #4c6272);
+  border-radius: 0;
+  background-color: var(--nhsuk-input-background-colour, #fff);
+  color: var(--nhsuk-text-colour, #212b32);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.doc-textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.doc-input:focus-visible,
+.doc-select:focus-visible,
+.doc-textarea:focus-visible {
+  border-color: var(--doc-focus-text-colour);
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  border-radius: var(--doc-focus-radius);
+}
+
+/* A select and its button on one line, inside a summary value or a table cell: a team's lead,
+   or the position someone holds in it. */
+.doc-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.doc-inline-form .doc-button {
+  margin-bottom: 0;
+}
+
+.doc-select--small {
+  display: inline-block;
+  width: auto;
+  min-width: 10rem;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+}
+
+.doc-input--error,
+.doc-select--error,
+.doc-textarea--error {
+  border-color: var(--nhsuk-error-colour, #d5281b);
+}
+
+/* State badges: plugin lifecycle (loading, ready, error, unloading) and component
+   health (up, degraded, down), coloured by meaning rather than by name. */
+
+.doc-badge {
+  display: inline-block;
+  max-width: 12rem;
+  padding: 4px 8px;
+  border: 1px solid currentcolor;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  color: var(--nhsuk-text-colour, #212b32);
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  overflow-wrap: break-word;
+}
+
+.doc-badge--ready,
+.doc-badge--up {
+  color: #004c23;
+  background-color: #cce5d8;
+}
+
+.doc-badge--loading {
+  color: #004281;
+  background-color: #ccdff1;
+}
+
+.doc-badge--unloading {
+  color: #240050;
+  background-color: #d6cce3;
+}
+
+.doc-badge--degraded {
+  color: #4d4712;
+  background-color: #fff59d;
+}
+
+.doc-badge--error,
+.doc-badge--down {
+  color: #6b140e;
+  background-color: #f7d4d1;
+}
+
+.doc-badge--unknown {
+  color: #4c4c4c;
+  background-color: #e8edee;
+}
+
+/* Where something came from, said in tags rather than in a sentence: the kind of resource, the
+   space a page lives in, the plugin that holds it. A person looking at a catalogue entry can see
+   at a glance that what they are reading is a Knowledge Base page in a space, imported from a
+   GitHub repository, rather than having to read that off a line of prose. The colour is the
+   kind's, so the same kind is the same colour wherever it is shown; the label inside the tag says
+   which kind it is, because colour alone is never the only thing carrying the meaning. */
+.doc-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each kind sets its pair of colours once: the ink is the border, the name and the label's plate,
+   the wash is behind the name. */
+.doc-kind {
+  --doc-kind-ink: var(--nhsuk-text-colour, #212b32);
+  --doc-kind-wash: var(--nhsuk-grey-5-colour, #f0f4f5);
+
+  display: inline-flex;
+  align-items: center;
+  /* nhsuk gives a list item a bottom margin and takes it off the last one. In a flex row that
+     leaves the last tag stretching 8px taller than the rest, so the margin goes here. */
+  margin: 0;
+  padding: 0 10px 0 0;
+  border: 1px solid var(--doc-kind-ink);
+  border-radius: 4px;
+  background-color: var(--doc-kind-wash);
+  color: var(--doc-kind-ink);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* What kind of thing it is, before what it is called: knocked out of a plate in the kind's ink,
+   with a point on its right leading into the name. The plate and the point are one shape, cut
+   from the label's own background, because a point drawn as a piece of its own leaves a seam
+   where the two meet at some zoom levels. The last 8px of padding is the point, and the plate
+   stretches to the tag's height so the point always runs from its top to its bottom.
+
+   The plate lies over the tag's border on the left, top and bottom rather than inside it, with
+   the tag's own corners: both are the ink, so there is no edge between them for the wash to show
+   through. The extra pixel of padding top and bottom gives back the height the negative margins
+   take, so the tag is as tall as it was. */
+.doc-kind__label {
+  --doc-kind-point: 8px;
+
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  margin: -1px 6px -1px -1px;
+  padding: 3px calc(4px + var(--doc-kind-point)) 3px 9px;
+  border-radius: 4px 0 0 4px;
+  background-color: var(--doc-kind-ink);
+  color: #fff;
+  font-weight: 600;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--doc-kind-point)) 0,
+    100% 50%,
+    calc(100% - var(--doc-kind-point)) 100%,
+    0 100%
+  );
+}
+
+/* nhsuk sizes a bare link at 19px, so a tag holding one would stand taller than a tag holding
+   plain text and the two would not line up. Inside a tag a link is the tag's own size. */
+.doc-kind a,
+.doc-kind a:visited {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* The kinds of the catalogue, each in a colour of its own. They are the NHS tag pairs, which are
+   picked to be legible on white and to hold their contrast when one sits beside another. */
+.doc-kind--service {
+  --doc-kind-ink: #240050;
+  --doc-kind-wash: #ece3f7;
+}
+
+.doc-kind--repository {
+  --doc-kind-ink: #004281;
+  --doc-kind-wash: #ccdff1;
+}
+
+.doc-kind--documentation,
+.doc-kind--documentation-source {
+  --doc-kind-ink: #4d4712;
+  --doc-kind-wash: #fff6cc;
+}
+
+.doc-kind--team,
+.doc-kind--organisation {
+  --doc-kind-ink: #004c23;
+  --doc-kind-wash: #cce5d8;
+}
+
+.doc-kind--cloud-resource {
+  --doc-kind-ink: #00443d;
+  --doc-kind-wash: #cce3e0;
+}
+
+.doc-kind--role,
+.doc-kind--permission,
+.doc-kind--attribute {
+  --doc-kind-ink: #6b140e;
+  --doc-kind-wash: #f7d4d1;
+}
+
+.doc-kind--user,
+.doc-kind--service-account {
+  --doc-kind-ink: #3f3f3f;
+  --doc-kind-wash: #e8edee;
+}
+
+/* Where it is kept rather than what it is: a Knowledge Base space, or the plugin itself. */
+.doc-kind--space {
+  --doc-kind-ink: #491d6b;
+  --doc-kind-wash: #efe4f9;
+}
+
+.doc-kind--plugin {
+  --doc-kind-ink: #2c3c4a;
+  --doc-kind-wash: #dde5eb;
+}
+
+/* A plugin's category, beside its name wherever a plugin is shown: its page's heading, the
+   status page. The Plugins page has a section per category instead. Rounded, where a state badge
+   is square, so the two never read as the same thing side by side. Each category keeps its tone
+   everywhere, taken from where it sits in the configuration, in the NHS tag pairs the kinds use;
+   the name inside says which category it is, so the colour is never the only thing saying so. */
+.doc-category {
+  --doc-category-ink: #3f3f3f;
+  --doc-category-wash: #e8edee;
+
+  display: inline-block;
+  padding: 2px 10px;
+  border: 1px solid var(--doc-category-ink);
+  border-radius: 999px;
+  background-color: var(--doc-category-wash);
+  color: var(--doc-category-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.doc-category--1 {
+  --doc-category-ink: #240050;
+  --doc-category-wash: #ece3f7;
+}
+
+.doc-category--2 {
+  --doc-category-ink: #004281;
+  --doc-category-wash: #ccdff1;
+}
+
+.doc-category--3 {
+  --doc-category-ink: #00443d;
+  --doc-category-wash: #cce3e0;
+}
+
+.doc-category--4 {
+  --doc-category-ink: #004c23;
+  --doc-category-wash: #cce5d8;
+}
+
+.doc-category--5 {
+  --doc-category-ink: #2c3c4a;
+  --doc-category-wash: #dde5eb;
+}
+
+.doc-category--6 {
+  --doc-category-ink: #4d4712;
+  --doc-category-wash: #fff6cc;
+}
+
+@media (forced-colors: active) {
+  .doc-category {
+    border-color: CanvasText;
+  }
+}
+
+/* The Plugins page's tables, one per category: the same columns in the same places, so the
+   sections read as one list. A narrow screen scrolls each table instead (above). */
+.doc-table--plugins {
+  table-layout: fixed;
+}
+
+.doc-table--plugins .doc-table__head .doc-table__header:nth-child(1) {
+  width: 22%;
+}
+
+.doc-table--plugins .doc-table__head .doc-table__header:nth-child(2) {
+  width: 10%;
+}
+
+.doc-table--plugins .doc-table__head .doc-table__header:nth-child(3) {
+  width: 16%;
+}
+
+.doc-table--plugins .doc-table__head .doc-table__header:nth-child(4) {
+  width: 22%;
+}
+
+.doc-table--plugins .doc-table__head .doc-table__header:nth-child(5) {
+  width: 18%;
+}
+
+/* Toasts. NHS has no transient notification, so this mirrors nhsuk-notification-banner
+   and only adds the stacking. */
+
+.doc-toasts {
+  position: fixed;
+  z-index: 20;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  display: grid;
+  justify-items: end;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.doc-toast {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 24rem;
+  border: 4px solid var(--nhsuk-brand-colour, #5b00b8);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 1rem;
+  line-height: 1.5;
+  pointer-events: auto;
+}
+
+.doc-toast__title {
+  margin: 0;
+  padding: 2px 16px 4px;
+  background-color: var(--nhsuk-brand-colour, #5b00b8);
+  color: var(--nhsuk-reverse-text-colour, #fff);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.doc-toast__content {
+  padding: 16px;
+}
+
+.doc-toast__content > :last-child {
+  margin-bottom: 0;
+}
+
+.doc-toast--info {
+  border-color: var(--nhsuk-brand-colour, #5b00b8);
+}
+
+.doc-toast--info .doc-toast__title {
+  background-color: var(--nhsuk-brand-colour, #5b00b8);
+}
+
+.doc-toast--error {
+  border-color: var(--nhsuk-error-colour, #d5281b);
+}
+
+.doc-toast--error .doc-toast__title {
+  background-color: var(--nhsuk-error-colour, #d5281b);
+}
+
+.doc-toast--success {
+  border-color: var(--nhsuk-success-colour, #007f3b);
+}
+
+.doc-toast--success .doc-toast__title {
+  background-color: var(--nhsuk-success-colour, #007f3b);
+}
+
+/* Summary: one record's fields as key/value rows, where a table would have a single row. */
+
+.doc-summary {
+  margin: 0 0 24px;
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.doc-summary__row {
+  display: grid;
+  gap: 4px 24px;
+  grid-template-columns: minmax(8rem, 1fr) 2fr;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-summary__row:last-child {
+  border-bottom: 0;
+}
+
+.doc-summary__key {
+  margin: 0;
+  font-weight: 600;
+}
+
+.doc-summary__value {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.doc-summary__row--action {
+  grid-template-columns: minmax(8rem, 1fr) 2fr auto;
+}
+
+.doc-summary__action {
+  margin: 0;
+  text-align: right;
+}
+
+@media (max-width: 40em) {
+  .doc-summary__row,
+  .doc-summary__row--action {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-summary__action {
+    text-align: left;
+  }
+}
+
+/* Mono: identifiers, hashes, versions and paths inside running text or a table cell. */
+
+.doc-mono {
+  padding: 0 3px;
+  border-radius: 3px;
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875em;
+  overflow-wrap: anywhere;
+}
+
+/* Timeline: an ordered list of steps or actions, oldest first. The marker is drawn from the
+   item's state, so a plugin sends only the modifier. */
+
+.doc-timeline {
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-timeline__item {
+  position: relative;
+  margin: 0;
+  padding: 0 0 24px 40px;
+}
+
+/* The rail joining one marker to the next. */
+.doc-timeline__item::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  bottom: 0;
+  left: 11px;
+  width: 2px;
+  background-color: var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.doc-timeline__item:last-child::after {
+  display: none;
+}
+
+.doc-timeline__item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--nhsuk-secondary-text-colour, #4c6272);
+  border-radius: 50%;
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.doc-timeline__item--done::before {
+  content: "\2713";
+  border-color: var(--nhsuk-success-colour, #007f3b);
+  background-color: var(--nhsuk-success-colour, #007f3b);
+}
+
+.doc-timeline__item--running::before {
+  border-color: var(--doc-primary-colour, #5b00b8);
+  box-shadow: inset 0 0 0 4px var(--nhsuk-card-background-colour, #fff);
+  background-color: var(--doc-primary-colour, #5b00b8);
+}
+
+.doc-timeline__item--failed::before {
+  content: "\2715";
+  border-color: var(--nhsuk-error-colour, #d5281b);
+  background-color: var(--nhsuk-error-colour, #d5281b);
+}
+
+.doc-timeline__item--skipped::before {
+  content: "\2013";
+  border-style: dashed;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-timeline__item--pending,
+.doc-timeline__item--skipped {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-timeline__title {
+  display: block;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.doc-timeline__meta {
+  display: block;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+  line-height: 1.71;
+}
+
+.doc-timeline__body {
+  margin-top: 8px;
+}
+
+.doc-timeline__body > :last-child {
+  margin-bottom: 0;
+}
+
+/* Terminal: output from a process, such as a CI runner's log, as it would look in a terminal.
+   Dark in both themes on purpose, because that is what the reader expects a log to look like. */
+
+.doc-terminal {
+  margin: 0 0 24px;
+  border: 1px solid #0b0c0c;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #0b0c0c;
+  color: #e8edee;
+}
+
+.doc-terminal__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #425563;
+  background-color: #212b32;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.doc-terminal__body {
+  max-height: 32rem;
+  margin: 0;
+  padding: 12px 0;
+  overflow: auto;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  tab-size: 4;
+  /* Lines keep their own whitespace, so the newlines a plugin puts between them are dropped
+     rather than doubling every line. */
+  white-space: normal;
+  counter-reset: doc-terminal-line;
+}
+
+/* As wide as the longest line, so a highlighted line stays highlighted when scrolled sideways. */
+.doc-terminal__line {
+  display: block;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+  min-height: 1.6em;
+  padding: 0 16px;
+  white-space: pre;
+}
+
+.doc-terminal--numbered .doc-terminal__line {
+  counter-increment: doc-terminal-line;
+}
+
+.doc-terminal--numbered .doc-terminal__line::before {
+  content: counter(doc-terminal-line);
+  display: inline-block;
+  width: 3.5em;
+  margin-right: 16px;
+  color: #768692;
+  text-align: right;
+  user-select: none;
+}
+
+.doc-terminal--wrap .doc-terminal__line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.doc-terminal__line--command {
+  color: #fff;
+  font-weight: 700;
+}
+
+.doc-terminal__prompt {
+  color: #b58ae6;
+  user-select: none;
+}
+
+.doc-terminal__line--muted,
+.doc-terminal__time {
+  color: #768692;
+}
+
+.doc-terminal__line--success {
+  color: #78d89f;
+}
+
+.doc-terminal__line--warning {
+  color: #ffeb3b;
+}
+
+.doc-terminal__line--error {
+  background-color: rgba(213, 40, 27, 0.2);
+  color: #ff9d94;
+}
+
+/* A step of the log, such as one CI job step, that can be folded away. */
+.doc-terminal__group > summary {
+  display: block;
+  padding: 0 16px;
+  color: #fff;
+  cursor: pointer;
+  list-style: none;
+}
+
+.doc-terminal__group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.doc-terminal__group > summary::before {
+  content: "\25B8";
+  display: inline-block;
+  width: 1.5em;
+  color: #b58ae6;
+}
+
+.doc-terminal__group[open] > summary::before {
+  content: "\25BE";
+}
+
+.doc-terminal__footer {
+  padding: 8px 16px;
+  border-top: 1px solid #425563;
+  background-color: #212b32;
+  font-size: 0.875rem;
+}
+
+.doc-terminal__footer a {
+  color: #b58ae6;
+}
+
+/* Code: a file, a request or a config value to read or copy. Dark, as an editor is, and on VS
+   Code's own editor background — the syntax colours below are that theme's, and they are measured
+   against this grey rather than against one we picked. A terminal is output a process wrote and
+   keeps its own, slightly different, dark. */
+
+.doc-code {
+  margin: 0 0 24px;
+  padding: 16px;
+  overflow: auto;
+  border-left: 4px solid #b58ae6;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+}
+
+/* nhsuk paints a `code` inside a list item, a cell or a paragraph as inline code — a white box,
+   4px of padding and its red — which would otherwise reach the `code` inside a block, and does
+   wherever a block sits in a list or a table. A block's `code` is the block. */
+.doc-code code,
+.doc-tree__body code {
+  width: auto;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* A code block is a `pre`; a `code` on its own sits in a sentence, whatever class it was given,
+   so it keeps the line's height rather than standing a box up inside it. */
+code.doc-code {
+  display: inline;
+  margin: 0;
+  padding: 0 3px;
+  border-left: 0;
+  border-radius: 3px;
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 0.875em;
+  line-height: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Syntax, marked up by `doc-highlight.js` from the language a block names. The colours are VS
+   Code's Dark+, which is what most people read code in, on the background that theme was drawn
+   for. Every one clears AA against it: comment 5.0:1, keyword 5.7:1, string 6.3:1, type 8.2:1,
+   number 9.8:1, key 11.2:1, function 11.8:1. Colour only ever tells you what a word already says,
+   so a block reads the same without it — in high contrast, in print, or before the script runs. */
+
+.doc-code__comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.doc-code__string {
+  color: #ce9178;
+}
+
+.doc-code__number {
+  color: #b5cea8;
+}
+
+/* A setting's name, before its value: YAML, TOML, JSON, an env file, a Dockerfile's instruction. */
+.doc-code__key {
+  color: #9cdcfe;
+}
+
+.doc-code__keyword {
+  color: #569cd6;
+}
+
+/* A name that is a type, and a name that is called. Both are read off the shape of the name
+   rather than understood, so a constant in capitals is drawn as a type; that is the cost of
+   having no grammar, and it costs a colour rather than a meaning. */
+.doc-code__type {
+  color: #4ec9b0;
+}
+
+.doc-code__function {
+  color: #dcdcaa;
+}
+
+/* A high-contrast display drops the hues rather than keeping seven drawn for one background. */
+@media (prefers-contrast: more) {
+  .doc-code__comment,
+  .doc-code__string,
+  .doc-code__number,
+  .doc-code__key,
+  .doc-code__keyword,
+  .doc-code__type,
+  .doc-code__function {
+    color: inherit;
+  }
+
+  .doc-code__comment {
+    font-style: italic;
+  }
+
+  .doc-code__keyword {
+    font-weight: 700;
+  }
+}
+
+/* On paper a dark block is a page of ink, so it prints as the text it is. */
+@media print {
+  .doc-code {
+    border-left-color: var(--doc-primary-colour, #5b00b8);
+    background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+    color: var(--nhsuk-text-colour, #212b32);
+  }
+
+  .doc-code [class^="doc-code__"] {
+    color: inherit;
+  }
+}
+
+/* Tree: files and the directories holding them — what a template will write, what a repository
+   holds, what an archive is made of. Directories fold, and a file opens to whatever is worth
+   reading inside it, usually a `doc-code`. Both are `details`, so it all works without script,
+   and nothing here is a link unless the page makes the name one. */
+
+.doc-tree {
+  margin: 0 0 24px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+}
+
+.doc-tree__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Everything below a directory is indented from it, with the rail saying where it belongs. */
+.doc-tree__list .doc-tree__list {
+  margin-left: 20px;
+  border-left: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-tree__item {
+  margin: 0;
+}
+
+/* One line: the name, then whatever is worth saying about it at the end of the row. */
+.doc-tree__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 12px 6px 8px;
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  list-style: none;
+}
+
+.doc-tree__row::-webkit-details-marker {
+  display: none;
+}
+
+summary.doc-tree__row {
+  cursor: pointer;
+}
+
+summary.doc-tree__row:hover {
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+}
+
+summary.doc-tree__row:focus-visible {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 4px 0 var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+}
+
+/* The caret, which is the same one a folded step of a terminal takes. A row that opens nothing
+   keeps the space, so every name on a level starts in the same column. */
+.doc-tree__row::before {
+  content: "\2022";
+  flex: none;
+  width: 1em;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.75em;
+  text-align: center;
+}
+
+summary.doc-tree__row::before {
+  content: "\25B8";
+  font-size: 1em;
+}
+
+details[open] > summary.doc-tree__row::before {
+  content: "\25BE";
+}
+
+/* A directory's caret is the platform's own colour and a file's is the quiet one, so which of the
+   two a row is does not rest on the caret alone: a directory also carries its separator and its
+   weight. */
+.doc-tree__directory > summary.doc-tree__row::before {
+  color: var(--doc-primary-colour, #5b00b8);
+}
+
+.doc-tree__file > summary.doc-tree__row::before {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-tree__name {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  overflow-wrap: anywhere;
+}
+
+/* A directory says so in its own right: heavier, and with the separator its path would carry. */
+.doc-tree__directory > .doc-tree__row > .doc-tree__name {
+  font-weight: 600;
+}
+
+.doc-tree__directory > .doc-tree__row > .doc-tree__name::after {
+  content: "/";
+}
+
+/* How big it is, how many are under it, what changed: at the end of the row, out of the way of
+   the names, which are what the eye runs down. */
+.doc-tree__meta {
+  margin-left: auto;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.8125rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* What a file opens to. It is inset to the name above it and takes the page's grey, so an open
+   file reads as part of its row rather than as a block dropped into the list. */
+.doc-tree__body {
+  padding: 0 12px 12px 28px;
+  background-color: var(--nhsuk-card-background-colour, #fff);
+}
+
+.doc-tree__body .doc-code {
+  margin: 0;
+  max-height: 24em;
+}
+
+/* How many there are in all, under the tree. */
+.doc-tree__footer {
+  margin: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+/* A narrow screen puts the meta under the name rather than squeezing the row. */
+@media (max-width: 40.0625em) {
+  .doc-tree__row {
+    flex-wrap: wrap;
+  }
+
+  .doc-tree__meta {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 1em;
+    text-align: left;
+  }
+
+  .doc-tree__body {
+    padding-left: 12px;
+  }
+}
+
+/* Stats: a few headline numbers above the detail that explains them. */
+
+.doc-stat-group {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  margin-bottom: 24px;
+}
+
+.doc-stat {
+  padding: 16px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  border-top: 4px solid var(--doc-primary-colour, #5b00b8);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-stat__label {
+  display: block;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.doc-stat__value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.doc-stat__note {
+  display: block;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Empty: what a list says when it has nothing in it, and what to do about that. */
+
+.doc-empty {
+  margin: 0 0 24px;
+  padding: 32px 24px;
+  border: 2px dashed var(--nhsuk-border-colour, #d8dde0);
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  text-align: center;
+}
+
+.doc-empty > :last-child {
+  margin-bottom: 0;
+}
+
+/* Graph: things and how they connect, as inline SVG in columns, one per kind. */
+
+.doc-graph {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 24px;
+  font-family: inherit;
+}
+
+.doc-graph__heading {
+  fill: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.doc-graph__edge {
+  fill: none;
+  stroke: var(--nhsuk-border-colour, #d8dde0);
+  stroke-width: 1.5;
+}
+
+.doc-graph__edge--derived {
+  stroke-dasharray: 4 3;
+}
+
+.doc-graph__node {
+  fill: var(--nhsuk-card-background-colour, #fff);
+  stroke: var(--doc-primary-colour, #5b00b8);
+  stroke-width: 1.5;
+}
+
+.doc-graph__node--focus {
+  fill: var(--doc-primary-colour, #5b00b8);
+}
+
+.doc-graph__label {
+  fill: var(--nhsuk-text-colour, #212b32);
+  font-size: 14px;
+}
+
+.doc-graph__label--focus {
+  fill: #fff;
+  font-weight: 600;
+}
+
+/* Something not there yet, such as a place to add one. */
+.doc-graph__node--ghost {
+  fill: none;
+  stroke: var(--nhsuk-secondary-text-colour, #4c6272);
+  stroke-dasharray: 5 4;
+}
+
+.doc-graph__label--ghost {
+  fill: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-graph__note {
+  fill: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 12px;
+}
+
+.doc-graph a:hover .doc-graph__node,
+.doc-graph a:focus .doc-graph__node {
+  stroke-width: 3;
+}
+
+/* A line that reaches whatever the map is of, coloured without anyone reaching for it. */
+.doc-graph__edge--near {
+  stroke: var(--doc-primary-colour, #5b00b8);
+  stroke-opacity: 0.5;
+}
+
+/* Hovering or focusing a node (doc-graph.js): its own lines in full colour, its neighbours
+   outlined, and the rest of the map faded back behind them. */
+.doc-graph--lit .doc-graph__edge {
+  stroke-opacity: 0.3;
+}
+
+.doc-graph--lit .doc-graph__edge--lit {
+  stroke: var(--doc-primary-colour, #5b00b8);
+  stroke-opacity: 1;
+  stroke-width: 2.5;
+}
+
+.doc-graph--lit .doc-graph__node--lit {
+  stroke-width: 3;
+}
+
+.doc-graph--lit .doc-graph__label:not(.doc-graph__label--focus) {
+  fill: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-graph--lit .doc-graph__node--lit + .doc-graph__label:not(.doc-graph__label--focus) {
+  fill: var(--nhsuk-text-colour, #212b32);
+}
+
+/* Colour alone carries the highlight, so where there is none the line is drawn wider instead. */
+@media (forced-colors: active) {
+  .doc-graph--lit .doc-graph__edge {
+    stroke-opacity: 1;
+  }
+
+  .doc-graph--lit .doc-graph__edge--lit {
+    stroke-width: 4;
+  }
+}
+
+/* Builder: ready-made steps put on a chain of columns, dragged from a palette or added with their
+   own button, and drawn like a graph's nodes so the chain reads as the graph it will become. */
+
+.doc-builder {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 3fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.doc-builder__palette {
+  max-height: 36rem;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background: var(--nhsuk-card-background-colour, #fff);
+}
+
+.doc-builder__palette-heading {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.doc-builder__group,
+.doc-builder__heading {
+  margin: 16px 0 8px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.doc-builder__heading {
+  margin-top: 0;
+}
+
+.doc-builder__items,
+.doc-builder__zone {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-builder__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 4px 4px 4px 12px;
+  border: 1.5px dashed var(--nhsuk-secondary-text-colour, #4c6272);
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: grab;
+}
+
+.doc-builder__item:active {
+  cursor: grabbing;
+}
+
+.doc-builder__item .doc-button {
+  margin: 0;
+}
+
+.doc-builder__chain {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  align-items: start;
+}
+
+.doc-builder__column {
+  position: relative;
+}
+
+/* The line a graph draws from one column to the next. */
+.doc-builder__column + .doc-builder__column::before {
+  content: "";
+  position: absolute;
+  top: 58px;
+  left: -40px;
+  width: 40px;
+  border-top: 1.5px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-builder__zone {
+  min-height: 52px;
+  padding: 6px;
+  border: 1.5px dashed transparent;
+  border-radius: 8px;
+}
+
+.doc-builder__zone:not(:has([data-doc-builder-step]))::before {
+  content: attr(data-doc-builder-empty);
+  display: block;
+  padding: 8px 12px;
+  border: 1.5px dashed var(--nhsuk-secondary-text-colour, #4c6272);
+  border-radius: 6px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 14px;
+}
+
+/* Where what is being dragged may go, and where it would go now. */
+.doc-builder__zone--accepts {
+  border-color: var(--doc-primary-colour);
+}
+
+.doc-builder__zone--over {
+  border-style: solid;
+  background: var(--nhsuk-secondary-background-colour, #f0f4f5);
+}
+
+.doc-builder__step {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0 0 8px;
+}
+
+.doc-builder__node {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  overflow: hidden;
+  border: 1.5px solid var(--doc-primary-colour);
+  border-radius: 6px;
+  background: var(--nhsuk-card-background-colour, #fff);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 14px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-builder__node:hover {
+  box-shadow: inset 0 0 0 1.5px var(--doc-primary-colour);
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-builder__node--selected,
+.doc-builder__node--selected:hover {
+  background: var(--doc-primary-colour);
+  color: #fff;
+  font-weight: 600;
+}
+
+.doc-builder__handle {
+  flex: none;
+  width: 20px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.75px);
+  background-position: center;
+  background-size: 6px 6px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  cursor: grab;
+}
+
+.doc-builder__handle:hover {
+  color: var(--doc-primary-colour);
+}
+
+.doc-builder__node:focus-visible,
+.doc-builder__handle:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  box-shadow: 0 4px 0 var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  border-radius: var(--doc-focus-radius);
+}
+
+.doc-builder__step--dragging {
+  opacity: 0.45;
+}
+
+.doc-builder__form {
+  margin-bottom: 16px;
+  padding: 16px 24px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background: var(--nhsuk-card-background-colour, #fff);
+}
+
+.doc-builder__form h3 {
+  margin-top: 0;
+}
+
+@media (max-width: 64em) {
+  .doc-builder,
+  .doc-builder__chain {
+    grid-template-columns: 1fr;
+  }
+
+  .doc-builder__column + .doc-builder__column::before {
+    content: none;
+  }
+}
+
+/* Radar: things placed in four quadrants and concentric rings, as inline SVG. Each quadrant has
+   a colour; its blips and labels draw with it through currentColor, and so can HTML beside it.
+   It is drawn at twice the width it is shown at, so the whole of it is taken in at a glance
+   rather than scrolled past; everything on it is sized in the drawing for that halving. */
+
+.doc-radar {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  margin: 0 auto 24px;
+  font-family: inherit;
+}
+
+.doc-radar__ring {
+  fill: var(--nhsuk-card-background-colour, #fff);
+  stroke: var(--nhsuk-border-colour, #d8dde0);
+  stroke-width: 2;
+}
+
+.doc-radar__ring--shaded {
+  fill: #f0f4f5;
+}
+
+.doc-radar__axis {
+  fill: none;
+  stroke: var(--nhsuk-border-colour, #d8dde0);
+  stroke-width: 3;
+}
+
+.doc-radar__ring-label {
+  fill: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.doc-radar__quadrant {
+  fill: currentColor;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.doc-radar__blip {
+  fill: currentColor;
+  stroke: var(--nhsuk-card-background-colour, #fff);
+  stroke-width: 3;
+}
+
+.doc-radar__halo {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+}
+
+.doc-radar__number {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.doc-radar__entry--faded {
+  opacity: 0.25;
+}
+
+.doc-radar a:hover .doc-radar__blip,
+.doc-radar a:focus .doc-radar__blip {
+  stroke: var(--nhsuk-text-colour, var(--doc-focus-text-colour));
+  stroke-width: 3;
+}
+
+.doc-radar__colour--1 {
+  color: var(--doc-primary-colour, #5b00b8);
+}
+
+.doc-radar__colour--2 {
+  color: #005eb8;
+}
+
+.doc-radar__colour--3 {
+  color: #007f3b;
+}
+
+.doc-radar__colour--4 {
+  color: #7c2855;
+}
+
+.doc-radar__legend {
+  margin: 0 0 16px;
+  padding-left: 2.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-radar__moved {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+/* A timeline a plugin draws as SVG on the server, such as releases on a roadmap or a product's
+   release cycles: lanes of bars and marks, placed by their attributes and coloured here, since
+   pages carry no inline style. Each tone means what the badge of the same name means. */
+
+.doc-gantt {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 16px;
+  font-family: inherit;
+}
+
+.doc-gantt__stripe {
+  fill: var(--nhsuk-grey-5-colour, #f0f4f5);
+}
+
+.doc-gantt__tick {
+  stroke: var(--nhsuk-border-colour, #d8dde0);
+  stroke-width: 1;
+}
+
+.doc-gantt__tick-label,
+.doc-gantt__today-label {
+  fill: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 12px;
+}
+
+.doc-gantt__label {
+  fill: var(--nhsuk-text-colour, #212b32);
+  font-size: 13px;
+}
+
+.doc-gantt a .doc-gantt__label {
+  fill: var(--nhsuk-link-colour, #5b00b8);
+  text-decoration: underline;
+}
+
+.doc-gantt__today {
+  stroke: #d5281b;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.doc-gantt__bar--ready,
+.doc-gantt__mark--ready {
+  fill: #007f3b;
+}
+
+.doc-gantt__bar--security,
+.doc-gantt__mark--security {
+  fill: #005eb8;
+}
+
+.doc-gantt__bar--degraded,
+.doc-gantt__mark--degraded {
+  fill: #ffb81c;
+}
+
+.doc-gantt__bar--error,
+.doc-gantt__mark--error {
+  fill: #d5281b;
+}
+
+.doc-gantt__bar--unknown,
+.doc-gantt__mark--unknown {
+  fill: #aeb7bd;
+}
+
+.doc-gantt__bar--muted,
+.doc-gantt__mark--muted {
+  fill: #d8dde0;
+}
+
+.doc-gantt__bar--done,
+.doc-gantt__mark--done {
+  fill: #4c6272;
+}
+
+.doc-gantt__mark {
+  stroke: var(--nhsuk-card-background-colour, #fff);
+  stroke-width: 1.5;
+}
+
+/* Maps (DOC-SPEC §11.24): Natural Earth's countries under the places a page names, drawn by
+   doc-geomap.js. Tones mean what a badge's do, and a country shaded by value goes from pale to the
+   brand's purple. Lines keep their width however far the map is zoomed. */
+
+.doc-geomap {
+  position: relative;
+  margin: 0 0 24px;
+}
+
+.doc-geomap__map {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #d8dde0;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.doc-geomap--dragging .doc-geomap__map {
+  cursor: grabbing;
+}
+
+.doc-geomap__map:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+}
+
+.doc-geomap__sea {
+  fill: #eef3f7;
+}
+
+.doc-geomap__land {
+  fill: #d8dde0;
+  stroke: #fff;
+  stroke-width: 0.75;
+  vector-effect: non-scaling-stroke;
+}
+
+.doc-geomap__region--shade-1 {
+  fill: #e6dcf5;
+}
+
+.doc-geomap__region--shade-2 {
+  fill: #c3a8e8;
+}
+
+.doc-geomap__region--shade-3 {
+  fill: #9a6fd6;
+}
+
+.doc-geomap__region--shade-4 {
+  fill: #7a3dc7;
+}
+
+.doc-geomap__region--shade-5 {
+  fill: #5b00b8;
+}
+
+.doc-geomap__point {
+  fill: #5b00b8;
+  fill-opacity: 0.8;
+  stroke: #fff;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.doc-geomap__region--ready,
+.doc-geomap__point--ready {
+  fill: #007f3b;
+}
+
+.doc-geomap__region--security,
+.doc-geomap__point--security {
+  fill: #005eb8;
+}
+
+.doc-geomap__region--degraded,
+.doc-geomap__point--degraded {
+  fill: #ffb81c;
+}
+
+.doc-geomap__region--error,
+.doc-geomap__point--error {
+  fill: #d5281b;
+}
+
+.doc-geomap__region--unknown,
+.doc-geomap__point--unknown {
+  fill: #aeb7bd;
+}
+
+.doc-geomap__region:hover,
+.doc-geomap__point:hover,
+.doc-geomap__point:focus {
+  stroke: #212b32;
+  stroke-width: 2;
+  outline: none;
+}
+
+/* Under the map rather than over it, so they never cover a place. */
+.doc-geomap__controls {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.doc-geomap__control {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #aeb7bd;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #212b32;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.doc-geomap__control:hover {
+  background-color: #f0f4f5;
+}
+
+.doc-geomap__tip {
+  position: absolute;
+  z-index: 1;
+  max-width: 20rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #212b32;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 8px));
+}
+
+.doc-geomap__tip--below {
+  transform: translate(-50%, 8px);
+}
+
+.doc-geomap__tip[hidden] {
+  display: none;
+}
+
+.doc-geomap__note,
+.doc-geomap__caption {
+  margin: 8px 0 0;
+  color: #4c6272;
+  font-size: 14px;
+}
+
+/* Prose: a document written elsewhere, as HTML with no classes of its own. */
+
+.doc-prose {
+  max-width: 48rem;
+  margin-bottom: 24px;
+  overflow-wrap: break-word;
+}
+
+.doc-prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.doc-prose pre {
+  margin: 0 0 24px;
+  padding: 16px;
+  overflow: auto;
+  border-left: 4px solid var(--doc-primary-colour, #5b00b8);
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.doc-prose code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875em;
+}
+
+.doc-prose :not(pre) > code {
+  padding: 0 3px;
+  border-radius: 3px;
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+}
+
+.doc-prose blockquote {
+  margin: 0 0 24px;
+  padding: 8px 16px;
+  border-left: 4px solid var(--nhsuk-border-colour, #d8dde0);
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-prose table {
+  width: 100%;
+  margin-bottom: 24px;
+  border-collapse: collapse;
+}
+
+.doc-prose th,
+.doc-prose td {
+  padding: 8px 16px 8px 0;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-prose ul ul {
+  margin-bottom: 0;
+}
+
+/* The page editor (doc-editor.js): a Markdown field edited as the formatted page, under a
+   toolbar, across the whole content area. The field and the page are one box, the toolbar its
+   top edge, so it reads as a single field however it is being edited. Without its script it is
+   the plain Markdown field. */
+
+.doc-editor {
+  margin-bottom: 24px;
+}
+
+.doc-editor .doc-textarea {
+  max-width: none;
+  min-height: 24rem;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9375rem;
+}
+
+.doc-editor--ready .doc-textarea {
+  border-top: 0;
+}
+
+.doc-editor__toolbar {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 8px;
+  border: 2px solid var(--nhsuk-input-border-colour, #4c6272);
+  border-bottom-width: 1px;
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+}
+
+.doc-editor__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Which way it is being edited, kept at the far end of the toolbar. */
+.doc-editor__views {
+  margin-left: auto;
+}
+
+.doc-editor__style {
+  min-width: 8rem;
+  margin-right: 4px;
+}
+
+.doc-editor__button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--nhsuk-text-colour, #212b32);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.doc-editor__button:hover {
+  border-color: var(--nhsuk-border-colour, #d8dde0);
+  background-color: #fff;
+}
+
+.doc-editor__button[aria-pressed="true"] {
+  border-color: var(--doc-primary-colour);
+  background-color: #fff;
+  color: var(--doc-primary-colour);
+  font-weight: 600;
+}
+
+.doc-editor__button:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  border-color: var(--doc-focus-underline-colour);
+}
+
+.doc-editor__button[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.doc-editor__button--bold {
+  font-weight: 700;
+}
+
+.doc-editor__button--italic {
+  font-style: italic;
+}
+
+.doc-editor__button--struck {
+  text-decoration: line-through;
+}
+
+.doc-editor__link {
+  padding: 12px 8px 0;
+  border: 2px solid var(--nhsuk-input-border-colour, #4c6272);
+  border-top: 0;
+  border-bottom: 0;
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+}
+
+.doc-editor__link .doc-field-row {
+  margin-bottom: 12px;
+}
+
+.doc-editor__link .doc-editor__button {
+  border-color: var(--doc-primary-colour);
+  background-color: #fff;
+}
+
+.doc-editor__page {
+  box-sizing: border-box;
+  max-width: none;
+  min-height: 24rem;
+  margin-bottom: 0;
+  padding: 16px;
+  border: 2px solid var(--nhsuk-input-border-colour, #4c6272);
+  border-top: 0;
+  background-color: #fff;
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+/* Writing in it is not moving through the page, so it takes no focus ring: the caret says where
+   you are, and the box stays as it was. */
+.doc-editor__page:focus,
+.doc-editor__page:focus-visible,
+.doc-editor .doc-textarea:focus,
+.doc-editor .doc-textarea:focus-visible {
+  border-color: var(--nhsuk-input-border-colour, #4c6272);
+  border-radius: 0;
+  outline: none;
+}
+
+.doc-editor__page > :last-child {
+  margin-bottom: 0;
+}
+
+/* Suggestions: options under a field while a `/` word is typed in it, from doc-suggest.js. */
+
+.doc-suggest {
+  position: relative;
+  max-width: 36rem;
+}
+
+.doc-suggest__list {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  left: 0;
+  max-height: 16rem;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  border: 2px solid var(--nhsuk-input-border-colour, #4c6272);
+  border-top: 0;
+  background-color: var(--nhsuk-input-background-colour, #fff);
+  list-style: none;
+  box-shadow: 0 4px 8px rgba(33, 43, 50, 0.16);
+}
+
+.doc-suggest__list:empty {
+  display: none;
+}
+
+.doc-suggest__list li {
+  margin: 0;
+}
+
+.doc-suggest__option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--nhsuk-text-colour, #212b32);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.doc-suggest__option .doc-hint {
+  display: inline;
+  margin: 0 0 0 4px;
+}
+
+.doc-suggest__option:hover,
+.doc-suggest__option--active {
+  background-color: var(--nhsuk-grey-5-colour, #f0f4f5);
+  box-shadow: inset 4px 0 0 var(--doc-primary-colour, #5b00b8);
+}
+
+.doc-suggest__empty {
+  padding: 8px 12px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+/* Tags: badges naming what something is about, from doc-tags.js when they can be changed. A
+   read-only list is the same markup, with each label a link and no remove button. */
+
+.doc-tags {
+  position: relative;
+  max-width: 36rem;
+}
+
+.doc-tags__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-tags__list:empty {
+  display: none;
+}
+
+.doc-tags__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 10px;
+  border: 1px solid var(--doc-primary-colour, #5b00b8);
+  border-radius: 4px;
+  background-color: #f3ebfb;
+  color: var(--doc-primary-active-colour, #2e005c);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.doc-tags__tag:has(.doc-tags__remove) {
+  padding-right: 2px;
+}
+
+.doc-tags__tag a,
+.doc-tags__tag a:visited {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.doc-tags__kind {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-weight: 400;
+}
+
+.doc-tags__remove {
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.doc-tags__remove:hover {
+  background-color: var(--doc-primary-colour, #5b00b8);
+  color: #fff;
+}
+
+/* A catalogue resource chosen in a tag box is a kind label like any other, with its remove button
+   in the kind's ink. */
+.doc-kind:has(.doc-tags__remove) {
+  padding-right: 2px;
+}
+
+.doc-kind .doc-tags__remove {
+  margin-left: 4px;
+}
+
+.doc-kind .doc-tags__remove:hover {
+  background-color: var(--doc-kind-ink);
+}
+
+.doc-tags__remove:focus-visible {
+  outline: 3px solid var(--doc-focus-colour);
+  background-color: var(--doc-focus-colour);
+  color: var(--doc-focus-text-colour);
+  border-radius: var(--doc-focus-radius);
+}
+
+@media print {
+  .doc-toasts {
+    display: none;
+  }
+
+  .doc-terminal__body {
+    max-height: none;
+  }
+}
+
+/* A menu in the navigation bar: an administrator's group of pages, opened without script by
+   `<details>`. It drops over the page: under its own name on a wide screen, and across the whole
+   bar on a narrow one, where the bar's links wrap and a menu of its own width would be pushed about. */
+.doc-menu__toggle {
+  list-style: none;
+}
+
+.doc-menu__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.doc-menu__toggle::after {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin: 0 0 0.2em 0.5em;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(45deg);
+}
+
+.doc-menu__details[open] > .doc-menu__toggle::after {
+  margin-bottom: -0.1em;
+  transform: rotate(-135deg);
+}
+
+.doc-menu__list {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  margin: 0;
+  padding: 4px 0;
+  border: 1px solid #d8dde0;
+  list-style: none;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgb(33 43 50 / 20%);
+}
+
+@media (max-width: 40.0525em) {
+  .doc-menu__list {
+    right: 16px;
+    left: 16px;
+  }
+}
+
+.doc-menu__item {
+  margin: 0;
+}
+
+.doc-menu__link,
+.doc-menu__link:visited {
+  display: block;
+  padding: 8px 16px;
+  color: var(--doc-primary-colour);
+  white-space: nowrap;
+}
+
+.doc-menu__link:hover {
+  text-decoration: none;
+}
+
+/* The menu's own page, above the pages in it and set apart from them. */
+.doc-menu__link--all {
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  font-weight: 600;
+}
+
+.doc-menu__link[aria-current="page"] {
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 var(--doc-primary-colour);
+}
+
+.doc-menu__link:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: inset 0 -4px var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  text-decoration: none;
+  border-radius: var(--doc-focus-radius);
+}
+
+@media (min-width: 40.0625em) {
+  .doc-menu {
+    position: relative;
+  }
+
+  .doc-menu__list {
+    left: 0;
+    min-width: 12rem;
+  }
+}
+
+/* The navigation's arranging page: narrow order boxes and check boxes that keep their labels. */
+.doc-arrange__order {
+  width: 5rem;
+}
+
+.doc-arrange__check {
+  display: block;
+  white-space: nowrap;
+}
+
+/* Tabs: links to views of one page, drawn as tabs. The server renders the chosen one, so they work
+   without script and each tab has its own address. The current tab has `aria-current="page"`. */
+.doc-tabs {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #d8dde0;
+  overflow-x: auto;
+}
+
+.doc-tabs__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-tabs__item {
+  margin: 0;
+}
+
+.doc-tabs__tab,
+.doc-tabs__tab:visited {
+  display: block;
+  padding: 12px 16px;
+  color: var(--doc-primary-colour);
+  white-space: nowrap;
+}
+
+.doc-tabs__tab:hover {
+  text-decoration: none;
+}
+
+.doc-tabs__tab[aria-current="page"],
+.doc-tabs__tab[aria-selected="true"] {
+  color: var(--nhsuk-text-colour, #212b32);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: inset 0 -4px 0 var(--doc-primary-colour);
+}
+
+.doc-tabs__tab:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: inset 0 -4px var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  text-decoration: none;
+  border-radius: var(--doc-focus-radius);
+}
+
+/* Tabbed panels: the same thing several ways in one place, such as one call in each language. The
+   same tabs over panels of one page: without script they link to the panels, which all show under
+   their own headings; doc-tabs.js shows one at a time and marks its tab `aria-selected`. */
+.doc-tabset--ready .doc-tabset__title {
+  display: none;
+}
+
+.doc-tabset__panel:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 4px;
+}
+
+/* The landing page: a hero in the header's colour, with the search bar, over cards for every
+   section. */
+.doc-hero .nhsuk-hero__wrapper {
+  padding-top: 40px;
+  padding-bottom: 16px;
+}
+
+/* The search bar spans the whole container, below the heading's two-thirds column. */
+.doc-hero__search {
+  padding-bottom: 48px;
+}
+
+.doc-hero h1,
+.doc-hero .nhsuk-body-l {
+  color: #fff;
+}
+
+.nhsuk-card__link,
+.nhsuk-card__link:visited {
+  color: var(--doc-primary-colour);
+}
+
+.nhsuk-card--clickable:hover .nhsuk-card__link,
+.nhsuk-card__link:hover {
+  color: var(--doc-primary-hover-colour);
+}
+
+/* The search bar, as NHS headers draw theirs: a white field with a square button beside it. */
+.doc-search {
+  display: flex;
+  max-width: 36rem;
+  margin: 0 0 32px;
+}
+
+.doc-hero .doc-search {
+  max-width: none;
+  margin-bottom: 0;
+}
+
+/* Search from any page, narrower than the landing page's and in the header band beside the name.
+   The header row stretches what it holds, so its contents are centred as the account block's are,
+   and the margin `.doc-search` carries for the landing page is dropped. */
+.doc-search--header {
+  flex: 0 1 20rem;
+  align-items: center;
+  margin: 0 0 0 auto;
+}
+
+.doc-search--header .doc-search__input {
+  height: 40px;
+  border-color: #fff;
+}
+
+.doc-search--header .doc-search__submit {
+  width: 40px;
+  height: 40px;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+/* Too narrow for a row of its own: the search takes the width under the logo and the name. */
+@media (max-width: 48.0625em) {
+  .doc-search--header {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+    margin: 12px 0 0;
+  }
+
+  .doc-account {
+    margin-left: auto;
+  }
+}
+
+.doc-search__input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 12px;
+  border: 2px solid #4c6272;
+  border-right: 0;
+  border-radius: 4px 0 0 4px;
+  background: #fff;
+  color: #212b32;
+  font: inherit;
+  font-size: 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.doc-hero .doc-search__input {
+  border-color: #fff;
+}
+
+.doc-search__input:focus {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  box-shadow: inset 0 0 0 2px var(--doc-focus-underline-colour);
+}
+
+.doc-search__submit {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  background-color: var(--doc-primary-active-colour, #3a0075);
+  color: #fff;
+  cursor: pointer;
+}
+
+.doc-hero .doc-search__submit {
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.doc-search__submit:hover {
+  background-color: var(--doc-primary-hover-colour);
+}
+
+.doc-search__submit:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 4px 0 var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+}
+
+.doc-search__icon {
+  fill: currentcolor;
+}
+
+/* A list of things to choose between: search results, a plugin's records, a catalogue of
+   collections. Drawn as NHS England Digital draws its own listings — a title to click, a sentence
+   or two saying what it is, and a rule between one and the next — because the reading order is
+   what matters, not a card's edges. Use it for anything a person scans down. */
+.doc-results {
+  margin: 0 0 32px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+/* How many there are, and what they were narrowed by, above the list. */
+.doc-results__count {
+  margin: 0 0 8px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-results__item {
+  margin: 0;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+/* A list that is not the page's own structure — a few results inside a card or a panel — takes
+   no rules at all, so the panel's edges are the only ones. */
+.doc-results--plain,
+.doc-results--plain .doc-results__item {
+  border: 0;
+}
+
+.doc-results--plain .doc-results__item {
+  padding: 0 0 24px;
+}
+
+.doc-results__title {
+  display: inline-block;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* What it is, where it came from, when it changed: one quiet line under the title, before the
+   description. Parts are separated by the rule below rather than by punctuation in the markup. */
+.doc-results__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 4px 0 0;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+.doc-results__meta > * + *::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin-right: 12px;
+  border-radius: 50%;
+  background-color: currentcolor;
+  vertical-align: middle;
+}
+
+/* The sentence or two under the title. `doc-results__snippet` is the same thing with the words
+   that matched marked in it, which is why it keeps its own name. */
+.doc-results__description,
+.doc-results__snippet {
+  margin: 8px 0 0;
+  max-width: 44em;
+}
+
+/* The letter each group of a long listing sits under, as an A to Z does. */
+.doc-results__group {
+  margin: 32px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--doc-primary-colour);
+}
+
+/* An A to Z over a listing too long to scroll: every letter is shown, and one with nothing under
+   it is plainly not a link, so the shape of the whole list can be read at a glance. */
+.doc-az {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-az__letter,
+a.doc-az__letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 6px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  border-radius: var(--doc-focus-radius);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: var(--doc-primary-colour);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a.doc-az__letter:hover {
+  border-color: var(--doc-primary-colour);
+  background-color: #f3ebff;
+  color: var(--doc-primary-hover-colour);
+}
+
+/* Nothing begins with this letter. Shown, so the list reads as complete, and not a link. */
+.doc-az__letter--empty {
+  border-style: dashed;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-weight: 400;
+}
+
+/* A page written to be read rather than worked in — guidance, a policy, a plugin's own
+   explanation — laid out as NHS England Digital lays its content pages out: a heading block, one
+   measured column so a line is never too long to follow, and plainly separated sections. The
+   breadcrumb above it and the footer below are the layout's, as they always are. */
+.doc-content-page {
+  max-width: 44em;
+}
+
+/* The heading block: what the page is, one sentence on what it is for, and anything that has to
+   be said about the page itself — when it was last changed, who keeps it. */
+.doc-content-page__header {
+  margin-bottom: 32px;
+}
+
+.doc-content-page__header h1 {
+  margin-bottom: 8px;
+}
+
+.doc-content-page__meta {
+  margin: 8px 0 0;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+/* Sections carry more air here than on a page of controls, because the reader is following an
+   argument down the page rather than looking for one thing on it. */
+.doc-content-page > h2,
+.doc-content-page > section > h2 {
+  margin-top: 48px;
+}
+
+.doc-content-page > h2:first-child,
+.doc-content-page > section:first-child > h2 {
+  margin-top: 0;
+}
+
+/* "Page contents" at the top of a long page, as NHS England Digital opens its guidance with:
+   the sections of this page, in the reading column, above the first of them. The side panel
+   (`doc-contents`) is for a document within a set of documents; this is for one page's own
+   sections. */
+.doc-page-contents {
+  margin: 0 0 32px;
+  padding: 16px 24px;
+  border-left: 4px solid var(--doc-primary-colour);
+  background-color: var(--nhsuk-secondary-button-hover-colour, #f0f4f5);
+}
+
+.doc-page-contents__heading {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.doc-page-contents__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-page-contents__item {
+  margin: 0;
+  padding: 2px 0;
+}
+
+.doc-page-contents__link {
+  color: var(--nhsuk-link-colour, #5b00b8);
+}
+
+/* A heading with the actions it offers, such as "New process" or "Edit", at the container's right
+   edge. On a narrow screen the actions wrap under the heading. */
+.doc-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 24px;
+}
+
+.doc-heading-row > h1,
+.doc-heading-row > h2,
+.doc-heading-row > h3 {
+  margin: 0;
+}
+
+.doc-heading-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.doc-heading-row__actions form {
+  margin: 0;
+}
+
+.doc-heading-row__actions .doc-button {
+  margin: 0;
+}
+
+/* Breadcrumbs sit at the very top of the page, above the header band, where NHS England Digital
+   puts them: where you are, before what you are looking at. */
+.doc-breadcrumb {
+  display: block;
+  padding-bottom: 8px;
+}
+
+.doc-breadcrumb .nhsuk-breadcrumb__link,
+.doc-breadcrumb .nhsuk-back-link {
+  color: var(--doc-primary-colour);
+}
+
+/* The page header: a band across the window holding what the page is called, a sentence on what
+   it is for, and whatever the page as a whole offers. NHS England Digital opens every one of its
+   pages this way, and it is what makes a set of pages read as one site rather than as a heading
+   dropped on top of each screen. The layout draws it for every page from the chrome, so a page
+   is headed without saying anything; only a page that opens with something of its own — the
+   landing page's hero — goes without. */
+.doc-page-header {
+  /* The heading's size, which the link to the page beside it is measured from too. */
+  --doc-page-title-size: clamp(2rem, 1.25rem + 2.5vw, 3rem);
+  margin-bottom: 40px;
+  padding: 40px 0;
+  background-color: #e8edee;
+}
+
+/* The same band drawn inside a page rather than across the window: the one on the Design page,
+   shown as an example of itself. */
+.doc-page-header--framed {
+  margin-bottom: 0;
+  padding: 24px;
+}
+
+/* The heading and its summary on one side, the page's own actions on the other; on a narrow
+   screen the actions drop under the words rather than squeezing them. */
+.doc-page-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.doc-page-header__text {
+  min-width: 0;
+  /* Wide enough to read a summary across, never so wide that the eye loses the line. */
+  max-width: 44em;
+}
+
+/* Large, because it is the one thing on the page that says what the page is. It grows with the
+   window between a phone's 32px and the 48px NHS England Digital sets its own pages in. */
+.doc-page-header__title {
+  margin: 0;
+  color: #231f20;
+  font-size: var(--doc-page-title-size);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* A heading with a pill beside it — a plugin's category on its page — sits on the heading's
+   line and drops below it when there is no room. */
+.doc-page-header__titled {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+}
+
+/* The heading and the link to the page at its left, which never wrap apart: a heading that runs
+   to two lines keeps the link beside its first. */
+.doc-page-header__name {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The link to the page itself, for sharing it. One line of the heading tall, so it sits on the
+   heading's first line, and quieter than the heading until it is pointed at. */
+.doc-permalink {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1.2em;
+  border-radius: var(--doc-focus-radius);
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: var(--doc-page-title-size);
+}
+
+.doc-permalink:hover {
+  background-color: #fff;
+  color: var(--doc-primary-colour);
+}
+
+.doc-permalink__icon {
+  width: 0.6em;
+  height: 0.6em;
+}
+
+/* What the caption above the heading is for: where this page sits when the page is one of many
+   of its kind, such as one service account among the rest. */
+.doc-page-header__caption {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 1.1875rem;
+}
+
+.doc-page-header__caption a {
+  color: inherit;
+}
+
+.doc-page-header__lede {
+  margin: 16px 0 0;
+  font-size: 1.1875rem;
+  line-height: 1.6;
+}
+
+.doc-page-header__lede:last-child {
+  margin-bottom: 0;
+}
+
+.doc-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.doc-page-header__actions form {
+  margin: 0;
+}
+
+.doc-page-header__actions .doc-button {
+  margin: 0;
+}
+
+/* A button on the band is read against grey rather than white, so the secondary button — which
+   is a pale fill on white — takes the page's own white back. */
+.doc-page-header__actions .doc-button--secondary {
+  background-color: #fff;
+}
+
+/* The band already leaves room under itself, so the content beneath it starts where it says. */
+.doc-page-header + .nhsuk-width-container > .nhsuk-main-wrapper {
+  padding-top: 0;
+}
+
+@media (max-width: 48.0625em) {
+  .doc-page-header {
+    margin-bottom: 32px;
+    padding: 24px 0;
+  }
+}
+
+/* NHS England Digital lays its pages out on a wider grid than the service pattern's 960px, which
+   is what gives a listing room for a description beside its own side navigation. The header, the
+   footer and every page share the one container, so they all widen together. */
+.nhsuk-width-container {
+  max-width: 1200px;
+}
+
+/* The page itself is white. The service pattern tints every page grey, which leaves the header
+   band, the panels and the boxes as grey on grey with nothing to say; NHS England Digital keeps
+   the grey for the things that mean something and lets the page be white behind them. Everything
+   drawn here — cards, tables, panels, the terminal — has a border or a fill of its own. */
+body {
+  background-color: #fff;
+}
+
+/* Below a page too short to fill the window, and past its end when it is scrolled beyond, is the
+   footer's band rather than nhsuk's grey, so the footer carries on to the bottom of the window. */
+html {
+  background-color: #111827;
+}
+
+/* A section's heading takes more room above it than the parts within a section take between
+   them, so where one section ends and the next begins reads at a glance. The scoping `:where`
+   adds nothing to the weight, so a heading with a component's own spacing — a card's, a heading
+   row's, the one under a page's tabs — keeps what that component gives it, and a heading that
+   opens a page or follows another heading needs no room above it at all. */
+:where(#maincontent) h2,
+:where(#maincontent) h3,
+:where(#maincontent) h4 {
+  margin-top: 32px;
+}
+
+:where(#maincontent) h2:first-child,
+:where(#maincontent) h3:first-child,
+:where(#maincontent) h4:first-child,
+h1 + h2,
+h1 + h3,
+h2 + h3,
+h2 + h4,
+h3 + h4,
+.doc-tabs + h2,
+.doc-tabs + h3,
+.doc-heading-row + h2,
+.doc-heading-row + h3,
+.doc-step + form > h2,
+.doc-step + form > h3 {
+  margin-top: 0;
+}
+
+/* Radios: one choice among a few, each with a hint. Large targets, as NHS forms draw them. */
+.doc-radios {
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+}
+
+.doc-radios__legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* A group of fields under one heading, such as the account a new user will sign in with. */
+.doc-fieldset {
+  min-width: 0;
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+}
+
+.doc-fieldset__legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* An account to link: its button, and which plugins need it. */
+.doc-link-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.doc-link-offer .doc-button {
+  margin-bottom: 0;
+}
+
+/* A team drawn below its parent in a list. Nesting past four levels is drawn as four. */
+.doc-table__header.doc-indent--1 {
+  padding-left: 24px;
+}
+
+.doc-table__header.doc-indent--2 {
+  padding-left: 48px;
+}
+
+.doc-table__header.doc-indent--3 {
+  padding-left: 72px;
+}
+
+.doc-table__header.doc-indent--4 {
+  padding-left: 96px;
+}
+
+/* An org chart: an organisation or a team at the top, the teams inside it below, joined by lines.
+   It is nested lists, so it reads as a hierarchy without them. A wide one scrolls sideways in its
+   own frame rather than widening the page. */
+.doc-org-picker {
+  margin-bottom: 16px;
+}
+
+.doc-org-picker .doc-label {
+  margin-bottom: 0;
+}
+
+.doc-org {
+  --doc-org-line: 2px solid var(--nhsuk-border-colour, #d8dde0);
+  margin-bottom: 32px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+
+.doc-org__below {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 24px 0 0;
+  list-style: none;
+}
+
+.doc-org__below--top {
+  width: max-content;
+  min-width: 100%;
+  padding-top: 0;
+}
+
+/* The line down from a node to the teams below it. */
+.doc-org__below:not(.doc-org__below--top)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 24px;
+  border-left: var(--doc-org-line);
+}
+
+.doc-org__branch {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 24px 8px 0;
+}
+
+/* The line across the tops of siblings, and down into each. */
+.doc-org__branch::before,
+.doc-org__branch::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 50%;
+  width: 50%;
+  height: 24px;
+  border-top: var(--doc-org-line);
+}
+
+.doc-org__branch::after {
+  right: auto;
+  left: 50%;
+  border-left: var(--doc-org-line);
+}
+
+.doc-org__branch:first-child::before,
+.doc-org__branch:last-child::after {
+  border: 0;
+}
+
+.doc-org__branch:last-child::before {
+  border-right: var(--doc-org-line);
+}
+
+.doc-org__branch:only-child {
+  padding-top: 0;
+}
+
+.doc-org__branch:only-child::before,
+.doc-org__branch:only-child::after {
+  display: none;
+}
+
+.doc-org__node {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 13rem;
+  padding: 12px 16px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  border-top: 4px solid var(--doc-primary-colour);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: var(--nhsuk-text-colour, #212b32);
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.doc-org__node--top {
+  width: auto;
+  min-width: 13rem;
+  max-width: 24rem;
+  border-top-color: var(--doc-primary-active-colour);
+}
+
+.doc-org__title {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.32;
+}
+
+.doc-org__detail {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+  line-height: 1.43;
+}
+
+.doc-org__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.doc-org__people {
+  margin: 8px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  list-style: none;
+}
+
+.doc-org__person {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.doc-org__person:last-child {
+  margin-bottom: 0;
+}
+
+/* On a phone the chart runs down the page instead, each team indented below its parent and joined
+   to it by an elbow, so nothing starts out of sight. */
+@media (max-width: 40.0525em) {
+  .doc-org__below {
+    display: block;
+    padding: 0 0 0 24px;
+  }
+
+  .doc-org__below--top {
+    width: auto;
+    min-width: 0;
+    padding-left: 0;
+  }
+
+  .doc-org__below:not(.doc-org__below--top)::before {
+    display: none;
+  }
+
+  .doc-org__branch {
+    display: block;
+    padding: 0;
+  }
+
+  .doc-org__below:not(.doc-org__below--top) > .doc-org__branch {
+    padding-top: 12px;
+  }
+
+  .doc-org__below:not(.doc-org__below--top) > .doc-org__branch::before,
+  .doc-org__below:not(.doc-org__below--top) > .doc-org__branch::after {
+    display: block;
+    top: 0;
+    right: auto;
+    left: -12px;
+    width: 12px;
+    height: 36px;
+    border: 0;
+    border-left: var(--doc-org-line);
+    border-radius: 0;
+  }
+
+  .doc-org__below:not(.doc-org__below--top) > .doc-org__branch::before {
+    border-bottom: var(--doc-org-line);
+  }
+
+  /* The line down past this team to the next one below the same parent. */
+  .doc-org__below:not(.doc-org__below--top) > .doc-org__branch::after {
+    bottom: 0;
+    width: 0;
+    height: auto;
+  }
+
+  .doc-org__below:not(.doc-org__below--top) > .doc-org__branch:last-child::after {
+    display: none;
+  }
+
+  .doc-org__node,
+  .doc-org__node--top {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* Above a plugin's page, when it needs an account the viewer has not linked. */
+.doc-link-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 0;
+}
+
+.doc-link-notice p,
+.doc-link-notice .doc-button {
+  margin-bottom: 0;
+}
+
+.doc-radios__item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.doc-radios__input {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  accent-color: var(--doc-primary-colour);
+  cursor: pointer;
+}
+
+.doc-radios__label {
+  padding-top: 7px;
+  cursor: pointer;
+}
+
+.doc-radios__hint {
+  grid-column: 2;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-radios__input:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--doc-focus-underline-colour);
+  border-radius: 50%;
+}
+
+/* A grade from 1 to 10, struck as a medal: a circle with the number in it, coloured red through
+   amber to green and ringed in its own ink. The number is always inside it, so the colour says
+   the same thing twice and never carries it alone: a scale from red to green is the one thing
+   colour-blind readers cannot follow. Every step is at least 5.9:1 against its own ink.
+
+   It is round because a grade is an award rather than a status: a badge earned, not a state
+   something is in. `doc-badge` remains the shape for a state. The wash fills it to the ring:
+   anything between the two reads as a gap rather than as a rim. */
+.doc-grade {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 2px solid var(--doc-grade-ink, #212b32);
+  border-radius: 50%;
+  background-color: var(--doc-grade-wash, #f0f4f5);
+  color: var(--doc-grade-ink, #212b32);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  /* 10 is two digits in the same circle as one. */
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Where the grade is the whole of what a tile says, such as a pinned insight. */
+.doc-grade--large {
+  width: 4rem;
+  height: 4rem;
+  border-width: 3px;
+  font-size: 1.75rem;
+}
+
+.doc-grade--1 {
+  --doc-grade-wash: #f5d6d6;
+  --doc-grade-ink: #630303;
+}
+
+.doc-grade--2 {
+  --doc-grade-wash: #f5ddd6;
+  --doc-grade-ink: #631903;
+}
+
+.doc-grade--3 {
+  --doc-grade-wash: #f5e4d6;
+  --doc-grade-ink: #632f03;
+}
+
+.doc-grade--4 {
+  --doc-grade-wash: #f5ecd6;
+  --doc-grade-ink: #634603;
+}
+
+.doc-grade--5 {
+  --doc-grade-wash: #f5f3d6;
+  --doc-grade-ink: #635c03;
+}
+
+.doc-grade--6 {
+  --doc-grade-wash: #f0f5d6;
+  --doc-grade-ink: #546303;
+}
+
+.doc-grade--7 {
+  --doc-grade-wash: #e9f5d6;
+  --doc-grade-ink: #3e6303;
+}
+
+.doc-grade--8 {
+  --doc-grade-wash: #e2f5d6;
+  --doc-grade-ink: #276303;
+}
+
+.doc-grade--9 {
+  --doc-grade-wash: #daf5d6;
+  --doc-grade-ink: #116303;
+}
+
+.doc-grade--10 {
+  --doc-grade-wash: #d6f5d8;
+  --doc-grade-ink: #03630b;
+}
+
+/* How many things sit at each grade, worst first. */
+.doc-grades {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* Wider between one grade and the next than between a grade and its count, so each medal
+     reads with the number that belongs to it. */
+  gap: 8px 16px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-grades__item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* A list item is given a bottom margin by the framework, and the last one is not: left alone,
+     that stretches the last medal's box and sits it lower than the rest of the row. */
+  margin: 0;
+}
+
+.doc-grades__count {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-contrast: more) {
+  .doc-grade {
+    background-color: transparent;
+    color: inherit;
+  }
+}
+
+@media print {
+  .doc-grade {
+    background-color: transparent;
+    color: inherit;
+  }
+}
+
+/* Checkboxes: any number of a few, drawn like the radios so a form reads the same either way. */
+.doc-checkboxes {
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+}
+
+.doc-checkboxes__legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.doc-checkboxes__item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.doc-checkboxes__input {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  accent-color: var(--doc-primary-colour);
+  cursor: pointer;
+}
+
+.doc-checkboxes__label {
+  padding-top: 7px;
+  cursor: pointer;
+}
+
+.doc-checkboxes__hint {
+  grid-column: 2;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-checkboxes__input:focus-visible {
+  outline: 4px solid var(--doc-focus-colour);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--doc-focus-underline-colour);
+  border-radius: 2px;
+}
+
+/* "or", between two groups of checkboxes that are alternatives to each other. */
+.doc-checkboxes__divider {
+  width: 40px;
+  margin-bottom: 12px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  text-align: center;
+}
+
+/* A form's button drawn as a link, for small actions such as "Change" in a summary list. */
+.doc-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--doc-primary-colour);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.doc-link-button:hover {
+  text-decoration: none;
+}
+
+.doc-link-button:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 -2px var(--doc-focus-colour), 0 4px var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  text-decoration: none;
+  border-radius: var(--doc-focus-radius);
+}
+
+/* A discussion as a conversation (Watercooler): the opening post stands in a box of its own, and
+   each reply sits under what it answers, indented with a rule down its left, as deep as the
+   conversation goes up to six levels. What each post can have done to it follows its words. */
+.doc-post {
+  padding: 16px 0 12px;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-post--opening {
+  margin: 0 0 32px;
+  padding: 24px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.doc-post__meta {
+  margin: 0 0 8px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 1rem;
+}
+
+.doc-post__meta strong {
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-post__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 8px;
+  font-size: 1rem;
+}
+
+.doc-post__actions a,
+.doc-post__actions .doc-link-button {
+  font-size: 1rem;
+}
+
+.doc-post__actions form {
+  margin: 0;
+}
+
+.doc-post__reply-heading {
+  margin-top: 24px;
+}
+
+.doc-replies {
+  margin-left: 12px;
+  padding-left: 20px;
+  border-left: 2px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-replies > .doc-post:first-child {
+  border-top: 0;
+}
+
+@media (max-width: 40.0525em) {
+  .doc-replies {
+    margin-left: 4px;
+    padding-left: 12px;
+  }
+}
+
+/* Liking a post: a button that stays pressed, with how many like it. */
+.doc-like {
+  display: inline;
+  margin: 0;
+}
+
+.doc-like__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 12px;
+  border: 1px solid var(--nhsuk-input-border-colour, #4c6272);
+  border-radius: 999px;
+  background-color: #fff;
+  color: var(--nhsuk-text-colour, #212b32);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.doc-like__button:hover {
+  border-color: var(--doc-primary-colour, #5b00b8);
+}
+
+.doc-like__button--liked {
+  border-color: var(--doc-primary-colour, #5b00b8);
+  background-color: #f3ebfb;
+  color: var(--doc-primary-active-colour, #2e005c);
+  font-weight: 600;
+}
+
+.doc-like__button--static {
+  cursor: default;
+}
+
+.doc-like__button--static:hover {
+  border-color: var(--nhsuk-input-border-colour, #4c6272);
+}
+
+.doc-like__icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.doc-like__count {
+  font-weight: 600;
+}
+
+/* A step of a wizard: which step, of how many. */
+.doc-step {
+  margin: 0 0 4px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+/* Contents beside a page that presents information, such as a document in a space: a quarter of
+   the width on the left, the page in the rest. On a narrow screen the contents fold above it. */
+.doc-with-contents {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 3fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.doc-with-contents__main {
+  min-width: 0;
+}
+
+.doc-contents {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding-right: 8px;
+  font-size: 1rem;
+}
+
+.doc-contents__summary {
+  display: none;
+}
+
+.doc-contents__heading {
+  margin: 0 0 12px;
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+.doc-contents__heading a {
+  color: var(--nhsuk-text-colour, #212b32);
+  text-decoration: none;
+}
+
+.doc-contents__heading a:hover {
+  text-decoration: underline;
+}
+
+.doc-contents__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-contents__list .doc-contents__list {
+  margin: 4px 0 8px 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-contents__item {
+  margin: 0 0 8px;
+}
+
+.doc-contents__folder {
+  display: block;
+  margin-top: 4px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-weight: 600;
+}
+
+.doc-contents__link,
+.doc-contents__link:visited {
+  display: block;
+  padding: 2px 0 2px 12px;
+  border-left: 4px solid transparent;
+  color: var(--doc-primary-colour);
+}
+
+.doc-contents__link:hover {
+  text-decoration: none;
+}
+
+.doc-contents__link[aria-current="page"] {
+  border-left-color: var(--doc-primary-colour);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* A step of a guided run that is done, such as Set up DOC's: a small word after its name. */
+.doc-contents__done {
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background-color: #cce5d8;
+  color: #004c23;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+.doc-contents__link:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 -2px var(--doc-focus-colour), 0 4px var(--doc-focus-underline-colour);
+  color: var(--doc-focus-text-colour);
+  text-decoration: none;
+  border-radius: var(--doc-focus-radius);
+}
+
+@media (max-width: 48.0525em) {
+  .doc-with-contents {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .doc-contents {
+    position: static;
+    max-height: none;
+    padding: 12px 16px;
+    border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+    background-color: #fff;
+  }
+
+  .doc-contents__summary {
+    display: list-item;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .doc-contents[open] .doc-contents__summary {
+    margin-bottom: 12px;
+  }
+}
+
+/* Filters in the column a contents list would take, beside a page whose content is one large
+   thing — a map, a board — so it has the rest of the width to itself. They apply as they change,
+   so there is no Show button except where there is no script to apply them with. */
+.doc-filters {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding-right: 8px;
+  font-size: 1rem;
+}
+
+.doc-filters__summary {
+  display: none;
+}
+
+.doc-filters__heading {
+  margin: 0 0 12px;
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+.doc-filters .doc-form-group {
+  margin-bottom: 16px;
+}
+
+.doc-filters .doc-select {
+  max-width: none;
+}
+
+/* A long list of what to show, folded away: it is set once and read rarely. */
+.doc-filters__more {
+  margin-bottom: 16px;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+}
+
+.doc-filters__more > summary {
+  padding: 12px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-filters__choices {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+}
+
+.doc-filters__choice {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-filters__choice input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--doc-primary-colour);
+  cursor: pointer;
+}
+
+@media (max-width: 48.0525em) {
+  .doc-filters {
+    position: static;
+    max-height: none;
+    padding: 12px 16px;
+    border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+    background-color: #fff;
+  }
+
+  .doc-filters__summary {
+    display: list-item;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .doc-filters[open] .doc-filters__summary {
+    margin-bottom: 12px;
+  }
+
+  .doc-filters__heading {
+    display: none;
+  }
+}
+
+/* Previous and next pages, at the foot of a page with contents. */
+.doc-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 40px 0 0;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  list-style: none;
+}
+
+.doc-pagination__item {
+  max-width: 48%;
+  margin: 0;
+}
+
+.doc-pagination__item--next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.doc-pagination__link {
+  display: block;
+  color: var(--doc-primary-colour);
+  text-decoration: none;
+}
+
+.doc-pagination__direction {
+  display: block;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.doc-pagination__title {
+  display: block;
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-pagination__link:hover .doc-pagination__direction {
+  text-decoration: none;
+}
+
+.doc-pagination__link:focus {
+  outline: 4px solid transparent;
+  background-color: var(--doc-focus-colour);
+  box-shadow: 0 -2px var(--doc-focus-colour), 0 4px var(--doc-focus-underline-colour);
+  border-radius: var(--doc-focus-radius);
+}
+
+@media (max-width: 40.0525em) {
+  .doc-pagination__item {
+    max-width: 100%;
+  }
+}
+
+/* A field that offers what matches as you type, for naming a resource without remembering what
+   it is called. The options come from the Catalogue through HTMX; doc-combo.js opens the list and
+   puts the chosen one in the field. Without the script the field is still a text box. */
+.doc-combo {
+  position: relative;
+  max-width: 36rem;
+}
+
+.doc-combo__list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  max-height: 18rem;
+  margin-top: 2px;
+  border: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  border-radius: var(--doc-focus-radius);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  box-shadow: 0 4px 12px rgba(33, 43, 50, 0.15);
+  overflow-y: auto;
+}
+
+.doc-combo__list[hidden] {
+  display: none;
+}
+
+.doc-combo__option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--nhsuk-border-colour, #d8dde0);
+  background: none;
+  color: var(--nhsuk-text-colour, #212b32);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.doc-combo__option:last-of-type {
+  border-bottom: 0;
+}
+
+/* An option may be a link, which should read as a row rather than as a link in a sentence.
+   Scoped to the list, and so weighing more than `.nhsuk-hero a:not(.nhsuk-button)` and the other
+   band rules that paint links white: the list is a white card wherever it opens — over the
+   landing page's purple hero, or under the header — so its rows are dark whatever they sit on. */
+.doc-combo .doc-combo__list a.doc-combo__option,
+.doc-combo__list a.doc-combo__option,
+.doc-combo__list a.doc-combo__option:link,
+.doc-combo__list a.doc-combo__option:visited,
+.doc-combo__list a.doc-combo__option:hover,
+.doc-combo__list a.doc-combo__option:focus,
+.doc-combo__list a.doc-combo__option:active {
+  color: var(--nhsuk-text-colour, #212b32);
+  text-decoration: none;
+}
+
+/* The same for what a row is made of, so nothing inside it is painted by the band either. */
+.doc-combo__list .doc-combo__name {
+  color: var(--nhsuk-text-colour, #212b32);
+}
+
+.doc-combo__list .doc-combo__kind,
+.doc-combo__list .doc-combo__title,
+.doc-combo__list .doc-combo__empty {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-combo__option:hover,
+.doc-combo__option--active {
+  background-color: #f3ebff;
+}
+
+.doc-combo__name {
+  font-weight: 600;
+}
+
+.doc-combo__kind {
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: var(--nhsuk-secondary-button-hover-colour, #f0f4f5);
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.75rem;
+}
+
+.doc-combo__title {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.8125rem;
+}
+
+/* In the header the box is a flex row, so the list is measured from the row itself. */
+.doc-combo__list--header {
+  top: 100%;
+  min-width: 22rem;
+}
+
+.doc-combo__option--all {
+  font-weight: 600;
+}
+
+.doc-combo__empty {
+  margin: 0;
+  padding: 8px 10px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+/* The calendar (T?): a month grid and a day/week grid drawn the way a diary is, with the hours
+   down the side and events in their place in the day. Nothing here is positioned by an inline
+   style, which the CSP forbids, so a day column is a grid of quarter hours and an event says
+   which quarter hour it starts at and how many it covers. */
+
+.doc-cal {
+  --doc-cal-slot: 0.9rem; /* a quarter hour, so an hour is 3.6rem */
+  --doc-cal-line: var(--nhsuk-border-colour, #d8dde0);
+  --doc-cal-gutter: 3.75rem;
+  margin-bottom: 32px;
+  border: 1px solid var(--doc-cal-line);
+  border-radius: 8px;
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  overflow: hidden;
+}
+
+/* The bar above it: where you are, and how to look at it. */
+.doc-cal__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.doc-cal__heading {
+  flex: 1 1 12rem;
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.doc-cal__move,
+.doc-cal__views {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--doc-cal-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.doc-cal__step,
+.doc-cal__today,
+.doc-cal__view {
+  padding: 6px 12px;
+  border-right: 1px solid var(--doc-cal-line);
+  background-color: var(--nhsuk-card-background-colour, #fff);
+  color: var(--doc-primary-colour);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-decoration: none;
+  text-transform: capitalize;
+}
+
+.doc-cal__step:last-child,
+.doc-cal__today:last-child,
+.doc-cal__view:last-child {
+  border-right: 0;
+}
+
+.doc-cal__step {
+  padding: 6px 14px;
+  font-size: 1.125rem;
+}
+
+.doc-cal__step:hover,
+.doc-cal__today:hover,
+.doc-cal__view:hover {
+  background-color: var(--nhsuk-secondary-button-hover-colour, #f0f4f5);
+  text-decoration: none;
+}
+
+.doc-cal__view[aria-current="page"] {
+  background-color: var(--doc-primary-colour);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* The month: seven columns of days, each as tall as the rest. */
+.doc-cal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--doc-cal-line);
+  background-color: var(--nhsuk-secondary-button-hover-colour, #f0f4f5);
+}
+
+.doc-cal__weekday {
+  padding: 8px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.doc-cal__weeks {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.doc-cal__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 7.5rem;
+  padding: 4px;
+  border-right: 1px solid var(--doc-cal-line);
+  border-bottom: 1px solid var(--doc-cal-line);
+}
+
+.doc-cal__cell:nth-child(7n) {
+  border-right: 0;
+}
+
+.doc-cal__cell:nth-last-child(-n + 7) {
+  border-bottom: 0;
+}
+
+.doc-cal__cell--muted {
+  background-color: #fafbfc;
+}
+
+.doc-cal__cell--muted .doc-cal__number {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+}
+
+.doc-cal__number {
+  align-self: flex-start;
+  min-width: 1.75rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.doc-cal__number:hover {
+  background-color: var(--nhsuk-secondary-button-hover-colour, #f0f4f5);
+  text-decoration: none;
+}
+
+.doc-cal__cell--today .doc-cal__number {
+  background-color: var(--doc-primary-colour);
+  color: #fff;
+}
+
+/* Each calendar in somebody's own view has a colour of its own, so a team's events are told
+   from everybody else's at a glance. Tone 0 is the platform's, which one calendar on its own
+   and the resource panels keep. */
+.doc-cal__tone--1 { --doc-cal-accent: #005eb8; --doc-cal-wash: #e8f1fa; --doc-cal-wash-over: #d2e4f5; }
+.doc-cal__tone--2 { --doc-cal-accent: #007f3b; --doc-cal-wash: #e5f3eb; --doc-cal-wash-over: #cde8d8; }
+.doc-cal__tone--3 { --doc-cal-accent: #a35c00; --doc-cal-wash: #fbf0e2; --doc-cal-wash-over: #f4e0c4; }
+.doc-cal__tone--4 { --doc-cal-accent: #ae2573; --doc-cal-wash: #fbe9f2; --doc-cal-wash-over: #f5d3e4; }
+.doc-cal__tone--5 { --doc-cal-accent: #00786f; --doc-cal-wash: #e3f3f1; --doc-cal-wash-over: #c8e7e4; }
+.doc-cal__tone--6 { --doc-cal-accent: #c4262e; --doc-cal-wash: #fbe9ea; --doc-cal-wash-over: #f5d2d4; }
+.doc-cal__tone--7 { --doc-cal-accent: #425563; --doc-cal-wash: #eceff1; --doc-cal-wash-over: #dbe1e5; }
+.doc-cal__tone--8 { --doc-cal-accent: #5a6e00; --doc-cal-wash: #eff2e0; --doc-cal-wash-over: #dfe5c2; }
+
+/* A calendar row's state: why it is in somebody's calendar, beside the button that changes it. */
+.doc-cal__following {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.doc-cal__following .doc-hint,
+.doc-cal__following form {
+  margin: 0;
+}
+
+/* The key above someone's own calendar: which colour each of their calendars is drawn in. */
+.doc-cal__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-cal__keyitem {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+/* Lists drawn as a row or a column of their own space themselves with `gap`, so the 8px the
+   platform puts under every list item has nothing to do here. It is not only spare: the last
+   item is the one without it, a flex line takes its height from the tallest item counting its
+   margin, and a centred item in a line taller than itself sits low — which is what put the
+   last calendar in the key 4px below the others. */
+.doc-cal__key > li,
+.doc-tags__list > li,
+.doc-footer-nav__list > li {
+  margin: 0;
+}
+
+.doc-cal__swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background-color: var(--doc-cal-accent, var(--doc-primary-colour));
+}
+
+/* An event in a month cell, or all day in the strip above a week. */
+.doc-cal__chip {
+  display: flex;
+  gap: 4px;
+  padding: 1px 6px;
+  border-left: 3px solid var(--doc-cal-accent, var(--doc-primary-colour));
+  border-radius: 3px;
+  background-color: var(--doc-cal-wash, #f3ebff);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.doc-cal__chip:hover {
+  background-color: var(--doc-cal-wash-over, #e7d9ff);
+  text-decoration: none;
+}
+
+.doc-cal__chip--all-day {
+  border-left: 0;
+  background-color: var(--doc-cal-accent, var(--doc-primary-colour));
+  color: #fff;
+}
+
+.doc-cal__chip--all-day:hover {
+  background-color: var(--doc-cal-accent, var(--doc-primary-colour));
+}
+
+.doc-cal__chip-time {
+  color: var(--doc-cal-accent, var(--doc-primary-colour));
+  font-weight: 600;
+}
+
+.doc-cal__chip--all-day .doc-cal__chip-time {
+  color: inherit;
+}
+
+.doc-cal__chip-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-cal__more {
+  padding: 0 6px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.75rem;
+}
+
+/* The day and week grids. */
+.doc-cal--week,
+.doc-cal--day {
+  --doc-cal-days: 7;
+}
+
+.doc-cal--day {
+  --doc-cal-days: 1;
+}
+
+.doc-cal__head,
+.doc-cal__allday,
+.doc-cal__body {
+  display: grid;
+  grid-template-columns: var(--doc-cal-gutter) repeat(var(--doc-cal-days), minmax(0, 1fr));
+}
+
+.doc-cal__head {
+  border-bottom: 1px solid var(--doc-cal-line);
+  background-color: var(--nhsuk-secondary-button-hover-colour, #f0f4f5);
+}
+
+.doc-cal__corner {
+  padding: 8px 4px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
+.doc-cal__dayhead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-left: 1px solid var(--doc-cal-line);
+  color: var(--nhsuk-text-colour, #212b32);
+  text-decoration: none;
+}
+
+.doc-cal__dayhead:hover {
+  background-color: #fff;
+  text-decoration: none;
+}
+
+.doc-cal__dayname {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.doc-cal__daynumber {
+  min-width: 1.875rem;
+  padding: 2px;
+  border-radius: 999px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.doc-cal__dayhead--today .doc-cal__daynumber {
+  background-color: var(--doc-primary-colour);
+  color: #fff;
+}
+
+.doc-cal__allday {
+  border-bottom: 1px solid var(--doc-cal-line);
+}
+
+.doc-cal__alldaylabel {
+  padding: 4px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.6875rem;
+  text-align: right;
+}
+
+.doc-cal__alldaycell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 1.5rem;
+  padding: 2px;
+  border-left: 1px solid var(--doc-cal-line);
+}
+
+/* The hours themselves: the lines are the background, so nothing is drawn per hour. */
+.doc-cal__body {
+  max-height: 34rem;
+  padding-top: 0.5em;
+  overflow-y: auto;
+}
+
+.doc-cal__hours {
+  display: grid;
+  grid-template-rows: repeat(24, calc(var(--doc-cal-slot) * 4));
+}
+
+.doc-cal__hour {
+  padding-right: 6px;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.6875rem;
+  text-align: right;
+  transform: translateY(-0.5em);
+}
+
+.doc-cal__column {
+  display: grid;
+  grid-template-rows: repeat(96, var(--doc-cal-slot));
+  grid-template-columns: repeat(12, 1fr);
+  border-left: 1px solid var(--doc-cal-line);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--doc-cal-line) 0,
+    var(--doc-cal-line) 1px,
+    transparent 1px,
+    transparent calc(var(--doc-cal-slot) * 4)
+  );
+}
+
+.doc-cal__column--today {
+  background-color: #faf7ff;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--doc-cal-line) 0,
+    var(--doc-cal-line) 1px,
+    transparent 1px,
+    transparent calc(var(--doc-cal-slot) * 4)
+  );
+}
+
+.doc-cal__event {
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  margin: 1px;
+  padding: 2px 6px;
+  border-left: 3px solid var(--doc-cal-accent, var(--doc-primary-colour));
+  border-radius: 4px;
+  background-color: var(--doc-cal-wash, #f3ebff);
+  color: var(--nhsuk-text-colour, #212b32);
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.doc-cal__event:hover {
+  background-color: var(--doc-cal-wash-over, #e7d9ff);
+  text-decoration: none;
+}
+
+.doc-cal__event-time {
+  color: var(--doc-cal-accent, var(--doc-primary-colour));
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* A quarter of an hour is one line tall, so the time and what it is share it. */
+.doc-cal__event--brief {
+  flex-direction: row;
+  gap: 4px;
+  align-items: baseline;
+  padding: 0 6px;
+}
+
+.doc-cal__event--brief .doc-cal__event-title {
+  font-weight: 400;
+}
+
+.doc-cal__event-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-cal__event-where {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.6875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The list: a day to a row, with the date beside what is on it. */
+.doc-cal--list {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
+
+.doc-cal__listday {
+  display: flex;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--doc-cal-line);
+}
+
+.doc-cal__listdate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3rem;
+  padding-top: 2px;
+}
+
+.doc-cal__listnumber {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.doc-cal__listweekday {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.doc-cal__listday--today .doc-cal__listnumber,
+.doc-cal__listday--today .doc-cal__listweekday {
+  color: var(--doc-primary-colour);
+}
+
+.doc-cal__listitems {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doc-cal__listitem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 4px 0;
+}
+
+.doc-cal__listtime {
+  min-width: 7.5rem;
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-cal__listtitle {
+  font-weight: 600;
+}
+
+.doc-cal__listwhere,
+.doc-cal__listcalendar {
+  color: var(--nhsuk-secondary-text-colour, #4c6272);
+  font-size: 0.875rem;
+}
+
+.doc-cal__listcalendar {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* A narrow screen shows a day at a time rather than a week squeezed into it. */
+@media (max-width: 48.0525em) {
+  .doc-cal--week {
+    --doc-cal-days: 7;
+    overflow-x: auto;
+  }
+
+  .doc-cal--week .doc-cal__head,
+  .doc-cal--week .doc-cal__allday,
+  .doc-cal--week .doc-cal__body {
+    min-width: 45rem;
+  }
+
+  .doc-cal__cell {
+    min-height: 5rem;
+  }
+
+  .doc-cal__chip-time {
+    display: none;
+  }
+}
+
+/* Generated: a quarter hour to a row, 96 to the day. */
+.doc-cal__event--s0 { grid-row-start: 1; }
+.doc-cal__event--s1 { grid-row-start: 2; }
+.doc-cal__event--s2 { grid-row-start: 3; }
+.doc-cal__event--s3 { grid-row-start: 4; }
+.doc-cal__event--s4 { grid-row-start: 5; }
+.doc-cal__event--s5 { grid-row-start: 6; }
+.doc-cal__event--s6 { grid-row-start: 7; }
+.doc-cal__event--s7 { grid-row-start: 8; }
+.doc-cal__event--s8 { grid-row-start: 9; }
+.doc-cal__event--s9 { grid-row-start: 10; }
+.doc-cal__event--s10 { grid-row-start: 11; }
+.doc-cal__event--s11 { grid-row-start: 12; }
+.doc-cal__event--s12 { grid-row-start: 13; }
+.doc-cal__event--s13 { grid-row-start: 14; }
+.doc-cal__event--s14 { grid-row-start: 15; }
+.doc-cal__event--s15 { grid-row-start: 16; }
+.doc-cal__event--s16 { grid-row-start: 17; }
+.doc-cal__event--s17 { grid-row-start: 18; }
+.doc-cal__event--s18 { grid-row-start: 19; }
+.doc-cal__event--s19 { grid-row-start: 20; }
+.doc-cal__event--s20 { grid-row-start: 21; }
+.doc-cal__event--s21 { grid-row-start: 22; }
+.doc-cal__event--s22 { grid-row-start: 23; }
+.doc-cal__event--s23 { grid-row-start: 24; }
+.doc-cal__event--s24 { grid-row-start: 25; }
+.doc-cal__event--s25 { grid-row-start: 26; }
+.doc-cal__event--s26 { grid-row-start: 27; }
+.doc-cal__event--s27 { grid-row-start: 28; }
+.doc-cal__event--s28 { grid-row-start: 29; }
+.doc-cal__event--s29 { grid-row-start: 30; }
+.doc-cal__event--s30 { grid-row-start: 31; }
+.doc-cal__event--s31 { grid-row-start: 32; }
+.doc-cal__event--s32 { grid-row-start: 33; }
+.doc-cal__event--s33 { grid-row-start: 34; }
+.doc-cal__event--s34 { grid-row-start: 35; }
+.doc-cal__event--s35 { grid-row-start: 36; }
+.doc-cal__event--s36 { grid-row-start: 37; }
+.doc-cal__event--s37 { grid-row-start: 38; }
+.doc-cal__event--s38 { grid-row-start: 39; }
+.doc-cal__event--s39 { grid-row-start: 40; }
+.doc-cal__event--s40 { grid-row-start: 41; }
+.doc-cal__event--s41 { grid-row-start: 42; }
+.doc-cal__event--s42 { grid-row-start: 43; }
+.doc-cal__event--s43 { grid-row-start: 44; }
+.doc-cal__event--s44 { grid-row-start: 45; }
+.doc-cal__event--s45 { grid-row-start: 46; }
+.doc-cal__event--s46 { grid-row-start: 47; }
+.doc-cal__event--s47 { grid-row-start: 48; }
+.doc-cal__event--s48 { grid-row-start: 49; }
+.doc-cal__event--s49 { grid-row-start: 50; }
+.doc-cal__event--s50 { grid-row-start: 51; }
+.doc-cal__event--s51 { grid-row-start: 52; }
+.doc-cal__event--s52 { grid-row-start: 53; }
+.doc-cal__event--s53 { grid-row-start: 54; }
+.doc-cal__event--s54 { grid-row-start: 55; }
+.doc-cal__event--s55 { grid-row-start: 56; }
+.doc-cal__event--s56 { grid-row-start: 57; }
+.doc-cal__event--s57 { grid-row-start: 58; }
+.doc-cal__event--s58 { grid-row-start: 59; }
+.doc-cal__event--s59 { grid-row-start: 60; }
+.doc-cal__event--s60 { grid-row-start: 61; }
+.doc-cal__event--s61 { grid-row-start: 62; }
+.doc-cal__event--s62 { grid-row-start: 63; }
+.doc-cal__event--s63 { grid-row-start: 64; }
+.doc-cal__event--s64 { grid-row-start: 65; }
+.doc-cal__event--s65 { grid-row-start: 66; }
+.doc-cal__event--s66 { grid-row-start: 67; }
+.doc-cal__event--s67 { grid-row-start: 68; }
+.doc-cal__event--s68 { grid-row-start: 69; }
+.doc-cal__event--s69 { grid-row-start: 70; }
+.doc-cal__event--s70 { grid-row-start: 71; }
+.doc-cal__event--s71 { grid-row-start: 72; }
+.doc-cal__event--s72 { grid-row-start: 73; }
+.doc-cal__event--s73 { grid-row-start: 74; }
+.doc-cal__event--s74 { grid-row-start: 75; }
+.doc-cal__event--s75 { grid-row-start: 76; }
+.doc-cal__event--s76 { grid-row-start: 77; }
+.doc-cal__event--s77 { grid-row-start: 78; }
+.doc-cal__event--s78 { grid-row-start: 79; }
+.doc-cal__event--s79 { grid-row-start: 80; }
+.doc-cal__event--s80 { grid-row-start: 81; }
+.doc-cal__event--s81 { grid-row-start: 82; }
+.doc-cal__event--s82 { grid-row-start: 83; }
+.doc-cal__event--s83 { grid-row-start: 84; }
+.doc-cal__event--s84 { grid-row-start: 85; }
+.doc-cal__event--s85 { grid-row-start: 86; }
+.doc-cal__event--s86 { grid-row-start: 87; }
+.doc-cal__event--s87 { grid-row-start: 88; }
+.doc-cal__event--s88 { grid-row-start: 89; }
+.doc-cal__event--s89 { grid-row-start: 90; }
+.doc-cal__event--s90 { grid-row-start: 91; }
+.doc-cal__event--s91 { grid-row-start: 92; }
+.doc-cal__event--s92 { grid-row-start: 93; }
+.doc-cal__event--s93 { grid-row-start: 94; }
+.doc-cal__event--s94 { grid-row-start: 95; }
+.doc-cal__event--s95 { grid-row-start: 96; }
+
+/* Generated: how many quarter hours an event covers. */
+.doc-cal__event--n1 { grid-row-end: span 1; }
+.doc-cal__event--n2 { grid-row-end: span 2; }
+.doc-cal__event--n3 { grid-row-end: span 3; }
+.doc-cal__event--n4 { grid-row-end: span 4; }
+.doc-cal__event--n5 { grid-row-end: span 5; }
+.doc-cal__event--n6 { grid-row-end: span 6; }
+.doc-cal__event--n7 { grid-row-end: span 7; }
+.doc-cal__event--n8 { grid-row-end: span 8; }
+.doc-cal__event--n9 { grid-row-end: span 9; }
+.doc-cal__event--n10 { grid-row-end: span 10; }
+.doc-cal__event--n11 { grid-row-end: span 11; }
+.doc-cal__event--n12 { grid-row-end: span 12; }
+.doc-cal__event--n13 { grid-row-end: span 13; }
+.doc-cal__event--n14 { grid-row-end: span 14; }
+.doc-cal__event--n15 { grid-row-end: span 15; }
+.doc-cal__event--n16 { grid-row-end: span 16; }
+.doc-cal__event--n17 { grid-row-end: span 17; }
+.doc-cal__event--n18 { grid-row-end: span 18; }
+.doc-cal__event--n19 { grid-row-end: span 19; }
+.doc-cal__event--n20 { grid-row-end: span 20; }
+.doc-cal__event--n21 { grid-row-end: span 21; }
+.doc-cal__event--n22 { grid-row-end: span 22; }
+.doc-cal__event--n23 { grid-row-end: span 23; }
+.doc-cal__event--n24 { grid-row-end: span 24; }
+.doc-cal__event--n25 { grid-row-end: span 25; }
+.doc-cal__event--n26 { grid-row-end: span 26; }
+.doc-cal__event--n27 { grid-row-end: span 27; }
+.doc-cal__event--n28 { grid-row-end: span 28; }
+.doc-cal__event--n29 { grid-row-end: span 29; }
+.doc-cal__event--n30 { grid-row-end: span 30; }
+.doc-cal__event--n31 { grid-row-end: span 31; }
+.doc-cal__event--n32 { grid-row-end: span 32; }
+.doc-cal__event--n33 { grid-row-end: span 33; }
+.doc-cal__event--n34 { grid-row-end: span 34; }
+.doc-cal__event--n35 { grid-row-end: span 35; }
+.doc-cal__event--n36 { grid-row-end: span 36; }
+.doc-cal__event--n37 { grid-row-end: span 37; }
+.doc-cal__event--n38 { grid-row-end: span 38; }
+.doc-cal__event--n39 { grid-row-end: span 39; }
+.doc-cal__event--n40 { grid-row-end: span 40; }
+.doc-cal__event--n41 { grid-row-end: span 41; }
+.doc-cal__event--n42 { grid-row-end: span 42; }
+.doc-cal__event--n43 { grid-row-end: span 43; }
+.doc-cal__event--n44 { grid-row-end: span 44; }
+.doc-cal__event--n45 { grid-row-end: span 45; }
+.doc-cal__event--n46 { grid-row-end: span 46; }
+.doc-cal__event--n47 { grid-row-end: span 47; }
+.doc-cal__event--n48 { grid-row-end: span 48; }
+.doc-cal__event--n49 { grid-row-end: span 49; }
+.doc-cal__event--n50 { grid-row-end: span 50; }
+.doc-cal__event--n51 { grid-row-end: span 51; }
+.doc-cal__event--n52 { grid-row-end: span 52; }
+.doc-cal__event--n53 { grid-row-end: span 53; }
+.doc-cal__event--n54 { grid-row-end: span 54; }
+.doc-cal__event--n55 { grid-row-end: span 55; }
+.doc-cal__event--n56 { grid-row-end: span 56; }
+.doc-cal__event--n57 { grid-row-end: span 57; }
+.doc-cal__event--n58 { grid-row-end: span 58; }
+.doc-cal__event--n59 { grid-row-end: span 59; }
+.doc-cal__event--n60 { grid-row-end: span 60; }
+.doc-cal__event--n61 { grid-row-end: span 61; }
+.doc-cal__event--n62 { grid-row-end: span 62; }
+.doc-cal__event--n63 { grid-row-end: span 63; }
+.doc-cal__event--n64 { grid-row-end: span 64; }
+.doc-cal__event--n65 { grid-row-end: span 65; }
+.doc-cal__event--n66 { grid-row-end: span 66; }
+.doc-cal__event--n67 { grid-row-end: span 67; }
+.doc-cal__event--n68 { grid-row-end: span 68; }
+.doc-cal__event--n69 { grid-row-end: span 69; }
+.doc-cal__event--n70 { grid-row-end: span 70; }
+.doc-cal__event--n71 { grid-row-end: span 71; }
+.doc-cal__event--n72 { grid-row-end: span 72; }
+.doc-cal__event--n73 { grid-row-end: span 73; }
+.doc-cal__event--n74 { grid-row-end: span 74; }
+.doc-cal__event--n75 { grid-row-end: span 75; }
+.doc-cal__event--n76 { grid-row-end: span 76; }
+.doc-cal__event--n77 { grid-row-end: span 77; }
+.doc-cal__event--n78 { grid-row-end: span 78; }
+.doc-cal__event--n79 { grid-row-end: span 79; }
+.doc-cal__event--n80 { grid-row-end: span 80; }
+.doc-cal__event--n81 { grid-row-end: span 81; }
+.doc-cal__event--n82 { grid-row-end: span 82; }
+.doc-cal__event--n83 { grid-row-end: span 83; }
+.doc-cal__event--n84 { grid-row-end: span 84; }
+.doc-cal__event--n85 { grid-row-end: span 85; }
+.doc-cal__event--n86 { grid-row-end: span 86; }
+.doc-cal__event--n87 { grid-row-end: span 87; }
+.doc-cal__event--n88 { grid-row-end: span 88; }
+.doc-cal__event--n89 { grid-row-end: span 89; }
+.doc-cal__event--n90 { grid-row-end: span 90; }
+.doc-cal__event--n91 { grid-row-end: span 91; }
+.doc-cal__event--n92 { grid-row-end: span 92; }
+.doc-cal__event--n93 { grid-row-end: span 93; }
+.doc-cal__event--n94 { grid-row-end: span 94; }
+.doc-cal__event--n95 { grid-row-end: span 95; }
+.doc-cal__event--n96 { grid-row-end: span 96; }
+
+/* Generated: events that overlap share the column, in twelfths so halves, thirds,
+   quarters and sixths all come out even. */
+.doc-cal__event--lane-0-1 { grid-column: 1 / span 12; }
+.doc-cal__event--lane-0-2 { grid-column: 1 / span 6; }
+.doc-cal__event--lane-1-2 { grid-column: 7 / span 6; }
+.doc-cal__event--lane-0-3 { grid-column: 1 / span 4; }
+.doc-cal__event--lane-1-3 { grid-column: 5 / span 4; }
+.doc-cal__event--lane-2-3 { grid-column: 9 / span 4; }
+.doc-cal__event--lane-0-4 { grid-column: 1 / span 3; }
+.doc-cal__event--lane-1-4 { grid-column: 4 / span 3; }
+.doc-cal__event--lane-2-4 { grid-column: 7 / span 3; }
+.doc-cal__event--lane-3-4 { grid-column: 10 / span 3; }
+.doc-cal__event--lane-0-6 { grid-column: 1 / span 2; }
+.doc-cal__event--lane-1-6 { grid-column: 3 / span 2; }
+.doc-cal__event--lane-2-6 { grid-column: 5 / span 2; }
+.doc-cal__event--lane-3-6 { grid-column: 7 / span 2; }
+.doc-cal__event--lane-4-6 { grid-column: 9 / span 2; }
+.doc-cal__event--lane-5-6 { grid-column: 11 / span 2; }
+.doc-cal__event--lane-0-5 { grid-column: 1 / span 2; }
+.doc-cal__event--lane-1-5 { grid-column: 3 / span 2; }
+.doc-cal__event--lane-2-5 { grid-column: 5 / span 2; }
+.doc-cal__event--lane-3-5 { grid-column: 7 / span 2; }
+.doc-cal__event--lane-4-5 { grid-column: 9 / span 2; }
+.doc-cal__event--lane-0-7 { grid-column: 1 / span 1; }
+.doc-cal__event--lane-1-8 { grid-column: 2 / span 1; }
+.doc-cal__event--lane-2-9 { grid-column: 3 / span 1; }
+.doc-cal__event--lane-3-10 { grid-column: 4 / span 1; }
+.doc-cal__event--lane-4-11 { grid-column: 5 / span 1; }
+.doc-cal__event--lane-5-12 { grid-column: 6 / span 1; }
+.doc-cal__event--lane-6-13 { grid-column: 7 / span 1; }
+.doc-cal__event--lane-7-14 { grid-column: 8 / span 1; }
+.doc-cal__event--lane-8-15 { grid-column: 9 / span 1; }
+.doc-cal__event--lane-9-16 { grid-column: 10 / span 1; }
+.doc-cal__event--lane-10-17 { grid-column: 11 / span 1; }
+.doc-cal__event--lane-11-18 { grid-column: 12 / span 1; }
+
+/* A canvas you arrange (doc-canvas.js): things sit where they were put, the surface pans, and
+   hovering a thing shows the handles you drag from to connect it to another. Positions come in as
+   `--x`/`--y` in grid steps, so the page sends small whole numbers and the stylesheet decides what
+   a step is worth. */
+/* The pan lives here, on the canvas, so two things can read it: the surface, which moves what sits
+   on it, and this grid, which slides by the same amount. The square is the step things snap to —
+   2 steps of 10px — so a thing put down lands on a line rather than near one. */
+.doc-canvas-area {
+  --pan-x: 0;
+  --pan-y: 0;
+  --zoom: 1;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.doc-canvas {
+  position: relative;
+  overflow: hidden;
+  min-height: 32rem;
+  border: 1px solid var(--doc-border, #d8dde0);
+  border-radius: 8px;
+  background-color: var(--doc-canvas-paper, #fbfcfd);
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: calc(20px * var(--zoom)) calc(20px * var(--zoom));
+  background-position: calc(var(--pan-x) * 1px) calc(var(--pan-y) * 1px);
+  touch-action: none;
+  cursor: grab;
+}
+
+.doc-canvas--panning {
+  cursor: grabbing;
+}
+
+.doc-canvas--linking {
+  cursor: crosshair;
+}
+
+.doc-canvas__surface {
+  position: absolute;
+  inset: 0;
+  transform: translate(calc(var(--pan-x) * 1px), calc(var(--pan-y) * 1px)) scale(var(--zoom));
+  transform-origin: 0 0;
+}
+
+.doc-canvas__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.doc-canvas__line {
+  fill: none;
+  stroke: var(--doc-graph-edge, #768692);
+  stroke-width: 2;
+}
+
+.doc-canvas__line--drawing {
+  stroke-dasharray: 6 4;
+  stroke: var(--doc-primary, #5b00b8);
+}
+
+.doc-canvas__arrow {
+  fill: var(--doc-graph-edge, #768692);
+}
+
+/* What a line says, in a white box edged in the line's own colour, centred on the line so the line
+   does not run through the words. Above the lines and below the things on them. */
+.doc-canvas__labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.doc-canvas__line-label {
+  position: absolute;
+  left: calc(var(--label-x, 0) * 1px);
+  top: calc(var(--label-y, 0) * 1px);
+  padding: 0 6px;
+  border: 1px solid var(--doc-graph-edge, #768692);
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--doc-secondary-text, #4c6272);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.doc-canvas__node {
+  position: absolute;
+  left: calc(var(--x, 0) * 10px);
+  top: calc(var(--y, 0) * 10px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 9rem;
+  padding: 10px 12px;
+  border: 2px solid var(--doc-border, #d8dde0);
+  border-radius: 8px;
+  background: var(--doc-surface, #ffffff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  cursor: grab;
+  user-select: none;
+}
+
+/* The colours a border may be on a view, and the swatches its panel offers them as. Before the
+   hover, chosen and target rules, so those still show over a chosen colour. */
+.doc-canvas__node--colour-blue,
+.doc-canvas__swatch--blue { --doc-canvas-colour: #005eb8; }
+.doc-canvas__node--colour-teal,
+.doc-canvas__swatch--teal { --doc-canvas-colour: #00a499; }
+.doc-canvas__node--colour-green,
+.doc-canvas__swatch--green { --doc-canvas-colour: #007f3b; }
+.doc-canvas__node--colour-yellow,
+.doc-canvas__swatch--yellow { --doc-canvas-colour: #ffb81c; }
+.doc-canvas__node--colour-orange,
+.doc-canvas__swatch--orange { --doc-canvas-colour: #ed8b00; }
+.doc-canvas__node--colour-red,
+.doc-canvas__swatch--red { --doc-canvas-colour: #d5281b; }
+.doc-canvas__node--colour-pink,
+.doc-canvas__swatch--pink { --doc-canvas-colour: #ae2573; }
+.doc-canvas__node--colour-purple,
+.doc-canvas__swatch--purple { --doc-canvas-colour: #330072; }
+
+[class*="doc-canvas__node--colour-"] {
+  border-color: var(--doc-canvas-colour);
+}
+
+.doc-canvas__node:hover,
+.doc-canvas__node:focus-visible {
+  border-color: var(--doc-primary, #5b00b8);
+  outline: none;
+}
+
+.doc-canvas__node--dragging {
+  cursor: grabbing;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.doc-canvas__node--target {
+  border-color: var(--doc-primary, #5b00b8);
+  box-shadow: 0 0 0 4px rgba(91, 0, 184, 0.18);
+}
+
+.doc-canvas__node--service {
+  border-style: dashed;
+}
+
+/* A border style chosen on the view, which wins over a service's dashes. */
+.doc-canvas__node--border-solid {
+  border-style: solid;
+}
+
+.doc-canvas__node--border-dashed {
+  border-style: dashed;
+}
+
+.doc-canvas__node--border-dotted {
+  border-style: dotted;
+}
+
+.doc-canvas__name {
+  font-weight: 600;
+}
+
+.doc-canvas__what {
+  color: var(--doc-secondary-text, #4c6272);
+  font-size: 0.875rem;
+}
+
+/* A description, on its own row under the name. It wraps rather than stretching the box across the
+   canvas, and the box grows to hold it. */
+.doc-canvas__note {
+  flex-basis: 100%;
+  max-width: 18rem;
+  color: var(--doc-secondary-text, #4c6272);
+  font-size: 0.875rem;
+  line-height: 1.35;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* The handles only appear for the thing under the pointer, or the one with focus, so a map at rest
+   is a map rather than a field of dots. */
+.doc-canvas__handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--doc-surface, #ffffff);
+  border-radius: 50%;
+  background: var(--doc-primary, #5b00b8);
+  opacity: 0;
+  cursor: crosshair;
+}
+
+/* One a side, each at the middle of its own edge, so where a line is drawn from is where it
+   stays. */
+.doc-canvas__handle--top {
+  top: -7px;
+  left: 50%;
+  margin-left: -7px;
+}
+
+.doc-canvas__handle--bottom {
+  bottom: -7px;
+  left: 50%;
+  margin-left: -7px;
+}
+
+.doc-canvas__handle--left {
+  left: -7px;
+  top: 50%;
+  margin-top: -7px;
+}
+
+.doc-canvas__handle--right {
+  right: -7px;
+  top: 50%;
+  margin-top: -7px;
+}
+
+.doc-canvas__node:hover .doc-canvas__handle,
+.doc-canvas__node:focus-visible .doc-canvas__handle,
+.doc-canvas__node--chosen .doc-canvas__handle,
+.doc-canvas--linking .doc-canvas__handle {
+  opacity: 1;
+}
+
+/* A canvas drawn to be read, such as a view on a service's page, has nothing to connect or resize
+   with. */
+[data-doc-canvas-still] .doc-canvas__handle,
+[data-doc-canvas-still] .doc-canvas__grip {
+  display: none;
+}
+
+/* The one that is chosen, and the × that takes it off the view with its lines. */
+.doc-canvas__node--chosen {
+  border-color: var(--doc-primary, #5b00b8);
+  box-shadow: 0 0 0 3px rgba(91, 0, 184, 0.14);
+}
+
+.doc-canvas__off {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  margin: 0;
+}
+
+.doc-canvas__off-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid var(--doc-surface, #ffffff);
+  border-radius: 50%;
+  background: var(--doc-error, #d5281b);
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Opposite the ×, on the left: the edit button, then the expand button when it opens into another
+   view. The same size and shape as the ×. */
+.doc-canvas__tools {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  display: flex;
+  gap: 4px;
+}
+
+.doc-canvas__tools[hidden] {
+  display: none;
+}
+
+.doc-canvas__tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid var(--doc-surface, #ffffff);
+  border-radius: 50%;
+  background: var(--doc-primary-colour, #3d415c);
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.doc-canvas__tool:hover {
+  background: var(--doc-primary-active-colour, #2e005c);
+  color: #ffffff;
+}
+
+.doc-canvas__tool:focus-visible {
+  outline: 3px solid var(--doc-focus-colour, #d9bfff);
+  outline-offset: 1px;
+}
+
+/* A thing's panel offers its border colours as swatches: a radio each, the swatch its label. */
+.doc-canvas__colours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.doc-canvas__colours legend {
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 0;
+}
+
+.doc-canvas__swatch {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--doc-surface, #ffffff);
+  border-radius: 50%;
+  background: var(--doc-canvas-colour, #d8dde0);
+  box-shadow: 0 0 0 1px #aeb7bd;
+  cursor: pointer;
+}
+
+.doc-canvas__swatch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.doc-canvas__swatch:has(input:checked) {
+  box-shadow: 0 0 0 3px var(--doc-text, #212b32);
+}
+
+.doc-canvas__swatch:has(input:focus-visible) {
+  outline: 3px solid var(--doc-focus-colour, #d9bfff);
+  outline-offset: 3px;
+}
+
+/* What is being carried from the palette, following the pointer, and the canvas it would land on. */
+.doc-canvas__ghost {
+  position: fixed;
+  left: calc(var(--ghost-x, -999) * 1px);
+  top: calc(var(--ghost-y, -999) * 1px);
+  z-index: 1000;
+  padding: 8px 12px;
+  border: 2px solid var(--doc-primary, #5b00b8);
+  border-radius: 8px;
+  background: var(--doc-surface, #ffffff);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transform: translate(8px, 8px);
+  pointer-events: none;
+}
+
+.doc-canvas--accepting {
+  box-shadow: inset 0 0 0 3px rgba(91, 0, 184, 0.35);
+}
+
+.doc-canvas-carrying,
+.doc-canvas-carrying * {
+  cursor: grabbing !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .doc-canvas__handle {
+    transition: opacity 120ms ease-in-out;
+  }
+}
+
+/* A node's own size, where it was resized; otherwise the stylesheet's. */
+.doc-canvas__node[style*="--w"] {
+  width: calc(var(--w) * 10px);
+}
+
+/* At least the height it was drawn, and taller when what is in it needs more. */
+.doc-canvas__node[style*="--h"] {
+  min-height: calc(var(--h) * 10px);
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+.doc-canvas__node--sizing {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+/* The grip that resizes it, in the corner, shown with the handles. */
+.doc-canvas__grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  background:
+    linear-gradient(135deg, transparent 50%, var(--doc-primary, #5b00b8) 50%);
+  border-bottom-right-radius: 6px;
+  cursor: nwse-resize;
+}
+
+.doc-canvas__node:hover .doc-canvas__grip,
+.doc-canvas__node:focus-visible .doc-canvas__grip,
+.doc-canvas__node--sizing .doc-canvas__grip {
+  opacity: 1;
+}
+
+/* A wide transparent line over each drawn one, so a click lands on it without having to hit two
+   pixels exactly. */
+.doc-canvas__hit {
+  stroke: transparent;
+  stroke-width: 14;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.doc-canvas__lines {
+  pointer-events: none;
+}
+
+.doc-canvas__lines .doc-canvas__hit {
+  pointer-events: stroke;
+}
+
+/* What a line says, and what can be done about it, opened by clicking the line. */
+.doc-canvas__menu {
+  position: absolute;
+  top: calc(var(--menu-y, 16) * 1px);
+  left: calc(var(--menu-x, 16) * 1px);
+  z-index: 3;
+  max-height: none;
+  width: min(22rem, calc(100% - 32px));
+  padding: 16px;
+  border: 1px solid var(--doc-border, #d8dde0);
+  border-radius: 8px;
+  background: var(--doc-surface, #ffffff);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.doc-canvas__menu-what {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.doc-canvas__menu-close {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--doc-secondary-text, #4c6272);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Who a view belongs to, where it is drawn away from its own page: in the corner opposite the zoom,
+   clear of the edges, and still while the map pans under it. */
+.doc-canvas__caption {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  max-width: calc(100% - 12rem);
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--doc-border, #d8dde0);
+  border-radius: 8px;
+  background: var(--doc-surface, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  color: var(--doc-secondary-text, #4c6272);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  cursor: default;
+}
+
+/* Zoom, and back to where everything starts. Sits above the canvas rather than on it, so panning
+   never carries it away. */
+.doc-canvas__zoom {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--doc-border, #d8dde0);
+  border-radius: 8px;
+  background: var(--doc-surface, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.doc-canvas__zoom-button {
+  min-width: 2rem;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--doc-text, #212b32);
+  font: inherit;
+  cursor: pointer;
+}
+
+.doc-canvas__zoom-button:hover,
+.doc-canvas__zoom-button:focus-visible {
+  background: var(--doc-hover, #f0f4f5);
+}

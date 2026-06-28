@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="sign-in-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="sign-in-error">You could not be signed in</h2>
+      <div class="nhsuk-error-summary__body">
+        <p>{{ error }}</p>
+      </div>
+    </div>
+    {%- endif %}
+    {%- if let Some(link) = link %}
+    <form class="doc-sign-in" action="/sign-in/{{ link.provider }}" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <input type="hidden" name="return_to" value="{{ return_to }}" />
+      <h2 class="doc-sign-in__title">Welcome to DOC</h2>
+      <p>You were added with a one-time password, filled in below. Sign in with it, then choose your own.</p>
+      <div class="doc-form-group">
+        <label class="doc-label" for="link-username">Username</label>
+        <input class="doc-input" id="link-username" name="username" type="text" value="{{ link.username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="link-password">One-time password</label>
+        <input class="doc-input" id="link-password" name="password" type="password" value="{{ link.code }}" autocomplete="one-time-code" required />
+      </div>
+      <button class="doc-button" type="submit">Sign in</button>
+    </form>
+    {%- else %}
+    {%- if organisations.is_empty() %}
+    <p class="doc-empty">No way of signing in is running yet. Ask whoever runs this platform.</p>
+    {%- endif %}
+    {%- if show_password_step %}
+    {%- if can_go_back %}
+    <p><a class="nhsuk-back-link" href="/sign-in?return_to={{ return_query }}">Other ways of signing in</a></p>
+    {%- endif %}
+    {%- for organisation in password_organisations %}
+    {%- if password_organisations.len() > 1 %}
+    <h2>{{ organisation.title }}</h2>
+    {%- endif %}
+    {%- for provider in organisation.providers %}
+    <form class="doc-sign-in" action="/sign-in/{{ provider.id }}" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <input type="hidden" name="return_to" value="{{ return_to }}" />
+      <h3 class="doc-sign-in__title">With your {{ provider.title }}</h3>
+      <div class="doc-form-group">
+        <label class="doc-label" for="{{ provider.id }}-username">Username</label>
+        <input class="doc-input" id="{{ provider.id }}-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="{{ provider.id }}-password">Password</label>
+        <span class="doc-hint" id="{{ provider.id }}-password-hint">Or the one-time password you were given.</span>
+        <input class="doc-input" id="{{ provider.id }}-password" name="password" type="password" autocomplete="current-password" aria-describedby="{{ provider.id }}-password-hint" required />
+      </div>
+      <button class="doc-button" type="submit">Sign in</button>
+    </form>
+    {%- endfor %}
+    {%- endfor %}
+    {%- else %}
+    {%- for organisation in redirect_organisations %}
+    {%- if redirect_organisations.len() > 1 %}
+    <h2>{{ organisation.title }}</h2>
+    {%- endif %}
+    {%- for provider in organisation.providers %}
+    <p>
+      <a class="doc-button" href="/auth/{{ provider.id }}/start?return_to={{ return_query }}">Sign in with {{ provider.title }}</a>
+    </p>
+    {%- endfor %}
+    {%- endfor %}
+    {%- if can_show_other %}
+    <p><a href="/sign-in?return_to={{ return_query }}&amp;other=true">Other ways of signing in</a></p>
+    {%- endif %}
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

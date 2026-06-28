@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/users">People</a></span>
+{% endblock %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">Somebody is added by an email address in a domain their organisation approved. They are given a DOC password, so they can sign in before the organisation's SSO is set up, and link their other accounts after.</p>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="user-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="user-error">Nobody was added</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <form action="/users" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="user-email">Email address</label>
+        <span class="doc-hint" id="user-email-hint">In a domain their organisation approved, on its Signing in page.</span>
+        <input class="doc-input" id="user-email" name="email" type="email" maxlength="254" value="{{ values.email }}" aria-describedby="user-email-hint" autocomplete="off" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="user-name">Name</label>
+        <input class="doc-input" id="user-name" name="name" type="text" maxlength="256" value="{{ values.name }}" autocomplete="off" />
+      </div>
+      {%- if organisations.len() > 1 %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="user-organisation">Organisation</label>
+        <span class="doc-hint" id="user-organisation-hint">A person belongs to one organisation. Left as it is, they join the one that approved their address's domain.</span>
+        <select class="doc-select" id="user-organisation" name="organisation" aria-describedby="user-organisation-hint">
+          <option value="">The one that approved their domain</option>
+          {%- for organisation in organisations %}
+          <option value="{{ organisation.id }}"{% if organisation.id == values.organisation %} selected{% endif %}>{{ organisation.title }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      {%- endif %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="user-login">Login (optional)</label>
+        <span class="doc-hint" id="user-login-hint">What they go by on DOC, such as <code>ada</code>. Left empty, it is the part of their address before the <code>@</code>.</span>
+        <input class="doc-input" id="user-login" name="login" type="text" maxlength="64" value="{{ values.login }}" aria-describedby="user-login-hint" autocomplete="off" />
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Add person</button>
+        <a class="doc-button doc-button--secondary" href="/users">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

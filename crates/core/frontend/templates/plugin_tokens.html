@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- let tab = "tokens" %}
+{%- include "plugin_tabs.html" %}
+
+<div class="doc-heading-row">
+  <h2>Registration tokens</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/plugins/{{ plugin_id }}/tokens/new">Issue a token</a>
+  </div>
+</div>
+<p>A process presents one of these to register as {{ plugin_id }}. Revoking one stops a process using it from reporting in.</p>
+{%- if let Some(secret) = created %}
+<div class="nhsuk-warning-callout">
+  <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Copy the new token now</span></h3>
+  <p>It is shown only this once.</p>
+  <pre class="doc-code">{{ secret }}</pre>
+</div>
+{%- endif %}
+{%- if tokens.is_empty() %}
+<p class="doc-empty">No registration tokens yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Name</th>
+      <th class="doc-table__header" scope="col">Created</th>
+      <th class="doc-table__header" scope="col">Expires</th>
+      <th class="doc-table__header" scope="col">State</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for token in tokens %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ token.name.as_deref().unwrap_or("-") }}</th>
+      <td class="doc-table__cell">{{ Self::when(token.created_at) }}</td>
+      <td class="doc-table__cell">{% if let Some(at) = token.expires_at %}{{ Self::when(at) }}{% else %}Never{% endif %}</td>
+      <td class="doc-table__cell" id="token-{{ token.id }}">
+        {%- if token.revoked_at.is_some() %}
+        <strong class="doc-badge doc-badge--down">Revoked</strong>
+        {%- else %}
+        <form action="/plugins/{{ plugin_id }}/tokens/{{ token.id }}/revoke" method="post" hx-post="/plugins/{{ plugin_id }}/tokens/{{ token.id }}/revoke" hx-target="#token-{{ token.id }}" hx-confirm="Revoke this token? A process using it can no longer report in.">
+          <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+          <button class="doc-button doc-button--warning doc-button--small" type="submit">Revoke</button>
+        </form>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

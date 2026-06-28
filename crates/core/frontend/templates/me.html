@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block page_actions %}
+{%- if self.on_accounts() && !offered.is_empty() %}
+<div class="doc-page-header__actions">
+  <a class="doc-button doc-button--secondary" href="/account/links">Link another account</a>
+</div>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+<div class="doc-with-contents">
+  {%- let sections_label = "Your account" %}
+  {%- include "contents.html" %}
+  <div class="doc-with-contents__main">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="me-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="me-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if let Some(notice) = notice %}
+    <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+    {%- endif %}
+
+    {%- if !self.on_accounts() %}
+    <h2>Overview</h2>
+    <dl class="doc-summary">
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Login</dt>
+        <dd class="doc-summary__value">{{ login }}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Name</dt>
+        <dd class="doc-summary__value">{{ name.as_deref().unwrap_or("Not given") }}</dd>
+      </div>
+      {%- if first_name.is_some() || surname.is_some() %}
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">First name</dt>
+        <dd class="doc-summary__value">{{ first_name.as_deref().unwrap_or("Not given") }}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Surname</dt>
+        <dd class="doc-summary__value">{{ surname.as_deref().unwrap_or("Not given") }}</dd>
+      </div>
+      {%- endif %}
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Email address</dt>
+        <dd class="doc-summary__value">{{ email.as_deref().unwrap_or("Not given") }}</dd>
+      </div>
+    </dl>
+    <p class="doc-hint">These come from the accounts you sign in with, which keep them up to date: change them there.</p>
+    <p><a href="/tokens">Your personal access tokens</a> act as you, for the command line, scripts and MCP clients.</p>
+
+    {%- else %}
+    <h2>Linked accounts</h2>
+    <p>You can sign in with any of these, and plugins use them to act for you.</p>
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">Account</th>
+          <th class="doc-table__header" scope="col">Linked</th>
+          <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Action</span></th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for account in accounts %}
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">{{ account.provider }}<br /><span class="doc-hint">{{ account.login }}</span></th>
+          <td class="doc-table__cell">
+            {{ account.how }}, {{ account.since }}.
+            {%- if let Some(used) = account.last_used %} Last used {{ used }}.{% else %} Not used yet.{% endif %}
+            {%- if let Some(password) = account.password %}<br /><a href="{{ password }}">Change your password</a>{% endif %}
+            {%- if account.ask_for_password %}<br /><span class="doc-hint">To change its password, ask an admin for a new one-time password.</span>{% endif %}
+          </td>
+          <td class="doc-table__cell">
+            {%- if can_unlink %}
+            <form action="/account/identities/{{ account.id }}/unlink" method="post">
+              <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+              <button class="doc-button doc-button--warning doc-button--small" type="submit">Unlink<span class="nhsuk-u-visually-hidden"> your {{ account.provider }} account</span></button>
+            </form>
+            {%- endif %}
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- if !can_unlink %}
+    <p class="doc-hint">You always keep one account to sign in with, so this one cannot be unlinked.</p>
+    {%- endif %}
+
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

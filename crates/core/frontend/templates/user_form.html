@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/users/{{ user.id }}">{{ user.login }}</a></span>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="user-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="user-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+
+    {%- if form == "link" %}
+    <h2>Link an account</h2>
+    <p class="doc-hint">Only link an account you know is theirs. An account nobody has signed in with, held by another user who has never signed in, brings that user's record over.</p>
+    <form action="/users/{{ user.id }}/identities" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="link-provider">Provider</label>
+        <input class="doc-input" id="link-provider" name="provider" type="text" list="link-providers" value="{{ self.value("provider") }}" required />
+        <datalist id="link-providers">
+          {%- for choice in choices %}
+          <option value="{{ choice.id }}">{{ choice.name }}</option>
+          {%- endfor %}
+        </datalist>
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="link-external-id">Account ID</label>
+        <span class="doc-hint" id="link-external-id-hint">The provider's ID for the account, which never changes, such as GitHub's numeric user ID.</span>
+        <input class="doc-input" id="link-external-id" name="external_id" type="text" maxlength="256" value="{{ self.value("external_id") }}" aria-describedby="link-external-id-hint" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="link-login">Login with the provider</label>
+        <input class="doc-input" id="link-login" name="login" type="text" maxlength="64" value="{{ self.value("login") }}" />
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Link account</button>
+        <a class="doc-button doc-button--secondary" href="/users/{{ user.id }}/identities">Cancel</a>
+      </div>
+    </form>
+
+    {%- else if form == "move" %}
+    <h2>Move to another organisation</h2>
+    <p class="doc-hint">A person belongs to one organisation. Moving them takes them out of its teams and into the new one's default teams, and they sign in with its sign-in methods.</p>
+    {%- if organisations.is_empty() %}
+    <p class="doc-empty">There is no other organisation to move them to.</p>
+    {%- else %}
+    <form action="/users/{{ user.id }}/organisation" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="move-organisation">Organisation</label>
+        <select class="doc-select" id="move-organisation" name="organisation" required>
+          {%- for organisation in organisations %}
+          <option value="{{ organisation.id }}">{{ organisation.title }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Move</button>
+        <a class="doc-button doc-button--secondary" href="/users/{{ user.id }}">Cancel</a>
+      </div>
+    </form>
+    {%- endif %}
+
+    {%- else %}
+    <h2>Merge in a user who has never signed in</h2>
+    <p class="doc-hint">Their accounts, the service accounts they own, and what they were given come over, and their record goes. Someone who has signed in is never merged away.</p>
+    {%- if mergeable.is_empty() %}
+    <p class="doc-empty">Everybody else has signed in, so there is nobody to merge.</p>
+    {%- else %}
+    <form action="/users/{{ user.id }}/merge" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="merge-from">User</label>
+        <select class="doc-select" id="merge-from" name="from" required>
+          {%- for (id, label) in mergeable %}
+          <option value="{{ id }}">{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Merge into {{ user.login }}</button>
+        <a class="doc-button doc-button--secondary" href="/users/{{ user.id }}">Cancel</a>
+      </div>
+    </form>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

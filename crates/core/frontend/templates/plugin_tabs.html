@@ -1,0 +1,19 @@
+{#- The tabs of one plugin's page (ADR-0007). A tab somebody may not see is left out here and its
+    route refuses them on its own, so this is what the page shows, never what keeps anyone out. -#}
+<nav class="doc-tabs" aria-label="{{ plugin_id }}">
+  <ul class="doc-tabs__list">
+    <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/plugins/{{ plugin_id }}"{% if tab == "overview" %} aria-current="page"{% endif %}>Overview</a></li>
+    {%- if settings_tab %}
+    <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/plugins/{{ plugin_id }}/settings"{% if tab == "settings" %} aria-current="page"{% endif %}>Settings</a></li>
+    {%- endif %}
+    {%- if features_tab %}
+    <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/plugins/{{ plugin_id }}/features"{% if tab == "features" %} aria-current="page"{% endif %}>Features</a></li>
+    {%- endif %}
+    {%- if settings_tab %}
+    <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/plugins/{{ plugin_id }}/permissions"{% if tab == "permissions" %} aria-current="page"{% endif %}>Permissions</a></li>
+    {%- endif %}
+    {%- if tokens_tab %}
+    <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/plugins/{{ plugin_id }}/tokens"{% if tab == "tokens" %} aria-current="page"{% endif %}>Registration tokens</a></li>
+    {%- endif %}
+  </ul>
+</nav>

@@ -1,0 +1,10 @@
+{%- if people.is_empty() %}
+<p class="doc-combo__empty">{% if text.is_empty() %}Start typing a name.{% else %}Nobody here is called anything like “{{ text }}”.{% endif %}</p>
+{%- else %}
+{%- for person in people %}
+<button class="doc-combo__option" type="button" role="option" aria-selected="false" data-value="{{ person.value }}" data-label="{{ person.login }}">
+  <span class="doc-combo__name">{{ person.login }}</span>
+  {%- if !person.name.is_empty() %}<span class="doc-combo__title">{{ person.name }}</span>{% endif %}
+</button>
+{%- endfor %}
+{%- endif %}

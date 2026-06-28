@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/service-accounts">Service accounts</a></span>
+{% endblock %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">A service account acts for a tool or pipeline rather than a person. Once it is made, give it tokens and permissions from its own page.</p>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="account-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="account-error">The service account was not added</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <form action="/service-accounts" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="account-name">Name</label>
+        <span class="doc-hint" id="account-name-hint">Such as <code>docs-bot</code>. Names are unique across the platform.</span>
+        <input class="doc-input" id="account-name" name="name" type="text" maxlength="64" value="{{ values.name }}" aria-describedby="account-name-hint" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="account-description">Description</label>
+        <input class="doc-input" id="account-description" name="description" type="text" maxlength="200" value="{{ values.description }}" />
+      </div>
+      {%- if !teams.is_empty() %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="account-team">Owned by</label>
+        <span class="doc-hint" id="account-team-hint">A team's members, and the members of the teams inside it, manage its accounts.</span>
+        <select class="doc-select" id="account-team" name="team" aria-describedby="account-team-hint">
+          <option value="">You</option>
+          {%- for team in teams %}
+          <option value="{{ team.id }}"{% if team.id == values.team %} selected{% endif %}>The {{ team.title }} team</option>
+          {%- endfor %}
+        </select>
+      </div>
+      {%- endif %}
+      <button class="doc-button" type="submit">Add service account</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

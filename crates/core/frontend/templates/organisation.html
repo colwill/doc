@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+{%- if !organisation.description.is_empty() %}
+<p class="doc-page-header__lede">{{ organisation.description }}</p>
+{%- endif %}
+{% endblock %}
+
+{% block page_actions %}
+{%- if manages %}
+<div class="doc-page-header__actions">
+  {%- if self.on("overview") %}
+  <a class="doc-button doc-button--secondary" href="/organisations/{{ organisation.id }}/edit">Change</a>
+  {%- else if self.on("signing-in") %}
+  <a class="doc-button doc-button--secondary" href="/organisations/{{ organisation.id }}/providers">Change sign-in methods</a>
+  {%- else if self.on("teams") %}
+  <a class="doc-button doc-button--secondary" href="/teams/new?organisation={{ organisation.id }}">Add a team</a>
+  {%- else if self.on("positions") %}
+  <a class="doc-button doc-button--secondary" href="/organisations/{{ organisation.id }}/positions/new">Add a position</a>
+  {%- endif %}
+</div>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+{%- let tab = "organisations" %}
+{%- include "admin_tabs.html" %}
+<div class="doc-with-contents">
+{%- let sections_label = "This organisation" %}
+{%- include "contents.html" %}
+<div class="doc-with-contents__main">
+{%- if let Some(error) = error %}
+<div class="nhsuk-error-summary" aria-labelledby="organisation-error" role="alert" tabindex="-1">
+  <h2 class="nhsuk-error-summary__title" id="organisation-error">That was refused</h2>
+  <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+</div>
+{%- endif %}
+{%- if let Some(notice) = notice %}
+<div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+{%- endif %}
+{%- if self.on("overview") %}
+<h2>Overview</h2>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Name</dt>
+    <dd class="doc-summary__value"><code>{{ organisation.name }}</code>, wherever plugins refer to it</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Teams</dt>
+    <dd class="doc-summary__value"><a href="/organisations/{{ organisation.id }}/teams">{{ rows.len() }}</a></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Signs in with</dt>
+    <dd class="doc-summary__value">
+      {%- for provider in providers %}{% if self.chosen(provider) %}{{ provider.title }} {% endif %}{% endfor %}
+    </dd>
+  </div>
+</dl>
+
+{%- else if self.on("signing-in") %}
+<h2>Signing in</h2>
+<p>Its people sign in with these, and someone new who signs in with one joins it. Each serves one organisation.</p>
+<ul class="nhsuk-list nhsuk-list--bullet">
+  {%- for provider in providers %}
+  {%- if self.chosen(provider) %}
+  <li>{{ provider.title }}</li>
+  {%- endif %}
+  {%- endfor %}
+</ul>
+<h3>Approved email domains</h3>
+<p class="doc-hint">An administrator or a team lead can add somebody by an address in one of these, and they can sign in with a DOC password before the organisation's SSO is set up. A domain covers the domains inside it.</p>
+{%- if organisation.domains.is_empty() %}
+<p class="doc-empty">None yet, so nobody can be added by email address.</p>
+{%- else %}
+<ul class="nhsuk-list nhsuk-list--bullet">
+  {%- for domain in organisation.domains %}
+  <li><code>{{ domain }}</code></li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+
+{%- else if self.on("teams") %}
+<h2>Teams</h2>
+{%- if rows.is_empty() %}
+<p class="doc-empty">No teams yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Team</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">People</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header doc-indent--{{ row.indent() }}" scope="row">
+        <a href="/teams/{{ row.id }}">{{ row.title }}</a>
+        {%- if row.default %} <strong class="doc-badge">Default</strong>{% endif %}
+        {%- if let Some(provider) = row.provider %} <strong class="doc-badge">From {{ provider }}</strong>{% endif %}
+      </th>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.members }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if self.on("positions") %}
+<h2>Positions</h2>
+<p class="doc-hint">What people are in its teams, and what each is responsible for. Every team has these; a team's lead can change them for their team.</p>
+{%- if positions.is_empty() %}
+<p class="doc-empty">None yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Position</th>
+      <th class="doc-table__header" scope="col">Responsibilities</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for position in positions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">
+        {%- if manages %}<a href="/organisations/{{ organisation.id }}/positions/{{ position.name }}">{{ position.title }}</a>{% else %}{{ position.title }}{% endif %}
+        {%- if !position.description.is_empty() %}<br /><span class="doc-hint">{{ position.description }}</span>{% endif %}
+      </th>
+      <td class="doc-table__cell">
+        {%- if position.responsibilities.is_empty() %}<span class="doc-hint">None given</span>{% else %}
+        <ul class="nhsuk-list nhsuk-list--bullet nhsuk-u-margin-bottom-0">
+          {%- for responsibility in position.responsibilities %}<li>{{ responsibility }}</li>{% endfor %}
+        </ul>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="team-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="team-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <form action="{% if let Some(id) = id %}/teams/{{ id }}{% else %}/teams{% endif %}" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      {%- if let Some(provider) = provider %}
+      <div class="nhsuk-inset-text"><p>{{ provider }} provides this team, so its name, place and people change there. DOC decides whether it is a default team.</p></div>
+      {%- else %}
+      {%- if id.is_none() %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-organisation">Organisation</label>
+        <select class="doc-select" id="team-organisation" name="organisation" required>
+          {%- for organisation in organisations %}
+          <option value="{{ organisation.id }}"{% if organisation.id == values.organisation %} selected{% endif %}>{{ organisation.title }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      {%- endif %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-title">Title</label>
+        <input class="doc-input" id="team-title" name="title" type="text" maxlength="100" value="{{ values.title }}" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-name">Name</label>
+        <span class="doc-hint" id="team-name-hint">Unique in its organisation: a-z, 0-9, <code>-</code>, <code>_</code> and <code>.</code>, such as <code>payments-core</code>.</span>
+        <input class="doc-input" id="team-name" name="name" type="text" maxlength="64" value="{{ values.name }}" aria-describedby="team-name-hint" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-description">Description</label>
+        <textarea class="doc-textarea" id="team-description" name="description" rows="3" maxlength="500">{{ values.description }}</textarea>
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-parent">Inside</label>
+        <span class="doc-hint" id="team-parent-hint">A sub-team is in its parent's organisation. Its members get what the teams above it hold.</span>
+        <select class="doc-select" id="team-parent" name="parent" aria-describedby="team-parent-hint">
+          <option value="">No team: it is top-level</option>
+          {%- for parent in parents %}
+          <option value="{{ parent.id }}"{% if parent.id == values.parent %} selected{% endif %}>{{ parent.label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      {%- endif %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="team-email">Email</label>
+        <span class="doc-hint" id="team-email-hint">Where to write to the team, if it has an address of its own. Leave it empty for none.</span>
+        <input class="doc-input" id="team-email" name="email" type="email" maxlength="254" value="{{ values.email }}" aria-describedby="team-email-hint" />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label"><input id="team-default" name="default" type="checkbox" aria-describedby="team-default-hint"{% if values.default.is_some() %} checked{% endif %} /> A default team</label>
+        <span class="doc-hint" id="team-default-hint">Everyone is placed in each default team as they arrive. There is always at least one.</span>
+      </div>
+      <button class="doc-button" type="submit">{% if id.is_some() %}Save{% else %}Add team{% endif %}</button>
+    </form>
+    {%- if let Some(id) = id %}
+    {%- if provider.is_none() %}
+    <h2>Delete this team</h2>
+    <p class="doc-hint">Only once it has no teams inside it and owns no service accounts; its people stay, out of it.</p>
+    <form action="/teams/{{ id }}/delete" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <button class="doc-button doc-button--warning" type="submit">Delete {{ values.title }}</button>
+    </form>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

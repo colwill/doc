@@ -1,0 +1,613 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">Every <code>doc-*</code> class a plugin UI may use, drawn as it is drawn.</p>
+{% endblock %}
+
+{% block content %}
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="Components">
+      <p class="doc-contents__heading">Components</p>
+      <ul class="doc-contents__list">
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#badges">State badges</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#grades">Grades</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#buttons">Buttons</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#cards">Cards</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#tables">Tables</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#forms">Forms</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#editor">Page editor</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#tabs">Tabs</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#heading-rows">Headings with actions</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#radios">Radios</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#summaries">Summary lists</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#kinds">Origin labels</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#categories">Plugin categories</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#page-header">Page headers</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#page-contents">Page contents</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#listings">Listings and results</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#content-pages">Content pages</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#code">Code</a></li>
+          <li class="doc-contents__item"><a class="doc-contents__link" href="#trees">Trees of files</a></li>
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main doc-content-page">
+    <div class="doc-content-page__header">
+      <p class="doc-content-page__meta">Frontend {{ version }}, backend at {{ backend }}.</p>
+    </div>
+
+    <h2 id="badges">State badges</h2>
+    <p>Plugin lifecycle:</p>
+    <p class="nhsuk-u-margin-bottom-4">
+      <strong class="doc-badge doc-badge--loading">Loading</strong>
+      <strong class="doc-badge doc-badge--ready">Ready</strong>
+      <strong class="doc-badge doc-badge--error">Error</strong>
+      <strong class="doc-badge doc-badge--unloading">Unloading</strong>
+    </p>
+    <p>Component health:</p>
+    <p>
+      <strong class="doc-badge doc-badge--up">Up</strong>
+      <strong class="doc-badge doc-badge--degraded">Degraded</strong>
+      <strong class="doc-badge doc-badge--down">Down</strong>
+      <strong class="doc-badge">Unknown</strong>
+    </p>
+
+    <h2 id="grades">Grades</h2>
+    <p>A grade from 1 to 10, struck as a medal: round because it is an award rather than a state, with the number always inside it so the colour never carries the meaning alone.</p>
+    <ul class="doc-grades">
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--1">1</span><span class="doc-grades__count">Just started</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--2">2</span><span class="doc-grades__count">Just started</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--3">3</span><span class="doc-grades__count">Getting there</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--4">4</span><span class="doc-grades__count">Getting there</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--5">5</span><span class="doc-grades__count">Halfway</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--6">6</span><span class="doc-grades__count">Halfway</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--7">7</span><span class="doc-grades__count">Nearly there</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--8">8</span><span class="doc-grades__count">Nearly there</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--9">9</span><span class="doc-grades__count">Almost all</span></li>
+      <li class="doc-grades__item"><span class="doc-grade doc-grade--10">10</span><span class="doc-grades__count">Meets everything</span></li>
+    </ul>
+    <p>Where the grade is the whole of what a tile says:</p>
+    <div class="doc-stat-group">
+      <div class="doc-stat">
+        <span class="doc-stat__label">Maturity level</span>
+        <span class="doc-stat__value"><span class="doc-grade doc-grade--large doc-grade--7">7</span></span>
+        <span class="doc-stat__note">Nearly there</span>
+      </div>
+    </div>
+
+    <h2 id="buttons">Buttons</h2>
+    <div class="doc-button-group">
+      <button class="doc-button" type="button">Load plugin</button>
+      <button class="doc-button doc-button--secondary" type="button">Reload</button>
+      <button class="doc-button doc-button--warning" type="button">Unload</button>
+      <button class="doc-button doc-button--small" type="button">Details</button>
+      <button class="doc-button doc-button--secondary doc-button--small" type="button">
+        Logs
+      </button>
+      <button class="doc-button" type="button" disabled>Unavailable</button>
+      <a class="doc-button doc-button--secondary" href="/healthz">Health JSON</a>
+    </div>
+
+    <h2 id="cards">Cards</h2>
+    <div class="doc-card-group">
+      <div class="doc-card">
+        <h3 class="doc-card__heading">Event Bus</h3>
+        <div class="doc-card__content">
+          <p>Three nodes, leader <code>eventbus-1</code>.</p>
+          <p><strong class="doc-badge doc-badge--up">Up</strong></p>
+        </div>
+        <div class="doc-card__footer">Last checked 4 seconds ago</div>
+      </div>
+      <div class="doc-card">
+        <h3 class="doc-card__heading">Cache Bus</h3>
+        <div class="doc-card__content">
+          <p>One node unreachable, quorum held.</p>
+          <p><strong class="doc-badge doc-badge--degraded">Degraded</strong></p>
+        </div>
+        <div class="doc-card__footer">Last checked 4 seconds ago</div>
+      </div>
+      <div class="doc-card">
+        <h3 class="doc-card__heading">Service Bus</h3>
+        <div class="doc-card__content">
+          <p>No route to any node.</p>
+          <p><strong class="doc-badge doc-badge--down">Down</strong></p>
+        </div>
+        <div class="doc-card__footer">Last checked 31 seconds ago</div>
+      </div>
+    </div>
+
+    <h2 id="tables">Tables</h2>
+    <table class="doc-table">
+      <caption class="doc-table__caption">Loaded plugins</caption>
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">Plugin</th>
+          <th class="doc-table__header" scope="col">State</th>
+          <th class="doc-table__header doc-table__header--numeric" scope="col">Requests</th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">identity</th>
+          <td class="doc-table__cell">
+            <strong class="doc-badge doc-badge--ready">Ready</strong>
+          </td>
+          <td class="doc-table__cell doc-table__cell--numeric">18,204</td>
+        </tr>
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">scheduler</th>
+          <td class="doc-table__cell">
+            <strong class="doc-badge doc-badge--loading">Loading</strong>
+          </td>
+          <td class="doc-table__cell doc-table__cell--numeric">0</td>
+        </tr>
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">reporting</th>
+          <td class="doc-table__cell">
+            <strong class="doc-badge doc-badge--unloading">Unloading</strong>
+          </td>
+          <td class="doc-table__cell doc-table__cell--numeric">972</td>
+        </tr>
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">archive</th>
+          <td class="doc-table__cell">
+            <strong class="doc-badge doc-badge--error">Error</strong>
+          </td>
+          <td class="doc-table__cell doc-table__cell--numeric">3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="forms">Forms</h2>
+    <form action="/" method="get">
+      <div class="doc-form-group">
+        <label class="doc-label" for="plugin-name">Plugin name</label>
+        <span class="doc-hint" id="plugin-name-hint">
+          Lower case, no spaces, as it appears in the registry.
+        </span>
+        <input
+          class="doc-input"
+          id="plugin-name"
+          name="plugin-name"
+          type="text"
+          aria-describedby="plugin-name-hint"
+        />
+      </div>
+
+      <div class="doc-form-group">
+        <label class="doc-label" for="plugin-state">Target state</label>
+        <select class="doc-select" id="plugin-state" name="plugin-state">
+          <option value="ready">Ready</option>
+          <option value="loading">Loading</option>
+          <option value="unloading">Unloading</option>
+        </select>
+      </div>
+
+      <div class="doc-form-group">
+        <label class="doc-label" for="plugin-notes">Change note</label>
+        <span class="doc-hint" id="plugin-notes-hint">Recorded against the audit log.</span>
+        <textarea
+          class="doc-textarea"
+          id="plugin-notes"
+          name="plugin-notes"
+          rows="4"
+          aria-describedby="plugin-notes-hint"
+        ></textarea>
+      </div>
+
+      <h3>Rejected values</h3>
+      <div class="doc-form-group doc-form-group--error">
+        <label class="doc-label" for="bad-name">Plugin name</label>
+        <span class="doc-error-message" id="bad-name-error">
+          <span class="nhsuk-u-visually-hidden">Error:</span> No plugin is registered under that
+          name
+        </span>
+        <input
+          class="doc-input doc-input--error"
+          id="bad-name"
+          name="bad-name"
+          type="text"
+          value="schedular"
+          aria-describedby="bad-name-error"
+        />
+      </div>
+
+      <div class="doc-form-group doc-form-group--error">
+        <label class="doc-label" for="bad-state">Target state</label>
+        <span class="doc-error-message" id="bad-state-error">
+          <span class="nhsuk-u-visually-hidden">Error:</span> Choose a target state
+        </span>
+        <select
+          class="doc-select doc-select--error"
+          id="bad-state"
+          name="bad-state"
+          aria-describedby="bad-state-error"
+        >
+          <option value="">Choose a state</option>
+          <option value="ready">Ready</option>
+        </select>
+      </div>
+
+      <div class="doc-form-group doc-form-group--error">
+        <label class="doc-label" for="bad-notes">Change note</label>
+        <span class="doc-error-message" id="bad-notes-error">
+          <span class="nhsuk-u-visually-hidden">Error:</span> Enter a change note
+        </span>
+        <textarea
+          class="doc-textarea doc-textarea--error"
+          id="bad-notes"
+          name="bad-notes"
+          rows="3"
+          aria-describedby="bad-notes-error"
+        ></textarea>
+      </div>
+
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Apply</button>
+        <button class="doc-button doc-button--secondary" type="reset">Reset</button>
+      </div>
+    </form>
+
+    <h2 id="editor">Page editor</h2>
+    <p>
+      A Markdown field in a <code class="doc-mono">doc-editor</code> marked
+      <code class="doc-mono">data-doc-editor</code> is edited as the formatted page, under a
+      toolbar, and switches to its Markdown for anything the toolbar does not do, such as a new
+      table. It is still the form's field: the formatted page is written back to it as Markdown
+      before the form is sent. Images the Markdown shows from somewhere else are named in
+      <code class="doc-mono">data-doc-editor-images</code>, as JSON from the address written to
+      where they are kept, and a page with no Markdown yet starts from the HTML in a
+      <code class="doc-mono">template</code> marked <code class="doc-mono">data-doc-editor-html</code>.
+    </p>
+    <form action="#editor">
+      <div class="doc-editor" data-doc-editor>
+        <label class="doc-label" for="design-page">Page</label>
+        <textarea class="doc-textarea" id="design-page" name="markdown" rows="12"># Runbook
+
+Restart the **payments** service when its queue backs up:
+
+1. Drain the queue with `payctl drain`.
+2. Restart it.
+
+> Ask in *#payments* first.
+
+| Step | Who |
+| --- | --- |
+| Drain | On call |
+| Restart | On call |
+</textarea>
+      </div>
+    </form>
+
+    <h2 id="tabs">Tabs</h2>
+    <p>A plugin's sections. The server draws only the chosen one.</p>
+    <nav class="doc-tabs" aria-label="Example">
+      <ul class="doc-tabs__list">
+        <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#tabs" aria-current="page">Your processes</a></li>
+        <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#tabs">All processes</a></li>
+      </ul>
+    </nav>
+    <p>The same thing several ways in one place, such as one call in each language. Without script every panel shows under its own heading.</p>
+    <div class="doc-tabset">
+      <div class="doc-tabs">
+        <ul class="doc-tabs__list">
+          <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#example-tabset-go">Go</a></li>
+          <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#example-tabset-rust">Rust</a></li>
+        </ul>
+      </div>
+      <div class="doc-tabset__panel" id="example-tabset-go">
+        <h3 class="doc-tabset__title">Go</h3>
+        <pre class="doc-code" data-doc-language="go"><code>client := openfeature.NewDefaultClient()</code></pre>
+      </div>
+      <div class="doc-tabset__panel" id="example-tabset-rust">
+        <h3 class="doc-tabset__title">Rust</h3>
+        <pre class="doc-code" data-doc-language="rust"><code>let client = api.create_client();</code></pre>
+      </div>
+    </div>
+
+    <h2 id="heading-rows">Headings with actions</h2>
+    <div class="doc-heading-row">
+      <h3>Your processes</h3>
+      <div class="doc-heading-row__actions">
+        <a class="doc-button doc-button--secondary doc-button--small" href="#heading-rows">New process</a>
+      </div>
+    </div>
+
+    <h2 id="radios">Radios</h2>
+    <fieldset class="doc-radios">
+      <legend class="doc-radios__legend">Sync</legend>
+      <div class="doc-radios__item">
+        <input class="doc-radios__input" id="example-daily" name="example-sync" type="radio" value="daily" checked />
+        <label class="doc-radios__label" for="example-daily">Every day</label>
+        <span class="doc-radios__hint">At 03:00 UTC.</span>
+      </div>
+      <div class="doc-radios__item">
+        <input class="doc-radios__input" id="example-asked" name="example-sync" type="radio" value="asked" />
+        <label class="doc-radios__label" for="example-asked">Only when asked</label>
+      </div>
+    </fieldset>
+
+    <h2 id="summaries">Summary lists</h2>
+    <dl class="doc-summary">
+      <div class="doc-summary__row doc-summary__row--action">
+        <dt class="doc-summary__key">Repository</dt>
+        <dd class="doc-summary__value">acme/payments-docs</dd>
+        <dd class="doc-summary__action"><button class="doc-link-button" type="button">Change<span class="nhsuk-u-visually-hidden"> repository</span></button></dd>
+      </div>
+      <div class="doc-summary__row doc-summary__row--action">
+        <dt class="doc-summary__key">Space</dt>
+        <dd class="doc-summary__value">payments-docs</dd>
+        <dd class="doc-summary__action"><button class="doc-link-button" type="button">Change<span class="nhsuk-u-visually-hidden"> space</span></button></dd>
+      </div>
+    </dl>
+    <h2 id="kinds">Origin labels</h2>
+    <p>
+      Tags saying where what is on the page came from: the catalogue resource it documents, the
+      space it lives in, the plugin that holds it. The colour is the kind's, so the same kind is
+      the same colour wherever it is shown, and the label inside each tag says which kind it is —
+      colour is never the only thing carrying the meaning.
+    </p>
+    <ul class="doc-kinds">
+      <li class="doc-kind doc-kind--repository">
+        <span class="doc-kind__label">Repository</span>
+        <a href="#kinds">acme/payments-docs</a>
+      </li>
+      <li class="doc-kind doc-kind--space">
+        <span class="doc-kind__label">docs</span>
+        <a href="#kinds">acme/payments-docs</a>
+      </li>
+    </ul>
+    <ul class="doc-kinds">
+      <li class="doc-kind doc-kind--service"><span class="doc-kind__label">Service</span> card-gateway</li>
+      <li class="doc-kind doc-kind--documentation"><span class="doc-kind__label">Documentation</span> payments-docs/README</li>
+      <li class="doc-kind doc-kind--team"><span class="doc-kind__label">Team</span> payments-core</li>
+      <li class="doc-kind doc-kind--cloud-resource"><span class="doc-kind__label">CloudResource</span> aws/eu-west-2/bucket/receipts</li>
+      <li class="doc-kind doc-kind--role"><span class="doc-kind__label">Role</span> reviewers</li>
+      <li class="doc-kind doc-kind--user"><span class="doc-kind__label">User</span> ada</li>
+    </ul>
+
+    <h2 id="categories">Plugin categories</h2>
+    <p>
+      The category a plugin is in, beside its name wherever a plugin is shown; the Plugins page
+      has a section per category instead. Each category keeps its colour on every page, and its
+      name inside the pill says which it is.
+    </p>
+    <p class="doc-button-group">
+      <span class="doc-category doc-category--1">Workspace</span>
+      <span class="doc-category doc-category--2">Platform</span>
+      <span class="doc-category doc-category--3">Technology</span>
+      <span class="doc-category doc-category--4">Identity</span>
+      <span class="doc-category doc-category--5">Core</span>
+      <span class="doc-category doc-category--6">Tools</span>
+    </p>
+
+    <h2 id="page-header">Page headers</h2>
+    <p>
+      The band at the top of this page, and of every other. The layout draws it from the chrome,
+      so a page is headed by being rendered: it says what the page is called, a sentence on what
+      it is for, and what the page as a whole offers. A plugin's page is headed the same way —
+      the platform lifts the page's first <code class="doc-mono">h1</code> or
+      <code class="doc-mono">h2</code> into the band, so a plugin writes its page as it always
+      has and is headed like the rest of the platform.
+    </p>
+    <p>
+      A core page fills <code class="doc-mono">page_caption</code>,
+      <code class="doc-mono">page_lede</code> or <code class="doc-mono">page_actions</code> when
+      it has more to put there, and is built with <code class="doc-mono">Chrome::bare()</code>
+      when it opens with something of its own instead, as the landing page's hero does.
+    </p>
+    <p>
+      To the left of the heading is a link to the page itself, which copies the page's address to
+      share with anyone signed in who is allowed to see it. The layout draws it beside every
+      heading, a plugin's too, so no page adds its own.
+    </p>
+    <div class="doc-page-header doc-page-header--framed">
+      <div class="doc-page-header__inner">
+        <div class="doc-page-header__text">
+          <span class="doc-page-header__caption"><a href="#page-header">Service accounts</a></span>
+          <div class="doc-page-header__titled">
+            <div class="doc-page-header__name">
+              <a class="doc-permalink" href="#page-header" title="Copy link to this page">
+                <svg class="doc-permalink__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+                <span class="nhsuk-u-visually-hidden">Copy link to this page</span>
+              </a>
+              <h3 class="doc-page-header__title">payments-ci</h3>
+            </div>
+          </div>
+          <p class="doc-page-header__lede">Builds and releases the payments services.</p>
+        </div>
+        <div class="doc-page-header__actions">
+          <a class="doc-button doc-button--secondary" href="#page-header">Change</a>
+          <a class="doc-button doc-button--secondary" href="#page-header">New token</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="page-contents">Page contents</h2>
+    <p>
+      The sections of one long page, at the top of its reading column. The side panel these
+      components are listed in is for a document among other documents; this is for a page's own
+      sections, as NHS England Digital opens its guidance.
+    </p>
+    <nav class="doc-page-contents" aria-label="Page contents">
+      <p class="doc-page-contents__heading">Page contents</p>
+      <ul class="doc-page-contents__list">
+        <li class="doc-page-contents__item"><a class="doc-page-contents__link" href="#listings">Listings and results</a></li>
+        <li class="doc-page-contents__item"><a class="doc-page-contents__link" href="#badges">State badges</a></li>
+        <li class="doc-page-contents__item"><a class="doc-page-contents__link" href="#tables">Tables</a></li>
+      </ul>
+    </nav>
+
+    <h2 id="listings">Listings and results</h2>
+    <p>
+      Anything a person scans down to choose from: search results, a plugin's records, a catalogue.
+      A title to click, a quiet line of what it is, a sentence or two, and a rule between one and
+      the next. Add <code class="doc-mono">doc-results--plain</code> inside a card, where the
+      card's own edges are enough.
+    </p>
+    <p class="doc-results__count">3 results</p>
+    <ul class="doc-results">
+      <li class="doc-results__item">
+        <a class="doc-results__title" href="#listings">Ambulance clinical outcomes</a>
+        <p class="doc-results__meta"><span>Collection</span><span>Updated 12 Sep 2026</span></p>
+        <p class="doc-results__description">
+          Published quarterly, covering the outcomes of care given by ambulance services in England.
+        </p>
+      </li>
+      <li class="doc-results__item">
+        <a class="doc-results__title" href="#listings">Accounts payable</a>
+        <p class="doc-results__meta"><span>Collection</span><span>Updated 3 Aug 2026</span></p>
+        <p class="doc-results__description">
+          Illustrates expenditure across trusts, collected from finance systems each month.
+        </p>
+      </li>
+      <li class="doc-results__item">
+        <a class="doc-results__title" href="#listings">Payments platform</a>
+        <p class="doc-results__meta"><span>Service</span><span>Owned by Payments</span></p>
+        <p class="doc-results__description">
+          With <mark>matched words</mark> marked, for a result that came from a search.
+        </p>
+      </li>
+    </ul>
+
+    <h3>A to Z</h3>
+    <p>
+      Over a listing too long to scroll. Every letter is shown; one with nothing under it is
+      plainly not a link, so the shape of the whole list reads at a glance.
+    </p>
+    <ul class="doc-az">
+      <li><a class="doc-az__letter" href="#listings">A</a></li>
+      <li><a class="doc-az__letter" href="#listings">B</a></li>
+      <li><a class="doc-az__letter" href="#listings">C</a></li>
+      <li><span class="doc-az__letter doc-az__letter--empty" aria-label="Nothing begins with D">D</span></li>
+      <li><a class="doc-az__letter" href="#listings">E</a></li>
+      <li><span class="doc-az__letter doc-az__letter--empty" aria-label="Nothing begins with F">F</span></li>
+    </ul>
+    <h3 class="doc-results__group">A</h3>
+    <p class="doc-hint">A letter's group heading, for the listing under it.</p>
+
+    <h2 id="content-pages">Content pages</h2>
+    <p>
+      A page written to be read rather than worked in — guidance, a policy, a plugin's own
+      explanation. This page is one: <code class="doc-mono">doc-content-page</code> holds it to one
+      measured column, its heading block says what it is and when it changed, and its sections
+      carry more air than a page of controls does.
+    </p>
+
+    <h2 id="code">Code</h2>
+    <p>
+      A file, a request or a config value to read or copy, drawn dark as an editor is. A block says
+      what it holds with <code class="doc-mono">data-doc-language</code>, or lets its
+      <code class="doc-mono">data-doc-filename</code> say it, and the platform colours it in VS
+      Code&rsquo;s Dark+ palette, on that theme&rsquo;s own background: a comment, a string, a
+      number, a setting&rsquo;s name, a keyword, a name taken for a type and a name taken for a
+      call. Every one of them clears AA against the block. The colour only ever repeats what the
+      word already is, so a block reads the same before the script runs, on paper, and in high
+      contrast, where the hues drop out.
+    </p>
+<pre class="doc-code" data-doc-filename="src/platform/flags.rs"><code>/// Everything DOC holds for this service, read in one call and kept up to date.
+pub async fn start(config: &amp;Config) -&gt; Result&lt;Flags&gt; {
+    let flags = Flags::read(&amp;config.flags_url, 30).await?;
+    if flags.bool("new-pricing", false) {
+        tracing::info!(count = 1, "the new pricing is on");
+    }
+    Ok(flags)
+}</code></pre>
+<pre class="doc-code" data-doc-filename="deploy/kubernetes/deployment.yaml"><code># Written from the platform's own settings, so the three cannot drift apart.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: payments-api
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"</code></pre>
+
+    <h2 id="trees">Trees of files</h2>
+    <p>
+      Files and the directories holding them: what a template will write, what a repository holds,
+      what an archive is made of. A directory folds and a file opens to what is inside it, both
+      with <code class="doc-mono">details</code>, so it works with no script at all. A row that
+      opens nothing keeps the caret&rsquo;s space, so every name on a level starts in the same
+      column.
+    </p>
+    <div class="doc-tree">
+      <ul class="doc-tree__list">
+        <li class="doc-tree__item">
+          <details class="doc-tree__directory" open>
+            <summary class="doc-tree__row">
+              <span class="doc-tree__name">src/platform</span>
+              <span class="doc-tree__meta">2 files</span>
+            </summary>
+            <ul class="doc-tree__list">
+              <li class="doc-tree__item">
+                <details class="doc-tree__file">
+                  <summary class="doc-tree__row">
+                    <span class="doc-tree__name">flags.rs</span>
+                    <span class="doc-tree__meta">4.1 kB</span>
+                  </summary>
+                  <div class="doc-tree__body">
+<pre class="doc-code" data-doc-filename="src/platform/flags.rs"><code>let greeting = flags.string("greeting", "Hello");</code></pre>
+                  </div>
+                </details>
+              </li>
+              <li class="doc-tree__item">
+                <p class="doc-tree__row">
+                  <span class="doc-tree__name">logo.png</span>
+                  <span class="doc-tree__meta">12.4 kB</span>
+                </p>
+              </li>
+            </ul>
+          </details>
+        </li>
+        <li class="doc-tree__item">
+          <details class="doc-tree__directory">
+            <summary class="doc-tree__row">
+              <span class="doc-tree__name">deploy/kubernetes</span>
+              <span class="doc-tree__meta">2 files</span>
+            </summary>
+            <ul class="doc-tree__list">
+              <li class="doc-tree__item">
+                <p class="doc-tree__row">
+                  <span class="doc-tree__name">deployment.yaml</span>
+                  <span class="doc-tree__meta">1.6 kB</span>
+                </p>
+              </li>
+              <li class="doc-tree__item">
+                <p class="doc-tree__row">
+                  <span class="doc-tree__name">kustomization.yaml</span>
+                  <span class="doc-tree__meta">231 bytes</span>
+                </p>
+              </li>
+            </ul>
+          </details>
+        </li>
+        <li class="doc-tree__item">
+          <details class="doc-tree__file">
+            <summary class="doc-tree__row">
+              <span class="doc-tree__name">Cargo.toml</span>
+              <span class="doc-tree__meta">825 bytes</span>
+            </summary>
+            <div class="doc-tree__body">
+<pre class="doc-code" data-doc-filename="Cargo.toml"><code>[package]
+name = "payments-api"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }</code></pre>
+            </div>
+          </details>
+        </li>
+      </ul>
+      <p class="doc-tree__footer">5 files &middot; 19.2 kB</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

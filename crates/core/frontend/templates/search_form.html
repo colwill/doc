@@ -1,0 +1,14 @@
+<form class="doc-search doc-combo" action="/search" method="get" role="search" data-doc-combo>
+  <label class="nhsuk-u-visually-hidden" for="search-field">Search DOC</label>
+  <input class="doc-search__input doc-combo__input" id="search-field" name="q" type="search"
+         value="{{ text }}" placeholder="Search pages, the catalogue, discussions and documentation"
+         autocomplete="off" maxlength="200" role="combobox" aria-expanded="false"
+         aria-autocomplete="list" aria-controls="search-field-options"
+         hx-get="/search/options" hx-params="q" hx-trigger="input changed delay:200ms"
+         hx-target="#search-field-options" hx-swap="innerHTML" />
+  <div class="doc-combo__list doc-combo__list--header" id="search-field-options" role="listbox" aria-label="Suggestions" hidden></div>
+  <button class="doc-search__submit" type="submit">
+    <svg class="doc-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="27" height="27"><path d="m20.7 19.3-4.1-4.1a7 7 0 1 0-1.4 1.4l4 4.1a1 1 0 0 0 1.5 0c.4-.4.4-1 0-1.4ZM6 11a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"></path></svg>
+    <span class="nhsuk-u-visually-hidden">Search</span>
+  </button>
+</form>

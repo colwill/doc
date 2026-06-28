@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="organisation-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="organisation-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <form action="{% if let Some(id) = id %}/organisations/{{ id }}{% else %}/organisations{% endif %}" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="organisation-title">Title</label>
+        <input class="doc-input" id="organisation-title" name="title" type="text" maxlength="100" value="{{ values.title }}" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="organisation-name">Name</label>
+        <span class="doc-hint" id="organisation-name-hint">What plugins and addresses call it: a-z, 0-9, <code>-</code>, <code>_</code> and <code>.</code>, such as <code>acme</code>.</span>
+        <input class="doc-input" id="organisation-name" name="name" type="text" maxlength="64" value="{{ values.name }}" aria-describedby="organisation-name-hint" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="organisation-description">Description</label>
+        <textarea class="doc-textarea" id="organisation-description" name="description" rows="3" maxlength="500">{{ values.description }}</textarea>
+      </div>
+      <button class="doc-button" type="submit">{% if id.is_some() %}Save{% else %}Add organisation{% endif %}</button>
+    </form>
+    {%- if let Some(id) = id %}
+    <h2>Delete this organisation</h2>
+    <p class="doc-hint">Only once it has no teams.</p>
+    <form action="/organisations/{{ id }}/delete" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <button class="doc-button doc-button--warning" type="submit">Delete {{ values.title }}</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

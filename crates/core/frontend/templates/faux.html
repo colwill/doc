@@ -1,0 +1,8 @@
+{%- if compact %}
+<p class="doc-hint"><strong class="doc-badge doc-badge--degraded">Faux data</strong> Provided by {% if readable %}<a href="/p/{{ provider }}/">{{ provider }}</a>{% else %}{{ provider }}{% endif %}: made up, not measured.</p>
+{%- else %}
+<div class="nhsuk-warning-callout">
+  <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Faux data provided by {% if readable %}<a href="/p/{{ provider }}/">{{ provider }}</a>{% else %}{{ provider }}{% endif %}</span></h3>
+  <p>Nothing on this page is measured: {{ provider }} makes it up, to show how {{ plugin }} looks with data in it. {% if settings %}Turn {{ plugin }} off under <strong>Provide faux data to</strong> on <a href="/plugins/{{ provider }}/settings">{{ provider }}'s Settings page</a> to see live data again.{% else %}Somebody who can change {{ provider }}'s settings can turn it off for {{ plugin }}, to show live data again.{% endif %}</p>
+</div>
+{%- endif %}

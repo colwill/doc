@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ chrome.title }}</title>
+    <link rel="stylesheet" href="{{ chrome.asset("vendor/nhsuk/nhsuk-frontend-10.6.1.min.css") }}" />
+    <link rel="stylesheet" href="{{ chrome.asset("vendor/nhsapp/nhsapp-5.2.0.min.css") }}" />
+    <link rel="stylesheet" href="{{ chrome.asset("doc.css") }}" />
+    <meta name="htmx-config" content='{"includeIndicatorCSS": false, "defaultSettleDelay": 0}' />
+    <script src="{{ chrome.asset("vendor/htmx/htmx-4.0.0.min.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-drag.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-suggest.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-tags.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-contents.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-tabs.js") }}" defer></script>
+    <script src="{{ chrome.asset("vendor/alpine/alpine-csp-3.17.3.min.js") }}" defer></script>
+  </head>
+  <body{% if !chrome.csrf.is_empty() %} hx-headers:inherited='{"x-csrf-token": "{{ chrome.csrf }}"}'{% endif %}{% if chrome.user.is_some() %} data-live{% endif %}>
+    <a class="nhsuk-skip-link" href="#maincontent">Skip to main content</a>
+
+    <header class="nhsuk-header" role="banner">
+      <div class="nhsuk-header__container nhsuk-width-container">
+        <div class="nhsuk-header__service">
+          <a class="nhsuk-header__service-name doc-brand" href="/">
+            {%- if let Some(instance) = chrome.instance %}
+            <span class="doc-brand__instance">{{ instance }}</span>
+            {%- endif %}
+            <img class="doc-logo" src="{{ chrome.logo() }}" alt="{{ chrome.logo_name() }}" />
+          </a>
+        </div>
+        {%- if chrome.user.is_some() && !chrome.on_home() %}
+        <form class="doc-search doc-search--header doc-combo" action="/search" method="get" role="search" data-doc-combo>
+          <label class="nhsuk-u-visually-hidden" for="header-search">Search DOC</label>
+          {#- Sent back with every search, so wherever this was opened from can be offered first:
+              its own kind of result before the rest, rather than always in the one fixed order.
+              `hx-include` names it explicitly, since a bare field's own request otherwise carries
+              only its own value; a plain GET submit needs no such help, sending the whole form. -#}
+          <input type="hidden" name="from" value="{{ chrome.path() }}" />
+          <input class="doc-search__input doc-combo__input" id="header-search" name="q" type="search"
+                 placeholder="Search" autocomplete="off" maxlength="200" role="combobox"
+                 aria-expanded="false" aria-autocomplete="list" aria-controls="header-search-options"
+                 hx-get="/search/options" hx-include="[name='from']" hx-trigger="input changed delay:200ms"
+                 hx-target="#header-search-options" hx-swap="innerHTML" />
+          <div class="doc-combo__list doc-combo__list--header" id="header-search-options" role="listbox" aria-label="Suggestions" hidden></div>
+          <button class="doc-search__submit" type="submit">
+            <svg class="doc-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="22" height="22"><path d="m20.7 19.3-4.1-4.1a7 7 0 1 0-1.4 1.4l4 4.1a1 1 0 0 0 1.5 0c.4-.4.4-1 0-1.4ZM6 11a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"></path></svg>
+            <span class="nhsuk-u-visually-hidden">Search</span>
+          </button>
+        </form>
+        {%- endif %}
+        {%- if let Some(user) = chrome.user %}
+        <form class="doc-account" action="/sign-out" method="post">
+          <a class="doc-account__name" href="/account">{{ user }}</a>
+          <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Sign out</button>
+        </form>
+        {%- endif %}
+      </div>
+      {%- if chrome.user.is_some() %}
+      <nav class="nhsuk-header__navigation" aria-label="Primary">
+        <div class="nhsuk-header__navigation-container nhsuk-width-container">
+          <ul class="nhsuk-header__navigation-list">
+            {#- `hidden` items (a page reached its own way, such as the bell below, that only
+                wants its place in the breadcrumb trail) are counted for that but never drawn
+                here. #}
+            {%- for item in chrome.nav %}
+            {%- if !item.hidden %}
+            <li class="nhsuk-header__navigation-item{% if item.is_group() %} doc-menu{% endif %}{% if item.end %} doc-menu--end{% endif %}">
+              {%- if item.is_group() %}
+              <details class="doc-menu__details">
+                <summary class="nhsuk-header__navigation-link doc-menu__toggle"{% if item.current %} aria-current="true"{% endif %}>{{ item.label }}</summary>
+                <ul class="doc-menu__list">
+                  <li class="doc-menu__item">
+                    <a class="doc-menu__link doc-menu__link--all" href="{{ item.menu_href() }}">All of {{ item.label }}</a>
+                  </li>
+                  {%- for child in item.children %}
+                  {%- if !child.hidden %}
+                  <li class="doc-menu__item">
+                    <a class="doc-menu__link" href="{{ child.href }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.label }}</a>
+                  </li>
+                  {%- endif %}
+                  {%- endfor %}
+                </ul>
+              </details>
+              {%- else if item.current %}
+              <a class="nhsuk-header__navigation-link" href="{{ item.href }}" aria-current="page"><strong class="nhsuk-header__navigation-item-current-fallback">{{ item.label }}</strong></a>
+              {%- else %}
+              <a class="nhsuk-header__navigation-link" href="{{ item.href }}">{{ item.label }}</a>
+              {%- endif %}
+            </li>
+            {%- endif %}
+            {%- endfor %}
+            {#- The icon itself is static chrome, drawn right away like every other nav item, so it
+                never flashes on navigation; only the badge and the (closed, invisible) panel's
+                contents come from the plugin, each fetched into its own small slot. #}
+            <li class="nhsuk-header__navigation-item doc-notifications-item">
+              <div class="doc-notifications" data-doc-notifications>
+                <details class="doc-menu__details">
+                  <summary class="nhsuk-header__navigation-link doc-menu__toggle doc-notifications__toggle" aria-label="Notifications">
+                    <svg class="doc-notifications__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2a6 6 0 0 0-6 6v3.1c0 .5-.2 1-.5 1.4L4 14.5c-1 1.3-.1 3.2 1.5 3.2h13c1.6 0 2.5-1.9 1.5-3.2l-1.5-2a2.3 2.3 0 0 1-.5-1.4V8a6 6 0 0 0-6-6Zm0 20a3 3 0 0 0 3-3H9a3 3 0 0 0 3 3Z"></path></svg>
+                    <span id="doc-notifications-badge" hx-get="/p/notifications/badge?quiet=1" hx-trigger="load, doc-plugin-ui-notifications from:body" hx-swap="innerHTML"></span>
+                  </summary>
+                  <div class="doc-menu__list doc-notifications__panel" hx-get="/p/notifications/panel?quiet=1" hx-trigger="load, doc-plugin-ui-notifications from:body" hx-swap="innerHTML"></div>
+                </details>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      {%- endif %}
+      {#- Inside the header, so the landing page's hero and the header are one band under one
+          gradient rather than two boxes each painting its own. -#}
+      {%- block hero %}{% endblock %}
+    </header>
+
+    <main class="nhsuk-skip-link-focused-element" id="maincontent" role="main" tabindex="-1">
+      {%- if chrome.user.is_some() && !chrome.crumbs.is_empty() %}
+      <div class="nhsuk-width-container">
+        <nav class="nhsuk-breadcrumb doc-breadcrumb" aria-label="Breadcrumb">
+          <ol class="nhsuk-breadcrumb__list">
+            {%- for crumb in chrome.crumbs %}
+            <li class="nhsuk-breadcrumb__list-item">
+              {%- if let Some(href) = crumb.href %}
+              <a class="nhsuk-breadcrumb__link" href="{{ href }}">{{ crumb.label }}</a>
+              {%- else if loop.last %}
+              <span aria-current="page">{{ crumb.label }}</span>
+              {%- else %}
+              {{ crumb.label }}
+              {%- endif %}
+            </li>
+            {%- endfor %}
+          </ol>
+          {%- if let Some(back) = chrome.back() %}
+          <a class="nhsuk-back-link" href="{{ back.href.as_deref().unwrap_or("/") }}">Back to {{ back.label }}</a>
+          {%- endif %}
+        </nav>
+      </div>
+      {%- endif %}
+      {#- Every page opens the way NHS England Digital opens its own: a band across the width of
+          the window holding what the page is called, a sentence on what it is for, and anything
+          the whole page does. What it says is the chrome's, so a page says nothing to be headed;
+          a page with more to put there fills `page_caption`, `page_lede` or `page_actions`, and
+          one that opens with something of its own — the landing page's hero — is built `bare`. -#}
+      {%- block page_header %}
+      {%- if chrome.header %}
+      <div class="doc-page-header">
+        <div class="nhsuk-width-container">
+          <div class="doc-page-header__inner">
+            <div class="doc-page-header__text">
+              {%- block page_caption %}{% endblock %}
+              <div class="doc-page-header__titled">
+                <div class="doc-page-header__name">
+                  {#- A link to the page itself, for sharing it with anyone signed in who may see
+                      it. The empty `href` is whatever the address bar says now, query and all,
+                      even after HTMX has pushed a new one; doc-permalink.js copies it on a click.
+                      Outside the heading, which a plugin's swap rewrites out of band. -#}
+                  {%- if chrome.user.is_some() %}
+                  <a class="doc-permalink" href="" data-doc-permalink title="Copy link to this page">
+                    <svg class="doc-permalink__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+                    <span class="nhsuk-u-visually-hidden">Copy link to this page</span>
+                  </a>
+                  {%- endif %}
+                  <h1 class="doc-page-header__title" id="doc-page-title">{{ chrome.heading() }}</h1>
+                </div>
+                {%- if let Some(pill) = chrome.category %}
+                <span class="doc-category doc-category--{{ pill.tone }}"><span class="nhsuk-u-visually-hidden">Category: </span>{{ pill.name }}</span>
+                {%- endif %}
+              </div>
+              {%- block page_lede %}
+              {%- if let Some(lede) = chrome.lede %}
+              <p class="doc-page-header__lede">{{ lede }}</p>
+              {%- endif %}
+              {%- endblock %}
+            </div>
+            {#- Always here, empty or not: a plugin page swapped in by HTMX sends its heading and
+                its actions up to the band out of band, and they are found by these ids. #}
+            <div class="doc-page-header__slot" id="doc-page-actions">
+              {%- block page_actions %}{% endblock %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {%- endif %}
+      {%- endblock %}
+      <div class="nhsuk-width-container">
+        <div class="nhsuk-main-wrapper">
+          {%- block content %}{% endblock %}
+        </div>
+      </div>
+    </main>
+
+    <footer class="doc-footer" role="contentinfo">
+      <div class="nhsuk-width-container">
+        <div class="doc-footer__top">
+          <a class="doc-brand" href="/">
+            {%- if let Some(instance) = chrome.instance %}
+            <span class="doc-brand__instance">{{ instance }}</span>
+            {%- endif %}
+            <img class="doc-logo" src="{{ chrome.logo() }}" alt="{{ chrome.logo_name() }}" />
+          </a>
+          {%- if !chrome.footer.is_empty() %}
+          <nav class="doc-footer-nav" aria-label="Footer">
+            <ul class="doc-footer-nav__list">
+              {%- for item in chrome.footer %}
+              <li class="doc-footer-nav__item"><a class="doc-footer-nav__link" href="{{ item.href }}">{{ item.label }}</a></li>
+              {%- endfor %}
+            </ul>
+          </nav>
+          {%- endif %}
+        </div>
+        <p class="doc-footer__meta">© 2026 Rundoc All rights reserved<br/>v{{ chrome.version }}</p>
+      </div>
+    </footer>
+
+    <div class="doc-toasts" role="status" aria-live="polite" aria-label="Notifications">
+      {%- for alert in chrome.alerts %}
+      <div class="doc-toast doc-toast--{{ alert.kind }}">
+        <p class="doc-toast__title">{{ alert.title }}</p>
+        <div class="doc-toast__content">
+          <p>{{ alert.body }}</p>
+        </div>
+      </div>
+      {%- endfor %}
+    </div>
+
+    {%- block scripts %}{% endblock %}
+    {%- if chrome.user.is_some() %}
+    <script src="{{ chrome.asset("doc-menu.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-calendar.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-combo.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-builder.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-reorder.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-filter.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-live.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-highlight.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-graph.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-canvas.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-permalink.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-editor.js") }}" data-purify="{{ chrome.asset("vendor/dompurify/purify-3.4.16.min.js") }}" data-squire="{{ chrome.asset("vendor/squire/squire-2.4.9.js") }}" data-marked="{{ chrome.asset("vendor/marked/marked-18.0.14.umd.js") }}" data-turndown="{{ chrome.asset("vendor/turndown/turndown-7.2.4.browser.umd.js") }}" data-gfm="{{ chrome.asset("vendor/turndown/turndown-plugin-gfm-1.0.2.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-charts.js") }}" data-chartjs="{{ chrome.asset("vendor/chartjs/chart-4.5.1.umd.min.js") }}" defer></script>
+    <script src="{{ chrome.asset("doc-geomap.js") }}" data-geometry="{{ chrome.asset("geo/countries-110m.json") }}" defer></script>
+    {%- endif %}
+    {%- if chrome.dev_reload %}
+    <script src="{{ chrome.asset("dev-reload.js") }}" defer></script>
+    {%- endif %}
+  </body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/teams/{{ team.id }}/members">{{ team.title }}</a></span>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    <h2>Add a person</h2>
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="member-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="member-error">Nobody was added</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+
+    <h3>Somebody new, by email address</h3>
+    <p class="doc-hint">In a domain the organisation approved. They are given a DOC password, so they can sign in before the organisation's SSO is set up. Somebody already in DOC with that address is simply put in {{ team.title }}.</p>
+    <form action="/teams/{{ team.id }}/people" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="person-email">Email address</label>
+        <input class="doc-input" id="person-email" name="email" type="email" maxlength="254" value="{{ values.0 }}" autocomplete="off" required />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="person-name">Name</label>
+        <input class="doc-input" id="person-name" name="name" type="text" maxlength="256" value="{{ values.1 }}" autocomplete="off" />
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Add to {{ team.title }}</button>
+        <a class="doc-button doc-button--secondary" href="/teams/{{ team.id }}/members">Cancel</a>
+      </div>
+    </form>
+
+    {%- if manages && !candidates.is_empty() %}
+    <h3>Somebody already in DOC</h3>
+    <form action="/teams/{{ team.id }}/members" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="member-user">Who</label>
+        <select class="doc-select" id="member-user" name="user" required>
+          {%- for candidate in candidates %}
+          <option value="{{ candidate.id }}">{{ candidate.label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <button class="doc-button doc-button--secondary" type="submit">Add to team</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

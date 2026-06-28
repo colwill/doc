@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/plugins/{{ plugin_id }}">{{ plugin_id }}</a></span>
+{% endblock %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">The platform turns {{ plugin_id }} on while the flag is true and off while it is false, reading it from Feature flags as the service <code class="doc-mono">doc</code>.</p>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="flag-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="flag-error">{{ plugin_id }} does not follow it</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    <form action="/plugins/{{ plugin_id }}/flag" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="flag">Flag</label>
+        <span class="doc-hint" id="flag-hint">Choose one of the true-or-false flags the platform reads, or type its key, such as enable_{{ plugin_id }}. While the flag is missing, or is not true or false, {{ plugin_id }} is left as it is.</span>
+        <div class="doc-combo" data-doc-combo>
+          <input class="doc-input doc-combo__input" id="flag" name="flag" type="text" maxlength="120" value="{{ flag }}" autocomplete="off" spellcheck="false" aria-describedby="flag-hint"
+                 role="combobox" aria-expanded="false" aria-controls="flag-options"
+                 hx-get="/plugins/{{ plugin_id }}/flag/options" hx-params="flag"
+                 hx-trigger="focus, input changed delay:200ms" hx-target="#flag-options" hx-swap="innerHTML" />
+          <div class="doc-combo__list" id="flag-options" role="listbox" aria-label="Flags the platform reads" hidden></div>
+        </div>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Follow it</button>
+        <a class="doc-button doc-button--secondary" href="/plugins/{{ plugin_id }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

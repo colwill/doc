@@ -1,0 +1,107 @@
+<div id="status-panel" hx-get="/status/panel?{{ sort.query() }}" hx-trigger="doc-status from:body, doc-plugin-state from:body" hx-swap="outerHTML">
+
+{% if let Some(status) = status %}
+<p class="nhsuk-lede-text">
+  Everything is
+  <strong class="doc-badge doc-badge--{{ Self::badge(status.state) }}">{{ Self::label(status.state) }}</strong>
+</p>
+{% endif %}
+
+<div class="doc-card-group doc-card-group--wide">
+  <div class="doc-card">
+    <h3 class="doc-card__heading">Backend</h3>
+    <div class="doc-card__content">
+      {% if let Some(error) = backend_error %}
+      <p>{{ error }}</p>
+      <p class="nhsuk-body-s">Component and plugin status comes from the backend, so none of it can be shown.</p>
+      {% else if let Some(status) = status %}
+      <p>Version {{ status.version }}, up for {{ status.uptime_s }}s.</p>
+      {% endif %}
+      <p><strong class="doc-badge doc-badge--{{ Self::badge(backend) }}">{{ Self::label(backend) }}</strong></p>
+    </div>
+    {% if let Some(status) = status %}
+    <div class="doc-card__footer">{{ Self::checked(status.checked_at) }}</div>
+    {% endif %}
+  </div>
+
+  {% if let Some(status) = status %}
+  {% for component in status.components %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ component.name }}</h3>
+    <div class="doc-card__content">
+      <p>{% if let Some(detail) = component.detail %}{{ detail }}{% else %}{{ component.kind }}{% endif %}</p>
+      <p><strong class="doc-badge doc-badge--{{ Self::badge(component.state) }}">{{ Self::label(component.state) }}</strong></p>
+
+      {% if !component.nodes.is_empty() %}
+      <table class="doc-table">
+        <caption class="doc-table__caption nhsuk-u-visually-hidden">{{ component.name }} nodes</caption>
+        <thead class="doc-table__head">
+          <tr class="doc-table__row">
+            <th class="doc-table__header" scope="col">Node</th>
+            <th class="doc-table__header" scope="col">State</th>
+            <th class="doc-table__header" scope="col">Role</th>
+            <th class="doc-table__header doc-table__header--numeric" scope="col">Term</th>
+            <th class="doc-table__header doc-table__header--numeric" scope="col">Applied</th>
+          </tr>
+        </thead>
+        <tbody class="doc-table__body">
+          {% for node in component.nodes %}
+          <tr class="doc-table__row">
+            <th class="doc-table__header" scope="row">{{ node.address }}</th>
+            <td class="doc-table__cell">
+              <strong class="doc-badge doc-badge--{{ Self::badge(node.state) }}">{{ Self::label(node.state) }}</strong>
+              {% if let Some(error) = node.error %}<span class="doc-error-message">{{ error }}</span>{% endif %}
+            </td>
+            <td class="doc-table__cell">{% if let Some(role) = node.role %}{{ role }}{% else %}—{% endif %}</td>
+            <td class="doc-table__cell doc-table__cell--numeric">{% if let Some(term) = node.term %}{{ term }}{% else %}—{% endif %}</td>
+            <td class="doc-table__cell doc-table__cell--numeric">{% if let Some(applied) = node.last_applied %}{{ applied }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+    <div class="doc-card__footer">{{ Self::checked(component.checked_at) }}{% if let Some(ms) = component.latency_ms %} · {{ ms }}ms{% endif %}</div>
+  </div>
+  {% endfor %}
+
+  <div class="doc-card">
+    <h3 class="doc-card__heading">Plugins</h3>
+    <div class="doc-card__content">
+      {% if status.plugins.is_empty() %}
+      <p>No plugins have registered yet.</p>
+      {% else %}
+      <table class="doc-table">
+        <caption class="doc-table__caption nhsuk-u-visually-hidden">Plugins</caption>
+        <thead class="doc-table__head">
+          <tr class="doc-table__row">
+            {%- for (column, label, align) in [("name", "Name", ""), ("category", "Category", " doc-table__header--centred"), ("state", "State", " doc-table__header--end")] %}
+            {%- let to = self.sorted_by(column) %}
+            <th class="doc-table__header{{ align }}" scope="col"{% if let Some(sorted) = self.aria_sort(column) %} aria-sort="{{ sorted }}"{% endif %}>
+              <a class="doc-table__sort" href="/status?{{ to }}" hx-get="/status/panel?{{ to }}" hx-target="#status-panel" hx-swap="outerHTML" hx-push-url="/status?{{ to }}">{{ label }}<span class="nhsuk-u-visually-hidden">{{ self.sort_hint(column) }}</span><span class="doc-table__sort-icon" aria-hidden="true"></span></a>
+            </th>
+            {%- endfor %}
+          </tr>
+        </thead>
+        <tbody class="doc-table__body">
+          {% for plugin in status.plugins %}
+          <tr class="doc-table__row">
+            <th class="doc-table__header" scope="row">{{ plugin.id }}</th>
+            <td class="doc-table__cell doc-table__cell--centred">
+              {%- if let Some(pill) = self.pill(plugin.id) %}<span class="doc-category doc-category--{{ pill.tone }}">{{ pill.name }}</span>{% else %}—{% endif -%}
+            </td>
+            <td class="doc-table__cell doc-table__cell--end">
+              <strong class="doc-badge doc-badge--{{ Self::badge(plugin.state) }}">{{ Self::lifecycle(plugin) }}</strong>
+              {% if let Some(error) = plugin.error %}<span class="doc-error-message">{{ error }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+    <div class="doc-card__footer">{{ Self::checked(status.checked_at) }}</div>
+  </div>
+  {% endif %}
+</div>
+</div>

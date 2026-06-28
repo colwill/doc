@@ -1,0 +1,348 @@
+{% extends "layout.html" %}
+
+{#- Set up DOC: the overview, then a page per step, with the steps down the side. Each step either
+    saves something itself (the name, the tools, the plugins) or leads to the pages where the rest
+    is done, and its button marks it done and goes on. -#}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">A step at a time, getting DOC ready for your organisation. Skip any step, and come back to it from Admin › Set up DOC.</p>
+{% endblock %}
+
+{%- macro continue_or_skip(label, next) %}
+<div class="doc-button-group">
+  <button class="doc-button" type="submit">{{ label }}</button>
+  <a href="{{ next }}">Skip this step</a>
+</div>
+{%- endmacro %}
+
+{% block content %}
+<div class="doc-with-contents">
+<details class="doc-contents" open>
+  <summary class="doc-contents__summary">Contents</summary>
+  <nav aria-label="Setting up DOC">
+    <ul class="doc-contents__list">
+      {%- for stage in stages %}
+      <li class="doc-contents__item"><a class="doc-contents__link" href="{{ stage.href }}"{% if stage.current %} aria-current="page"{% endif %}>{{ stage.title }}{% if stage.done %}<span class="doc-contents__done" aria-hidden="true">Done</span><span class="nhsuk-u-visually-hidden"> (done)</span>{% endif %}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+</details>
+<div class="doc-with-contents__main">
+{%- if let Some(error) = error %}
+<div class="nhsuk-error-summary" aria-labelledby="setup-error" role="alert" tabindex="-1">
+  <h2 class="nhsuk-error-summary__title" id="setup-error">That was refused</h2>
+  <div class="nhsuk-error-summary__body">
+    <p>{{ error }}</p>
+    {%- if !refused.is_empty() %}
+    <ul class="nhsuk-list nhsuk-error-summary__list">
+      {%- for why in refused %}
+      <li>{{ why }}</li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </div>
+</div>
+{%- endif %}
+{%- if let Some(notice) = notice %}
+<div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+{%- endif %}
+
+{%- let next = self.next_href() %}
+{%- if let Some(open) = step %}
+<p class="doc-step">Step {{ self.number() }} of {{ self.of() }}</p>
+<h2>{{ open.title() }}</h2>
+{%- endif %}
+
+{%- if step.is_none() %}
+{#- The overview. -#}
+<h2>Getting DOC ready</h2>
+<p>DOC is running. These steps make it yours: what it is called, which plugins are on, how people sign in, and where its data comes from. Each one leads to the page where it is done for good, so nothing here is a choice you cannot change later.</p>
+<dl class="doc-summary">
+  {%- for row in rows %}
+  <div class="doc-summary__row doc-summary__row--action">
+    <dt class="doc-summary__key"><a href="{{ row.step.href() }}">{{ row.step.title() }}</a></dt>
+    <dd class="doc-summary__value">{{ row.step.summary() }}</dd>
+    <dd class="doc-summary__action">{% if row.done %}<strong class="doc-badge doc-badge--up">Done</strong>{% else %}<strong class="doc-badge doc-badge--unknown">Not yet</strong>{% endif %}</dd>
+  </div>
+  {%- endfor %}
+</dl>
+{%- if setup.finished_at.is_some() %}
+<div class="nhsuk-inset-text"><p>The setup was finished{% if let Some(by) = setup.finished_by %} by {{ by }}{% endif %}. Every step is still here to look at again.</p></div>
+<a class="doc-button" href="{{ self.onward() }}">Look through it again</a>
+{%- else %}
+<div class="doc-button-group">
+  <a class="doc-button" href="{{ self.onward() }}">{% if self.done_count() == 0 %}Start{% else %}Continue{% endif %}</a>
+</div>
+<form action="/setup/finish" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  <p class="doc-hint">Setting DOC up some other way? Skipping stops this opening by itself and the reminder on the home page; it stays in the Admin menu.</p>
+  <button class="doc-button doc-button--secondary" type="submit">Skip the setup</button>
+</form>
+{%- endif %}
+
+{%- else if self.at("name") %}
+<form action="/setup/name" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  <div class="doc-form-group">
+    <label class="doc-label" for="instance-name">Instance name (optional)</label>
+    <span class="doc-hint" id="instance-name-hint">Shown before the logo, so <code class="doc-mono">DEV</code> reads as DEV<strong>DOC</strong>: worth it when you run more than one DOC, or want your organisation's name there. Up to 16 characters; leave it empty for the rundoc logo on its own.</span>
+    <input class="doc-input" id="instance-name" name="instance_name" type="text" maxlength="16" value="{{ instance_name }}" aria-describedby="instance-name-hint" />
+  </div>
+  {% call continue_or_skip("Save and continue", next) %}{% endcall %}
+</form>
+
+{%- else if self.at("tools") %}
+<p>Tick what your teams already use. DOC suggests the plugins that read them in the next step, and asks for what each needs after that. Nothing is connected yet.</p>
+<form action="/setup/tools" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  {%- for group in tool_groups %}
+  <fieldset class="doc-checkboxes">
+    <legend class="doc-checkboxes__legend">{{ group.name }}</legend>
+    {%- for tool in group.tools %}
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="tool-{{ tool.id }}" name="tool" type="checkbox" value="{{ tool.id }}"{% if self.uses(tool.id) %} checked{% endif %} aria-describedby="tool-{{ tool.id }}-hint" />
+      <label class="doc-checkboxes__label" for="tool-{{ tool.id }}">{{ tool.name }}</label>
+      <span class="doc-checkboxes__hint" id="tool-{{ tool.id }}-hint">{{ tool.gives }}</span>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {%- endfor %}
+  {% call continue_or_skip("Save and continue", next) %}{% endcall %}
+</form>
+
+{%- else if self.at("plugins") %}
+<p>Every plugin is on when DOC first starts. Ticked are the ones suggested for{% if setup.tools.is_empty() %} everyone{% else %} what you use{% endif %}; untick any you will not use and they are turned off. Nothing is deleted: turn any back on from <a href="/plugins">Admin › Plugins</a>.</p>
+{%- if setup.tools.is_empty() %}
+<div class="nhsuk-inset-text"><p>You have not said which tools you use, so nothing is suggested for them. <a href="/setup/tools">Say which tools you use</a>.</p></div>
+{%- endif %}
+<form action="/setup/plugins" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  {%- for section in plugin_sections %}
+  <fieldset class="doc-checkboxes">
+    <legend class="doc-checkboxes__legend">{{ section.name }}</legend>
+    {%- for plugin in section.items %}
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="plugin-{{ plugin.id }}" name="plugin" type="checkbox" value="{{ plugin.id }}"{% if plugin.checked %} checked{% endif %}{% if plugin.locked.is_some() %} disabled{% endif %} aria-describedby="plugin-{{ plugin.id }}-hint" />
+      <label class="doc-checkboxes__label" for="plugin-{{ plugin.id }}">{{ plugin.name }} <span class="doc-mono doc-hint--inline">{{ plugin.id }}</span></label>
+      <span class="doc-checkboxes__hint" id="plugin-{{ plugin.id }}-hint">
+        {%- if !plugin.does.is_empty() %}{{ plugin.does }} {% endif %}
+        {%- if let Some(locked) = plugin.locked %}<strong>{{ locked }}</strong>{% else %}<strong>{{ plugin.advice }}</strong>{% endif %}
+        {%- if let Some(now) = plugin.now %} {{ now }}{% endif %}
+      </span>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {%- endfor %}
+  {% call continue_or_skip("Save and continue", next) %}{% endcall %}
+</form>
+
+{%- else if self.at("organisation") %}
+<p>Everyone in DOC belongs to an organisation, and each organisation chooses how its people sign in. DOC made one to start with; give it your own name, then add your teams and the people in them.</p>
+<dl class="doc-summary">
+  {%- for organisation in organisations %}
+  <div class="doc-summary__row doc-summary__row--action">
+    <dt class="doc-summary__key">Organisation</dt>
+    <dd class="doc-summary__value">
+      <a href="/organisations/{{ organisation.id }}">{{ organisation.title }}</a>
+      {%- if organisation.name == "default" %}
+      <span class="doc-hint">Still called what DOC first named it.</span>
+      {%- endif %}
+    </dd>
+    <dd class="doc-summary__action"><a href="/organisations/{{ organisation.id }}/edit">Change<span class="nhsuk-u-visually-hidden"> {{ organisation.title }}</span></a></dd>
+  </div>
+  {%- endfor %}
+  <div class="doc-summary__row doc-summary__row--action">
+    <dt class="doc-summary__key">Teams</dt>
+    <dd class="doc-summary__value"><a href="/teams">{{ teams }}</a></dd>
+    <dd class="doc-summary__action"><a href="/teams/new">Add a team</a></dd>
+  </div>
+  <div class="doc-summary__row doc-summary__row--action">
+    <dt class="doc-summary__key">People</dt>
+    <dd class="doc-summary__value"><a href="/users">{{ people }}</a></dd>
+    <dd class="doc-summary__action"><a href="/users/new">Add a person</a></dd>
+  </div>
+</dl>
+{%- if self.uses("github") || self.uses("ghe") %}
+<div class="nhsuk-inset-text"><p>Your teams are in GitHub, so you need not type them in: once GitHub is connected under Connect your tools, its teams and their members arrive in the organisation named on its Settings page, and keep in step.</p></div>
+{%- endif %}
+<p class="doc-hint">Organisations are also under Admin › Organisations, and people under Access › People.</p>
+<form action="/setup/organisation" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  {% call continue_or_skip("Continue", next) %}{% endcall %}
+</form>
+
+{%- else if self.at("sign-in") %}
+<p>Each way of signing in is a plugin, and each serves one organisation. You signed in with a DOC account; once people's own accounts work, they need no DOC password at all.</p>
+{%- if sign_ins.is_empty() %}
+<p class="doc-empty">There is no organisation to sign in to yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Sign in with</th>
+      <th class="doc-table__header" scope="col">Set up</th>
+      <th class="doc-table__header" scope="col">Offered to</th>
+      <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Actions</span></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in sign_ins %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">
+        {{ row.name }}
+        {%- if row.suggested %}<span class="doc-hint">You use it</span>{% endif %}
+      </th>
+      <td class="doc-table__cell">
+        {%- if !row.running %}<strong class="doc-badge doc-badge--unknown">Not running here</strong>
+        {%- else if let Some(ready) = row.ready %}{% if ready %}<strong class="doc-badge doc-badge--up">Set up</strong>{% else %}<strong class="doc-badge doc-badge--unknown">Not set up yet</strong>{% endif %}
+        {%- else %}<strong class="doc-badge doc-badge--up">Ready</strong>{% endif %}
+      </td>
+      <td class="doc-table__cell">{% if let Some(organisation) = row.organisation %}{{ organisation }}{% else %}Nobody yet{% endif %}</td>
+      <td class="doc-table__cell">
+        {%- if row.running %}
+        <a href="/plugins/{{ row.id }}/settings">{% if row.id == "local" %}Email settings{% else %}Set it up{% endif %}<span class="nhsuk-u-visually-hidden"> for {{ row.name }}</span></a>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<p>A way of signing in is offered on the sign-in page once it is set up and an organisation chooses it:
+{%- for organisation in organisations %} <a href="/organisations/{{ organisation.id }}/providers">choose for {{ organisation.title }}</a>{% if !loop.last %},{% endif %}{% endfor %}.</p>
+<div class="nhsuk-inset-text"><p>Sign in once with your own account before taking DOC accounts away from your organisation, so you are never locked out. DOC accounts can stay for people without a company account; with an email server on their Settings page, the people you add are emailed a link to sign in.</p></div>
+{%- endif %}
+<form action="/setup/sign-in" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  {% call continue_or_skip("Continue", next) %}{% endcall %}
+</form>
+
+{%- else if self.at("connect") %}
+{%- if self.has("secrets") %}
+<div class="nhsuk-inset-text"><p>Keep each credential in <a href="/p/secrets/">Secret Storage</a> first, then point a plugin's setting at it instead of typing it in: it is kept once, shared only with the plugins you choose, and never shown again.</p></div>
+{%- endif %}
+{%- if connections.is_empty() %}
+<p>None of the tools you said you use needs connecting here{% if setup.tools.is_empty() %} — you have not said which you use. <a href="/setup/tools">Say which tools you use</a>{% endif %}. Any plugin can be set up later from its page under Admin › Plugins.</p>
+{%- else %}
+<p>What each tool needs, and where it goes. Each link opens that plugin's Settings page; come back here when it is saved.</p>
+<div class="doc-card-group doc-card-group--wide">
+  {%- for connection in connections %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ connection.tool }}{% if connection.plugin_name != connection.tool %} <span class="doc-hint doc-hint--inline">in {{ connection.plugin_name }}</span>{% endif %}</h3>
+    <div class="doc-card__content">
+      <p><strong class="doc-badge doc-badge--{{ connection.badge }}">{{ connection.word }}</strong></p>
+      <p>{{ connection.how }}</p>
+      {%- if connection.open %}
+      <p>
+        <a href="/plugins/{{ connection.plugin }}/settings">Set up {{ connection.plugin_name }}</a>
+        {%- if let Some(more) = connection.more %} · <a href="{{ more.href }}">{{ more.label }}</a>{% endif %}
+      </p>
+      {%- else %}
+      <p class="doc-hint">Turn {{ connection.plugin_name }} on in <a href="/setup/plugins">Choose plugins</a> first.</p>
+      {%- endif %}
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+{%- endif %}
+<form action="/setup/connect" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  {%- if !feeds.is_empty() %}
+  <h3>Switch on what reads from them</h3>
+  <p>These plugins can read from what you have set up, once it is switched on for them.</p>
+  <fieldset class="doc-checkboxes">
+    <legend class="nhsuk-u-visually-hidden">Plugins to switch on</legend>
+    {%- for feed in feeds %}
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="feed-{{ feed.id }}" name="feed" type="checkbox" value="{{ feed.id }}" checked aria-describedby="feed-{{ feed.id }}-hint" />
+      <label class="doc-checkboxes__label" for="feed-{{ feed.id }}">{{ feed.name }}</label>
+      <span class="doc-checkboxes__hint" id="feed-{{ feed.id }}-hint">Reads {{ feed.from }}.</span>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {% call continue_or_skip("Switch on and continue", next) %}{% endcall %}
+  {%- else %}
+  {% call continue_or_skip("Continue", next) %}{% endcall %}
+  {%- endif %}
+</form>
+
+{%- else if self.at("data") %}
+<p>Where DOC's data comes from. Start with the Catalogue: most of DOC is drawn from the services, teams and repositories in it.</p>
+
+{%- if self.has("resources") %}
+<h3>Services, teams and repositories</h3>
+{%- if let Some(catalogue) = catalogue %}
+<p class="doc-hint">The Catalogue holds {{ catalogue }}.</p>
+{%- endif %}
+<ul class="nhsuk-list nhsuk-list--bullet">
+  {%- if self.uses("github") || self.uses("ghe") %}
+  <li><strong>From GitHub</strong>, by itself: once it is connected, every repository in your organisations is added and kept in step. Say which service each belongs to on its page.</li>
+  {%- endif %}
+  <li><strong>From a file</strong>: describe your services and how they connect in YAML or JSON, check it with a dry run, and <a href="/p/resources/apply">apply it in one go</a>.</li>
+  <li><strong>One at a time</strong>: <a href="/p/resources/new">add a service</a>, or anything else the Catalogue keeps.</li>
+  {%- if self.has("templates") %}
+  <li><strong>With a template</strong>: <a href="/p/templates/">New service</a> makes the repository and its place in the Catalogue together, the same way every time.</li>
+  {%- endif %}
+</ul>
+{%- endif %}
+
+{%- if self.has("kb") %}
+<h3>Documentation</h3>
+{%- if let Some(sources) = sources %}
+<p class="doc-hint">{{ sources }}</p>
+{%- endif %}
+<p><a href="/p/kb/sources/new">Add a source</a>: a GitHub repository{% if self.uses("confluence") %}, a Confluence space{% endif %}{% if self.uses("google") %}, a Google Drive folder{% endif %}, Markdown files or a zipped git repository, kept in step on a schedule or imported once. Say which service it documents, and it shows on that service's page.</p>
+{%- endif %}
+
+{%- if self.has("vacuum") %}
+<h3>From the tools you are leaving</h3>
+<p>The <a href="/p/vacuum/runs/new">Data Vacuum</a> has Claude read {% if self.uses("confluence") || self.uses("backstage") %}your {% if self.uses("confluence") %}Confluence{% endif %}{% if self.uses("confluence") && self.uses("backstage") %} and {% endif %}{% if self.uses("backstage") %}Backstage{% endif %}{% else %}Confluence, Backstage, Jira, Markdown or MkDocs{% endif %} and reshape it for the Knowledge Base, the Catalogue and the Watercooler. Nothing is written until you have looked at it and approved it.</p>
+{%- endif %}
+
+{%- if self.has("radar") && self.uses("backstage") %}
+<h3>Your tech radar</h3>
+<p><a href="/p/radar/">Import Backstage's radar</a> as it is, in its own JSON.</p>
+{%- endif %}
+
+<h3>Metrics</h3>
+<p>DORA, CI/CD/CT, Reliability and the roadmap are worked out from {% if self.uses("github") || self.uses("ghe") || self.uses("kubernetes") || self.uses("jira") || self.uses("jira-dc") %}the tools you connected in the step before{% else %}GitHub, Kubernetes and Jira once they are connected{% endif %}, with nothing more to import. Reliability also measures DOC itself from the start.</p>
+{%- if self.has("faux-data") %}
+<p>To see them before then, <a href="/p/faux-data/">turn on Faux data</a> for each: every page then says its data is made up.</p>
+{%- endif %}
+
+<h3>From scripts and CI</h3>
+<p>Everything here has an API. Make an <a href="/tokens">access token</a> for yourself, or a <a href="/service-accounts">service account</a> for a pipeline, and give the command line DOC's API address with it:</p>
+<pre class="doc-code">cli login --url https://doc-api.example.com --token doc_pat_…
+cli resources apply -f catalogue.yaml --dry-run
+cli kb import docs --resource service:payments --wait</pre>
+
+<form action="/setup/data" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  {% call continue_or_skip("Continue", next) %}{% endcall %}
+</form>
+
+{%- else if self.at("finish") %}
+<dl class="doc-summary">
+  {%- for row in rows %}
+  {%- if row.step.slug() != "finish" %}
+  <div class="doc-summary__row doc-summary__row--action">
+    <dt class="doc-summary__key">{{ row.step.title() }}</dt>
+    <dd class="doc-summary__value">{% if row.done %}<strong class="doc-badge doc-badge--up">Done</strong>{% else %}<strong class="doc-badge doc-badge--unknown">Skipped</strong>{% endif %}</dd>
+    <dd class="doc-summary__action"><a href="{{ row.step.href() }}">{% if row.done %}Look again{% else %}Do it now{% endif %}<span class="nhsuk-u-visually-hidden"> at {{ row.step.title() }}</span></a></dd>
+  </div>
+  {%- endif %}
+  {%- endfor %}
+</dl>
+<h3>Next</h3>
+<ul class="nhsuk-list nhsuk-list--bullet">
+  <li>Tell people where DOC is. The first time each signs in, they are offered the accounts the plugins they use need.</li>
+  <li><a href="/status">Status</a> shows the health of DOC and every plugin, and <a href="/plugins">Admin › Plugins</a> any plugin's errors.</li>
+  <li>Arrange the menus in <a href="/navigation">Navbar layout</a> and the cards in <a href="/landing">All sections</a>. Everyone lands on their own dashboard, and chooses what it shows.</li>
+</ul>
+<form action="/setup/finish" method="post">
+  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+  <button class="doc-button" type="submit">Finish</button>
+</form>
+{%- endif %}
+</div>
+</div>
+{% endblock %}

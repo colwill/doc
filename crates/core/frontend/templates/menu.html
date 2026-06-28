@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+{%- if let Some(description) = description %}
+<p class="doc-page-header__lede">{{ description }}</p>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+{%- if cards.is_empty() %}
+<p class="doc-empty">There is nothing in this menu for you yet. Ask whoever runs this platform for access.</p>
+{%- else %}
+<ul class="nhsuk-grid-row nhsuk-card-group">
+  {%- for card in cards %}
+  <li class="nhsuk-grid-column-one-third nhsuk-card-group__item">
+    <div class="nhsuk-card nhsuk-card--clickable">
+      <div class="nhsuk-card__content">
+        <h2 class="nhsuk-card__heading nhsuk-heading-m"><a class="nhsuk-card__link" href="{{ card.href }}">{{ card.label }}</a></h2>
+        {%- if let Some(description) = card.description %}
+        <p class="nhsuk-card__description">{{ description }}</p>
+        {%- endif %}
+      </div>
+    </div>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{% endblock %}

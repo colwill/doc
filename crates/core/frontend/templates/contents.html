@@ -1,0 +1,13 @@
+{#- The sections of a page that has several, at its left. Each is a page of its own, so each has
+    only its own forms and the header's buttons are the ones for the section that is open. Needs
+    `sections` and `sections_label`. #}
+<details class="doc-contents" open>
+  <summary class="doc-contents__summary">Contents</summary>
+  <nav aria-label="{{ sections_label }}">
+    <ul class="doc-contents__list">
+      {%- for section in sections %}
+      <li class="doc-contents__item"><a class="doc-contents__link" href="{{ section.href }}"{% if section.current %} aria-current="page"{% endif %}>{{ section.title }}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+</details>

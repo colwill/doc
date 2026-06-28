@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- let plugin_id = plugin.clone() %}
+{%- let settings_tab = tabs.settings %}
+{%- let features_tab = tabs.features %}
+{%- let tokens_tab = tabs.tokens %}
+{%- let tab = "permissions" %}
+{%- include "plugin_tabs.html" %}
+
+<h2>Permissions</h2>
+<p class="nhsuk-lede-text">What each of {{ plugin }}'s permissions allows, and who holds it. Granting and revoking is done in Access.</p>
+
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Permission</th>
+      <th class="doc-table__header" scope="col">What it allows</th>
+      <th class="doc-table__header" scope="col">Who holds it</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for permission in permissions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ permission.permission }}</code></th>
+      <td class="doc-table__cell">{% if permission.description.is_empty() %}-{% else %}{{ permission.description }}{% endif %}</td>
+      <td class="doc-table__cell">
+        {%- if let Some(holders) = permission.holders %}
+        {%- if holders.is_empty() %}Nobody{% else %}{{ holders.join(", ") }}{% endif %}
+        {%- else %}
+        <span class="doc-hint">The permission provider could not be asked.</span>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<p><a href="/p/rbac">Grant or revoke these in Access</a>.</p>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block hero %}
+{%- let text = "" %}
+<section class="nhsuk-hero doc-hero">
+  <div class="nhsuk-width-container">
+    <div class="nhsuk-grid-row">
+      <div class="nhsuk-grid-column-two-thirds">
+        <div class="nhsuk-hero__wrapper doc-hero__wrapper">
+          <h1 class="nhsuk-u-margin-bottom-3">Development Organisation & Coordination platform</h1>
+          <p class="nhsuk-body-l">One place to find teams, services, docs and tools.</p>
+        </div>
+      </div>
+    </div>
+    <div class="doc-hero__search">
+      {%- include "search_form.html" %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+{%- if let Some(setup) = setup %}
+<div class="nhsuk-inset-text">
+  <h2 class="nhsuk-heading-s">DOC is not set up yet</h2>
+  <p>{% if setup.done == 0 %}A few steps make it yours: the plugins to keep on, how people sign in, and where its data comes from.{% else %}{{ setup.done }} of {{ setup.of }} steps are done.{% endif %}</p>
+  <a class="doc-button" href="{{ setup.href }}">{% if setup.done == 0 %}Set up DOC{% else %}Carry on setting up{% endif %}</a>
+</div>
+{%- endif %}
+<div class="doc-heading-row">
+  <h2>Your dashboard</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/sections">All sections</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/dashboard">Choose what you see</a>
+  </div>
+</div>
+{%- if items.is_empty() %}
+<p class="doc-empty">{% if chosen %}You chose to see nothing here.{% else %}There is nothing for you to see here yet: none of what dashboards show is running, or you cannot use it.{% endif %} <a href="/dashboard">Choose what you see</a>, or open <a href="/sections">all sections</a>.</p>
+{%- else %}
+{%- if !chosen %}
+<p class="doc-hint">These are what everyone starts with. <a href="/dashboard">Choose what you see</a>, and in what order.</p>
+{%- endif %}
+<ul class="nhsuk-grid-row nhsuk-card-group">
+  {%- for item in items %}
+  <li class="{% if item.wide %}nhsuk-grid-column-full{% else %}nhsuk-grid-column-one-half{% endif %} nhsuk-card-group__item">
+    <section class="nhsuk-card" aria-labelledby="dashboard-{{ loop.index }}">
+      <div class="nhsuk-card__content">
+        <h3 class="nhsuk-card__heading nhsuk-heading-s" id="dashboard-{{ loop.index }}">{{ item.label }}</h3>
+        <div hx-get="{{ item.href }}" hx-trigger="load" hx-swap="innerHTML">
+          <p class="doc-hint">Loading…</p>
+        </div>
+      </div>
+    </section>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{% endblock %}

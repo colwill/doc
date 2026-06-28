@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="position-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="position-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if let Some(inherited) = inherited %}
+    <p class="doc-hint">What {{ team_title }} changes here, the teams inside it have too. Anything left empty stays as it comes from above.</p>
+    <dl class="doc-summary">
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">From above</dt>
+        <dd class="doc-summary__value">{{ inherited.title }}{% if inherited.hidden %} <strong class="doc-badge">Hidden</strong>{% endif %}{% if !inherited.description.is_empty() %}<br /><span class="doc-hint">{{ inherited.description }}</span>{% endif %}</dd>
+      </div>
+    </dl>
+    {%- else %}
+    <p class="doc-hint">A position only {{ team_title }} and the teams inside it have.</p>
+    {%- endif %}
+    <form action="/teams/{{ team }}/positions{% if !new %}/{{ values.name }}{% endif %}" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="position-title">Title</label>
+        {%- if let Some(inherited) = inherited %}
+        <span class="doc-hint" id="position-title-hint">Empty keeps {{ inherited.title }}.</span>
+        <input class="doc-input" id="position-title" name="title" type="text" maxlength="100" value="{{ values.title }}" placeholder="{{ inherited.title }}" aria-describedby="position-title-hint" />
+        {%- else %}
+        <input class="doc-input" id="position-title" name="title" type="text" maxlength="100" value="{{ values.title }}" required />
+        {%- endif %}
+      </div>
+      {%- if new %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="position-name">Name</label>
+        <span class="doc-hint" id="position-name-hint">a-z, 0-9, <code>-</code>, <code>_</code> and <code>.</code>, such as <code>qa-engineer</code>.</span>
+        <input class="doc-input" id="position-name" name="name" type="text" maxlength="64" value="{{ values.name }}" aria-describedby="position-name-hint" required />
+      </div>
+      {%- endif %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="position-description">Description</label>
+        <textarea class="doc-textarea" id="position-description" name="description" rows="3" maxlength="500"{% if let Some(inherited) = inherited %} placeholder="{{ inherited.description }}"{% endif %}>{{ values.description }}</textarea>
+      </div>
+      {%- if let Some(inherited) = inherited %}
+      {%- if !inherited.responsibilities.is_empty() %}
+      <fieldset class="doc-fieldset">
+        <legend class="doc-fieldset__legend">Responsibilities it has from above</legend>
+        <span class="doc-hint">Tick the ones this team does not have.</span>
+        <div class="doc-checkboxes">
+          {%- for responsibility in inherited.responsibilities %}
+          <div class="doc-checkboxes__item">
+            <input class="doc-checkboxes__input" id="removed-{{ loop.index }}" name="removed" type="checkbox" value="{{ responsibility }}"{% if self.dropped(responsibility) %} checked{% endif %} />
+            <label class="doc-label doc-checkboxes__label" for="removed-{{ loop.index }}">Not here: {{ responsibility }}</label>
+          </div>
+          {%- endfor %}
+        </div>
+      </fieldset>
+      {%- endif %}
+      {%- endif %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="position-added">{% if inherited.is_some() %}Responsibilities it adds{% else %}Responsibilities{% endif %}</label>
+        <span class="doc-hint" id="position-added-hint">One on each line.</span>
+        <textarea class="doc-textarea" id="position-added" name="added" rows="5" aria-describedby="position-added-hint">{{ values.added }}</textarea>
+      </div>
+      {%- if inherited.is_some() %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="position-hidden">In this team</label>
+        <select class="doc-select" id="position-hidden" name="hidden">
+          <option value=""{% if values.hidden.is_empty() %} selected{% endif %}>As it comes from above</option>
+          <option value="hide"{% if values.hidden == "hide" %} selected{% endif %}>Hidden: nobody here holds it</option>
+          <option value="show"{% if values.hidden == "show" %} selected{% endif %}>Shown, even if hidden above</option>
+        </select>
+      </div>
+      {%- endif %}
+      <button class="doc-button" type="submit">{% if new %}Add position{% else %}Save{% endif %}</button>
+    </form>
+    {%- if changed %}
+    <h2>{% if inherited.is_some() %}Undo this team's changes{% else %}Delete this position{% endif %}</h2>
+    <p class="doc-hint">{% if inherited.is_some() %}It goes back to what it is above.{% else %}Anyone holding it here holds nothing.{% endif %}</p>
+    <form action="/teams/{{ team }}/positions/{{ values.name }}/revert" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <button class="doc-button doc-button--warning" type="submit">{% if inherited.is_some() %}Undo changes{% else %}Delete it{% endif %}</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

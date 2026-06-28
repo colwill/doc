@@ -1,0 +1,21 @@
+<section id="status-charts" class="nhsuk-u-margin-top-6" hx-get="/status/charts" hx-trigger="doc-status from:body throttle:30s" hx-swap="outerHTML">
+  <h2>The last six hours</h2>
+  {%- if let Some(problem) = problem %}
+  <p class="doc-empty">{{ problem }}</p>
+  {%- else %}
+  <div class="doc-card-group doc-card-group--wide">
+    <div class="doc-card">
+      <h3 class="doc-card__heading">Health-check latency</h3>
+      <div class="doc-card__content">
+        <canvas class="doc-chart" data-chart="{{ latency }}" role="img" aria-label="How long each component's health check took over the last six hours"></canvas>
+      </div>
+    </div>
+    <div class="doc-card">
+      <h3 class="doc-card__heading">Replication lag</h3>
+      <div class="doc-card__content">
+        <canvas class="doc-chart" data-chart="{{ lag }}" role="img" aria-label="How far behind its leader each bus node was over the last six hours"></canvas>
+      </div>
+    </div>
+  </div>
+  {%- endif %}
+</section>

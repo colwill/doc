@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">Who works together, as an org chart of an organisation or of one of its teams. Everyone is placed in each default team as they arrive, and a team's service accounts are managed by its members and by the members of the teams inside it.</p>
+{% endblock %}
+
+{% block page_actions %}
+{%- if manages %}
+<div class="doc-page-header__actions">
+  <a class="doc-button doc-button--secondary" href="/teams/new">Add a team</a>
+</div>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+{%- match top %}
+{%- when None %}
+<p class="doc-empty">No organisations yet.</p>
+{%- when Some(top) %}
+<form class="doc-inline-form doc-org-picker" action="/teams" method="get" hx-get="/teams" hx-trigger="change" hx-select="#org-chart" hx-target="#org-chart" hx-swap="outerHTML" hx-push-url="true">
+  <label class="doc-label" for="chart-of">Chart of</label>
+  <select class="doc-select doc-select--small" id="chart-of" name="of">
+    {%- for group in choices %}
+    <optgroup label="{{ group.title }}">
+      {%- for choice in group.choices %}
+      <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </optgroup>
+    {%- endfor %}
+  </select>
+  <noscript><button class="doc-button doc-button--secondary doc-button--small" type="submit">Show</button></noscript>
+</form>
+<div id="org-chart">
+{%- if !above.is_empty() %}
+<p class="doc-hint">Inside
+  {%- for crumb in above %}
+  {%- if !loop.first %} ›{% endif %}
+  {%- if let Some(href) = crumb.href %} <a href="{{ href }}">{{ crumb.label }}</a>{% endif %}
+  {%- endfor %}
+</p>
+{%- endif %}
+<div class="doc-org" role="region" aria-label="Org chart" tabindex="0">
+  <ul class="doc-org__below doc-org__below--top">
+    <li class="doc-org__branch">
+      {%- match top %}
+      {%- when Top::Organisation with { title, teams } %}
+      <div class="doc-org__node doc-org__node--top">
+        <strong class="doc-org__title">{{ title }}</strong>
+        <span class="doc-org__detail">{% if *teams == 0 %}No teams yet{% else if *teams == 1 %}1 team{% else %}{{ teams }} teams{% endif %}</span>
+      </div>
+      {%- when Top::Team with { id, title, lead, people } %}
+      <div class="doc-org__node doc-org__node--top">
+        <a class="doc-org__title" href="/teams/{{ id }}">{{ title }}</a>
+        <span class="doc-org__detail">{% if let Some(lead) = lead %}Led by {{ lead }}{% else %}No lead{% endif %}</span>
+        {%- if people.is_empty() %}
+        <span class="doc-org__detail">Nobody in it yet</span>
+        {%- else %}
+        <ul class="doc-org__people">
+          {%- for person in people %}
+          <li class="doc-org__person">
+            <span title="{{ person.login }}">{{ person.name }}</span>
+            {%- if person.lead %} <strong class="doc-badge">Lead</strong>{% endif %}
+            {%- if let Some(position) = person.position %}<br /><span class="doc-org__detail">{{ position }}</span>{% endif %}
+          </li>
+          {%- endfor %}
+        </ul>
+        {%- endif %}
+      </div>
+      {%- endmatch %}
+      {%- if !branches.is_empty() %}
+      <ul class="doc-org__below">
+        {%- for branch in branches %}
+        <li class="doc-org__branch">
+          <div class="doc-org__node">
+            <a class="doc-org__title" href="{{ branch.chart }}">{{ branch.title }}</a>
+            <span class="doc-org__detail">{% if let Some(lead) = branch.lead %}Led by {{ lead }}{% else %}No lead{% endif %}</span>
+            <span class="doc-org__detail">{{ branch.members }} {% if branch.members == 1 %}person{% else %}people{% endif %}</span>
+            {%- if branch.default || branch.provider.is_some() %}
+            <span class="doc-org__badges">
+              {%- if branch.default %}<strong class="doc-badge">Default</strong>{% endif %}
+              {%- if let Some(provider) = branch.provider %} <strong class="doc-badge">From {{ provider }}</strong>{% endif %}
+            </span>
+            {%- endif %}
+          </div>
+        {%- if branch.opens %}
+          <ul class="doc-org__below">
+        {%- else %}
+        </li>
+        {%- endif %}
+        {%- for _ in 0..branch.closes %}
+          </ul>
+        </li>
+        {%- endfor %}
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </li>
+  </ul>
+</div>
+</div>
+{%- endmatch %}
+{% endblock %}

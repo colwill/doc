@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+<p class="doc-page-header__lede">Every team is in one organisation, and a sub-team is in its parent's.</p>
+{% endblock %}
+
+{% block page_actions %}
+{%- if manages %}
+<div class="doc-page-header__actions">
+  <a class="doc-button doc-button--secondary" href="/organisations/new">Add an organisation</a>
+</div>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+{%- let tab = "organisations" %}
+{%- include "admin_tabs.html" %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Organisation</th>
+      <th class="doc-table__header" scope="col">About</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Teams</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for organisation in organisations %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/organisations/{{ organisation.id }}">{{ organisation.title }}</a><br /><span class="doc-hint">{{ organisation.name }}</span></th>
+      <td class="doc-table__cell">{{ organisation.description }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ organisation.teams }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endblock %}

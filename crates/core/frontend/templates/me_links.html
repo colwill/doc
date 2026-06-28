@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if offered.is_empty() %}
+    <p class="doc-empty">There are no other accounts to link right now.</p>
+    {%- else %}
+    <p>You sign in to the provider, then come back to your linked accounts.</p>
+    {%- for offer in offered %}
+    <form class="doc-link-offer" action="/account/links/{{ offer.provider }}" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <button class="doc-button doc-button--secondary" type="submit">Link your {{ offer.name }} account</button>
+      {%- if !offer.needed_by.is_empty() %}
+      <span class="doc-hint">Needed by {{ offer.plugins() }}</span>
+      {%- endif %}
+    </form>
+    {%- endfor %}
+    {%- endif %}
+    <p><a href="/account/accounts">Back to your linked accounts</a></p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/service-accounts">Service accounts</a></span>
+{% endblock %}
+
+{% block page_lede %}
+{%- if let Some(description) = account.description %}
+<p class="doc-page-header__lede">{{ description }}</p>
+{%- endif %}
+{% endblock %}
+
+{% block page_actions %}
+<div class="doc-page-header__actions">
+  {%- if self.on("overview") %}
+  {%- if givable %}
+  <a class="doc-button doc-button--secondary" href="/service-accounts/{{ account.id }}/owner">Give it to…</a>
+  {%- endif %}
+  <form action="/service-accounts/{{ account.id }}/disabled" method="post">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    {%- if account.disabled %}
+    <input type="hidden" name="disabled" value="false" />
+    <button class="doc-button doc-button--secondary" type="submit">Enable</button>
+    {%- else %}
+    <input type="hidden" name="disabled" value="true" />
+    <button class="doc-button doc-button--warning" type="submit">Disable</button>
+    {%- endif %}
+  </form>
+  {%- else if self.on("permissions") && holdings.is_some() %}
+  <a class="doc-button doc-button--secondary" href="/service-accounts/{{ account.id }}/permissions/new">Grant a permission</a>
+  {%- else if self.on("tokens") %}
+  <a class="doc-button doc-button--secondary" href="/service-accounts/{{ account.id }}/tokens/new">Issue a token</a>
+  {%- endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="doc-with-contents">
+  {%- let sections_label = "This service account" %}
+  {%- include "contents.html" %}
+  <div class="doc-with-contents__main">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="account-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="account-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if let Some(notice) = notice %}
+    <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+    {%- endif %}
+    {%- if let Some(secret) = created %}
+    <div class="nhsuk-warning-callout">
+      <h2 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Copy the new token now</span></h2>
+      <p>It is shown only this once. A pipeline uses it as <code>DOC_TOKEN</code>.</p>
+      <pre class="doc-code">{{ secret }}</pre>
+    </div>
+    {%- endif %}
+
+    {%- if self.on("overview") %}
+    <h2>Overview</h2>
+    <dl class="doc-summary">
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">State</dt>
+        <dd class="doc-summary__value">{% if account.disabled %}<strong class="doc-badge doc-badge--down">Disabled</strong>{% else %}<strong class="doc-badge doc-badge--up">Active</strong>{% endif %}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Owner</dt>
+        <dd class="doc-summary__value">{% if let Some(href) = owner.href %}<a href="{{ href }}">{{ owner.label }}</a>{% else %}{{ owner.label }}{% endif %}</dd>
+      </div>
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Created</dt>
+        <dd class="doc-summary__value">{{ Self::when(account.created_at) }}</dd>
+      </div>
+    </dl>
+    <p>
+      <a href="/p/rbac/principals/service/{{ account.id }}">Manage its groups and attributes in the RBAC plugin</a> ·
+      <a href="/p/resources/">Assign it to resources</a>
+    </p>
+
+    {%- else if self.on("permissions") %}
+    <h2>Permissions</h2>
+    {%- if let Some(problem) = holdings_problem %}
+    <p class="doc-empty">Permissions cannot be shown or granted right now: {{ problem }}</p>
+    {%- else if let Some(holdings) = holdings %}
+    {%- if holdings.assignments.is_empty() %}
+    <p class="doc-empty">It holds nothing yet.</p>
+    {%- else %}
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">Permission</th>
+          <th class="doc-table__header" scope="col">Granted by</th>
+          <th class="doc-table__header" scope="col">Granted</th>
+          <th class="doc-table__header" scope="col"></th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for grant in holdings.assignments %}
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row"><code>{{ grant.permission }}</code></th>
+          <td class="doc-table__cell">{{ grant.granted_by }}</td>
+          <td class="doc-table__cell">{{ Self::when(grant.granted_at) }}</td>
+          <td class="doc-table__cell">
+            <form action="/service-accounts/{{ account.id }}/permissions/revoke" method="post">
+              <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+              <input type="hidden" name="permission" value="{{ grant.permission }}" />
+              <button class="doc-button doc-button--warning doc-button--small" type="submit">Revoke</button>
+            </form>
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- if !holdings.access.is_empty() %}
+    <p class="doc-hint">
+      Together these allow:
+      {%- for (plugin, reach) in holdings.access %} <strong>{{ plugin }}</strong> {{ reach.scope.as_deref().unwrap_or("nothing") }}{% for (name, scope) in reach.custom %} ({{ name }} {{ scope }}){% endfor %}{% if !loop.last %};{% endif %}{%- endfor %}.
+    </p>
+    {%- endif %}
+    {%- endif %}
+    {%- endif %}
+
+    {%- else if self.on("tokens") %}
+    <h2>Tokens</h2>
+    {%- if tokens.is_empty() %}
+    <p class="doc-empty">It has no tokens yet.</p>
+    {%- else %}
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="col">Name</th>
+          <th class="doc-table__header" scope="col">Created</th>
+          <th class="doc-table__header" scope="col">Last used</th>
+          <th class="doc-table__header" scope="col">Expires</th>
+          <th class="doc-table__header" scope="col"></th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for token in tokens %}
+        <tr class="doc-table__row">
+          <th class="doc-table__header" scope="row">{{ token.name.as_deref().unwrap_or("-") }}</th>
+          <td class="doc-table__cell">{{ Self::when(token.created_at) }}</td>
+          <td class="doc-table__cell">{% if let Some(at) = token.last_used_at %}{{ Self::when(at) }}{% else %}Never{% endif %}</td>
+          <td class="doc-table__cell">{% if let Some(at) = token.expires_at %}{{ Self::when(at) }}{% else %}Never{% endif %}</td>
+          <td class="doc-table__cell">
+            {%- if token.revoked_at.is_some() %}
+            <strong class="doc-badge doc-badge--down">Revoked</strong>
+            {%- else %}
+            <form action="/service-accounts/{{ account.id }}/tokens/{{ token.id }}/revoke" method="post">
+              <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+              <button class="doc-button doc-button--warning doc-button--small" type="submit">Revoke</button>
+            </form>
+            {%- endif %}
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

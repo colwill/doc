@@ -1,0 +1,183 @@
+{% extends "layout.html" %}
+
+{#- A plugin's buttons, for a `core` writer. Each answers with this page, from which HTMX takes the
+    state below and these buttons again, since what is offered follows the state. #}
+{% block page_actions %}
+{%- let plugin = detail.plugin %}
+{%- if writes %}
+<div class="doc-page-header__actions" id="plugin-actions" hx-target:inherited="#plugin-state" hx-select:inherited="#plugin-state" hx-select-oob:inherited="#plugin-actions" hx-swap:inherited="outerHTML">
+  {%- if let Some(offer) = plugin.enable %}
+  {%- if offer.blocked.is_none() %}
+  <form action="/plugins/{{ plugin.id }}/enable" method="post" hx-post="/plugins/{{ plugin.id }}/enable" hx-confirm="Enable {{ plugin.id }}?{% if let Some(also) = offer.also() %} {{ also }}{% endif %}">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button" type="submit">Enable</button>
+  </form>
+  {%- endif %}
+  {%- endif %}
+  {%- if plugin.state.as_deref() == Some("running") || plugin.state.as_deref() == Some("cancelled") || plugin.state.as_deref() == Some("error") %}
+  <form action="/plugins/{{ plugin.id }}/reload" method="post" hx-post="/plugins/{{ plugin.id }}/reload" hx-confirm="Reload {{ plugin.id }}? Its requests pause while it unloads and loads again.">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button doc-button--secondary" type="submit">Reload</button>
+  </form>
+  {%- endif %}
+  {%- if plugin.follows.is_some() %}
+  {%- else if plugin.turned_off.is_some() %}
+  <form action="/plugins/{{ plugin.id }}/turn-on" method="post" hx-post="/plugins/{{ plugin.id }}/turn-on">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button" type="submit">Turn on</button>
+  </form>
+  {%- else %}
+  <form action="/plugins/{{ plugin.id }}/turn-off" method="post" hx-post="/plugins/{{ plugin.id }}/turn-off" hx-confirm="Turn off {{ plugin.id }}? It leaves everyone's navigation, its pages answer that it is turned off, and it takes no runs or events until it is turned on again.">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button doc-button--secondary" type="submit">Turn off</button>
+  </form>
+  {%- endif %}
+  {%- if plugin.turned_off.is_some() %}
+  {%- else if plugin.state.as_deref() == Some("running") %}
+  <form action="/plugins/{{ plugin.id }}/cancel" method="post" hx-post="/plugins/{{ plugin.id }}/cancel" hx-confirm="Cancel {{ plugin.id }}'s work? It stops running tasks until resumed.">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button doc-button--secondary" type="submit">Cancel</button>
+  </form>
+  {%- else if plugin.state.as_deref() == Some("cancelled") %}
+  <form action="/plugins/{{ plugin.id }}/resume" method="post" hx-post="/plugins/{{ plugin.id }}/resume" hx-confirm="Resume {{ plugin.id }}?">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button" type="submit">Resume</button>
+  </form>
+  {%- endif %}
+  {%- if plugin.state.is_some() %}
+  <form action="/plugins/{{ plugin.id }}/unload" method="post" hx-post="/plugins/{{ plugin.id }}/unload" hx-confirm="Unload {{ plugin.id }}? Its pages answer 503 until a process registers again.">
+    <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+    <button class="doc-button doc-button--warning" type="submit">Unload</button>
+  </form>
+  {%- endif %}
+</div>
+{%- endif %}
+{% endblock %}
+
+{% block content %}
+{%- let plugin = detail.plugin %}
+{%- let tab = "overview" %}
+{%- let plugin_id = plugin.id.clone() %}
+{%- include "plugin_tabs.html" %}
+
+<section id="plugin-state" hx-get="/plugins/{{ plugin.id }}" hx-select="#plugin-state" hx-select-oob="#plugin-actions" hx-trigger="doc-plugin-state-{{ plugin.id }} from:body" hx-swap="outerHTML">
+  {%- if let Some(error) = error %}
+  <div class="nhsuk-error-summary" aria-labelledby="plugin-error" role="alert" tabindex="-1">
+    <h2 class="nhsuk-error-summary__title" id="plugin-error">That was refused</h2>
+    <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+  </div>
+  {%- endif %}
+  {%- if let Some(notice) = notice %}
+  <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+  {%- endif %}
+  {%- let (class, word) = Self::badge(plugin.state) %}
+  <dl class="nhsuk-summary-list">
+    <div class="nhsuk-summary-list__row">
+      <dt class="nhsuk-summary-list__key">State</dt>
+      <dd class="nhsuk-summary-list__value">
+        {%- if let Some(off) = plugin.turned_off %}
+        <strong class="doc-badge doc-badge--unknown">Turned off</strong>{% if let Some(by) = off.by %} by {{ by }},{% endif %} {{ Self::when(off.at) }}
+        <br /><span class="doc-hint">Nobody is offered it and it takes no runs or events until it is turned on again. Its process is {{ word|lower }}.</span>
+        {%- else %}
+        <strong class="doc-badge doc-badge--{{ class }}">{{ word }}</strong>{% if let Some(since) = plugin.since %} since {{ Self::when(since) }}{% endif %}
+        {%- endif %}
+      </dd>
+    </div>
+    <div class="nhsuk-summary-list__row">
+      <dt class="nhsuk-summary-list__key">Turned on and off</dt>
+      <dd class="nhsuk-summary-list__value">
+        {%- if let Some(follows) = plugin.follows %}
+        By the flag <code class="doc-mono">{{ follows.flag }}</code>{% if let Some(by) = follows.by %}, as {{ by }} chose{% endif %}.
+        {%- if let Some(problem) = follows.problem %}
+        <br /><span class="doc-error-message">It cannot be followed now, so {{ plugin.id }} is left as it is: {{ problem }}.</span>
+        {%- else if let Some(read) = follows.read %}
+        <br /><span class="doc-hint">It was {% if read %}on{% else %}off{% endif %}{% if let Some(at) = follows.read_at %} when it was read at {{ Self::when(at) }}{% endif %}.</span>
+        {%- else %}
+        <br /><span class="doc-hint">It has not been read yet.</span>
+        {%- endif %}
+        {%- else %}
+        By hand.
+        {%- endif %}
+      </dd>
+      {%- if writes %}
+      <dd class="nhsuk-summary-list__actions">
+        {%- if plugin.follows.is_some() %}
+        <form action="/plugins/{{ plugin.id }}/flag" method="post">
+          <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+          <input type="hidden" name="flag" value="" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Stop following</button>
+        </form>
+        {%- else %}
+        <a class="doc-button doc-button--secondary doc-button--small" href="/plugins/{{ plugin.id }}/flag">Follow a flag</a>
+        {%- endif %}
+      </dd>
+      {%- endif %}
+    </div>
+    <div class="nhsuk-summary-list__row">
+      <dt class="nhsuk-summary-list__key">Version</dt>
+      <dd class="nhsuk-summary-list__value">{{ plugin.version.as_deref().unwrap_or("-") }}</dd>
+    </div>
+    <div class="nhsuk-summary-list__row">
+      <dt class="nhsuk-summary-list__key">Classification</dt>
+      <dd class="nhsuk-summary-list__value">{{ plugin.classification.as_deref().unwrap_or("-") }}</dd>
+    </div>
+    {%- if let Some(registration) = detail.registration %}
+    <div class="nhsuk-summary-list__row">
+      <dt class="nhsuk-summary-list__key">Process</dt>
+      <dd class="nhsuk-summary-list__value">{{ registration.address.as_deref().unwrap_or("-") }}{% if let Some(seen) = registration.last_seen %}, last heard from {{ Self::when(seen) }}{% endif %}{% if registration.busy %}, being reloaded{% endif %}</dd>
+    </div>
+    {%- endif %}
+    {%- if let Some(error) = plugin.error %}
+    <div class="nhsuk-summary-list__row">
+      <dt class="nhsuk-summary-list__key">Error</dt>
+      <dd class="nhsuk-summary-list__value"><pre class="doc-code">{{ error }}</pre></dd>
+    </div>
+    {%- endif %}
+  </dl>
+
+  {%- if writes %}
+  {%- if let Some(offer) = plugin.enable %}
+  {%- if let Some(blocked) = offer.blocked %}
+  <div class="nhsuk-inset-text"><p>{{ plugin.id }} cannot be enabled yet: it {{ blocked }}.</p></div>
+  {%- endif %}
+  {%- endif %}
+  {%- endif %}
+
+  {%- if !missing.is_empty() %}
+  <div class="nhsuk-warning-callout">
+    <h2 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>This plugin is not configured</span></h2>
+    <p>It needs {{ missing.join(", ") }}. Until those are set it serves only what does not depend on them.</p>
+    {%- if settings_tab %}
+    <p><a href="/plugins/{{ plugin.id }}/settings">Fill them in on the Settings tab</a>.</p>
+    {%- endif %}
+  </div>
+  {%- endif %}
+
+  <h2>State history</h2>
+  {%- if detail.history.is_empty() %}
+  <p class="doc-empty">Nothing has been recorded yet.</p>
+  {%- else %}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">When</th>
+        <th class="doc-table__header" scope="col">Version</th>
+        <th class="doc-table__header" scope="col">State</th>
+        <th class="doc-table__header" scope="col">Error</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for change in detail.history %}
+      {%- let (class, word) = Self::state_badge(change.state) %}
+      <tr class="doc-table__row">
+        <td class="doc-table__cell">{{ Self::when(change.at) }}</td>
+        <td class="doc-table__cell">{{ change.version }}</td>
+        <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ class }}">{{ word }}</strong></td>
+        <td class="doc-table__cell">{{ change.error.as_deref().unwrap_or("") }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+</section>
+{% endblock %}

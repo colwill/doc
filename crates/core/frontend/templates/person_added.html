@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if created %}
+    <p>Their address is <code>{{ email }}</code>{% if let Some((_, title)) = team %}, and they are in {{ title }}{% endif %}. <a href="/users/{{ id }}">See their page</a>.</p>
+    {%- else if let Some((_, title)) = team %}
+    <p><a href="/users/{{ id }}">{{ login }}</a> was in DOC already, with <code>{{ email }}</code>, and is in {{ title }} now.</p>
+    {%- else %}
+    <p><a href="/users/{{ id }}">{{ login }}</a> was in DOC already, with <code>{{ email }}</code>.</p>
+    {%- endif %}
+
+    {%- if emailed %}
+    <div class="nhsuk-inset-text">
+      <p>A sign-in link is on its way to <code>{{ email }}</code>. It works once, for 7 days, and they choose their own password straight after.</p>
+    </div>
+    {%- else if let Some(password) = password %}
+    <div class="nhsuk-warning-callout">
+      <h2 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Hand {{ login }} this one-time password</span></h2>
+      <p>It is shown only this once. They sign in as <code>{{ login }}</code> with it, within 7 days, and choose their own password straight after.</p>
+      <pre class="doc-code">{{ password }}</pre>
+      {%- if let Some(why) = why %}
+      <p class="doc-hint">It was not emailed: {{ why }}</p>
+      {%- endif %}
+    </div>
+    {%- else if let Some(why) = why %}
+    <div class="nhsuk-warning-callout">
+      <h2 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>They cannot sign in yet</span></h2>
+      <p>{{ why }}</p>
+    </div>
+    {%- endif %}
+
+    <div class="doc-button-group">
+      {%- if let Some((team_id, title)) = team %}
+      <a class="doc-button doc-button--secondary" href="/teams/{{ team_id }}/members">Back to {{ title }}</a>
+      {%- else %}
+      <a class="doc-button doc-button--secondary" href="/users">Back to People</a>
+      {%- endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

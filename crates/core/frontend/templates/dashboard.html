@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-full">
+    <h1>Choose what you see</h1>
+    <p>What your dashboard shows when you sign in, in this order. Tick what you want to see at a glance, and drag a row by its handle to move it, or move one with the up and down arrow keys once its handle has focus. Each is drawn for you, with your own access.</p>
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="dashboard-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="dashboard-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if rows.is_empty() %}
+    <p class="doc-empty">Nothing you can use offers anything for a dashboard yet.</p>
+    {%- else %}
+    <form action="/dashboard" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <table class="doc-table doc-arrange">
+        <thead class="doc-table__head">
+          <tr>
+            <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Drag to reorder</span></th>
+            <th class="doc-table__header" scope="col">Order</th>
+            <th class="doc-table__header" scope="col">What it shows</th>
+            <th class="doc-table__header" scope="col">From</th>
+            <th class="doc-table__header" scope="col">On your dashboard</th>
+          </tr>
+        </thead>
+        <tbody class="doc-table__body" data-reorder>
+          {%- for row in rows %}
+          {%- let at = loop.index0 %}
+          <tr class="doc-table__row">
+            <td class="doc-table__cell doc-arrange__grip">
+              <button class="doc-arrange__handle" type="button" data-reorder-handle data-reorder-name="{{ row.label }}" aria-label="Move {{ row.label }}: drag it, or use the up and down arrow keys">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm9-12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+              </button>
+            </td>
+            <td class="doc-table__cell">
+              <input class="doc-input doc-arrange__order" data-reorder-order name="order.{{ at }}" type="text" inputmode="numeric" value="{{ Self::order(at) }}" readonly aria-label="Where {{ row.label }} is, counted from the top" />
+              <input type="hidden" name="item.{{ at }}" value="{{ row.key }}" />
+            </td>
+            <th class="doc-table__header" scope="row">
+              {{ row.label }}
+              {%- if !row.description.is_empty() %}<br /><span class="doc-hint">{{ row.description }}</span>{% endif %}
+            </th>
+            <td class="doc-table__cell">{{ row.from }}</td>
+            <td class="doc-table__cell">
+              <input type="checkbox" name="chosen.{{ at }}" {% if row.chosen %}checked{% endif %} aria-label="Show {{ row.label }} on your dashboard" />
+            </td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Save</button>
+        <a class="doc-button doc-button--secondary" href="/">Back to your dashboard</a>
+      </div>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

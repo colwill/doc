@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- let tab = "settings" %}
+{%- include "admin_tabs.html" %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="settings-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="settings-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if let Some(notice) = notice %}
+    <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+    {%- endif %}
+    <form action="/settings" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="instance-name">Instance name</label>
+        <span class="doc-hint" id="instance-name-hint">Shown before the logo, so <code class="doc-mono">DEV</code> reads as DEV<strong>DOC</strong>. Up to 16 characters; empty shows the rundoc logo on its own instead.</span>
+        <input class="doc-input" id="instance-name" name="instance_name" type="text" maxlength="16" value="{{ values.instance_name }}" aria-describedby="instance-name-hint" />
+      </div>
+      <button class="doc-button" type="submit">Save</button>
+    </form>
+    <p class="doc-hint">Each service also has a name in its own configuration, which is used until one is set here.</p>
+  </div>
+</div>
+{% endblock %}

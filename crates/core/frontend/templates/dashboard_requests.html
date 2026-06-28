@@ -1,0 +1,12 @@
+{%- if waiting.is_empty() %}
+<p class="doc-empty">Nothing is waiting for you to decide.</p>
+{%- else %}
+<ul class="nhsuk-list">
+  {%- for request in waiting %}
+  <li><a href="{{ request.href }}"><strong>{{ request.requester }}</strong> asks to join <em>{{ request.setting }}</em> on {{ request.target }}</a>{% if !request.reason.is_empty() %}<br /><span class="doc-hint">{{ request.reason }}</span>{% endif %}</li>
+  {%- endfor %}
+</ul>
+{%- if more > 0 %}
+<p class="doc-hint">And {{ more }} more, each on the Settings page of the plugin it is for.</p>
+{%- endif %}
+{%- endif %}

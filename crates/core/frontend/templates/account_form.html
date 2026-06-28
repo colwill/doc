@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block page_caption %}
+<span class="doc-page-header__caption"><a href="/service-accounts/{{ account.id }}">{{ account.name }}</a></span>
+{% endblock %}
+
+{% block content %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="account-error" role="alert" tabindex="-1">
+      <h2 class="nhsuk-error-summary__title" id="account-error">That was refused</h2>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+
+    {%- if form == "owner" %}
+    <h2>Give it to</h2>
+    <p class="doc-hint">A team's members, and the members of the teams inside it, manage its accounts.</p>
+    {%- if teams.is_empty() && mine %}
+    <p class="doc-empty">There is nobody else you can give it to.</p>
+    {%- else %}
+    <form action="/service-accounts/{{ account.id }}/owner" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="account-owner">New owner</label>
+        <select class="doc-select" id="account-owner" name="owner">
+          {%- if !mine %}
+          <option value="me">You</option>
+          {%- endif %}
+          {%- for team in teams %}
+          <option value="{{ team.id }}">The {{ team.title }} team</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Give it</button>
+        <a class="doc-button doc-button--secondary" href="/service-accounts/{{ account.id }}">Cancel</a>
+      </div>
+    </form>
+    {%- endif %}
+
+    {%- else if form == "permission" %}
+    <h2>Grant a permission</h2>
+    <form action="/service-accounts/{{ account.id }}/permissions" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="permission">Permission</label>
+        <span class="doc-hint" id="permission-hint">Such as <code>plugin:kb:service:wo</code>, or a service group as <code>plugin:kb:group:bots</code>. You can grant only what your own access covers.</span>
+        <div class="doc-combo" data-doc-combo>
+          <input class="doc-input doc-combo__input" id="permission" name="permission" type="text" value="{{ self.value("permission") }}" aria-describedby="permission-hint" required autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-controls="permission-options"
+                 hx-get="/p/rbac/permission-options?kind=service" hx-params="permission"
+                 hx-trigger="focus, input changed delay:200ms" hx-target="#permission-options" hx-swap="innerHTML" />
+          <div class="doc-combo__list" id="permission-options" role="listbox" aria-label="Matching permissions" hidden></div>
+        </div>
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Grant</button>
+        <a class="doc-button doc-button--secondary" href="/service-accounts/{{ account.id }}/permissions">Cancel</a>
+      </div>
+    </form>
+
+    {%- else %}
+    <h2>Issue a token</h2>
+    <p class="doc-hint">Its secret is shown once, when it is issued. A pipeline uses it as <code>DOC_TOKEN</code>.</p>
+    <form action="/service-accounts/{{ account.id }}/tokens" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <div class="doc-form-group">
+        <label class="doc-label" for="token-name">Name</label>
+        <input class="doc-input" id="token-name" name="name" type="text" maxlength="64" value="{{ self.value("name") }}" />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="token-days">Expires after (days)</label>
+        <span class="doc-hint" id="token-days-hint">1 to 365. Leave it empty for a token that never expires.</span>
+        <input class="doc-input" id="token-days" name="days" type="text" inputmode="numeric" value="{{ self.value("days") }}" aria-describedby="token-days-hint" />
+      </div>
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Issue a token</button>
+        <a class="doc-button doc-button--secondary" href="/service-accounts/{{ account.id }}/tokens">Cancel</a>
+      </div>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

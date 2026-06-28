@@ -1,0 +1,354 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{%- let plugin_id = plugin.clone() %}
+{%- let settings_tab = tabs.settings %}
+{%- let features_tab = tabs.features %}
+{%- let tokens_tab = tabs.tokens %}
+{%- let tab = "settings" %}
+{%- include "plugin_tabs.html" %}
+
+{#- Each heading a plugin grouped its settings under is a page of its own, with the rest beside it
+    and the ones either side at the foot: Infra alone has a heading per vendor, and all of them at
+    once is a page nobody can find anything in. A plugin with one heading, or none, is the single
+    column it always was. #}
+{%- if let Some(here) = self.here() %}
+{%- let paged = self.paged() %}
+<div class="{% if paged %}doc-with-contents{% else %}nhsuk-grid-row{% endif %}">
+  {%- if paged %}
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="Settings">
+      <p class="doc-contents__heading">Settings</p>
+      <ul class="doc-contents__list">
+        {%- for section in sections %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ self.href(section) }}"{% if section.id == here.id %} aria-current="page"{% endif %}>{{ section.title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  {%- endif %}
+  <div class="{% if paged %}doc-with-contents__main{% else %}nhsuk-grid-column-two-thirds{% endif %}">
+    <h2>{% if paged %}{{ here.title }}{% else %}Settings{% endif %}</h2>
+    {%- if !paged %}
+    <p class="nhsuk-lede-text">What {{ plugin }} is configured with. The platform builds this page from what the plugin declares.</p>
+    {%- endif %}
+
+    {%- if let Some(error) = error %}
+    <div class="nhsuk-error-summary" aria-labelledby="settings-error" role="alert" tabindex="-1">
+      <h3 class="nhsuk-error-summary__title" id="settings-error">That was refused</h3>
+      <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+    </div>
+    {%- endif %}
+    {%- if !problems.is_empty() %}
+    <div class="nhsuk-error-summary" aria-labelledby="settings-problems" role="alert" tabindex="-1">
+      <h3 class="nhsuk-error-summary__title" id="settings-problems">Nothing was saved</h3>
+      <div class="nhsuk-error-summary__body">
+        <ul class="nhsuk-list nhsuk-error-summary__list">
+          {%- for (key, problem) in problems %}
+          <li><a href="#setting-{{ key }}">{{ key }}: {{ problem }}</a></li>
+          {%- endfor %}
+        </ul>
+      </div>
+    </div>
+    {%- endif %}
+    {%- if let Some(notice) = notice %}
+    <div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+    {%- endif %}
+    {%- if !missing.is_empty() %}
+    <div class="nhsuk-warning-callout">
+      <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Not configured yet</span></h3>
+      <p>{{ plugin }} needs {{ missing.join(", ") }} before it can do the work those settings are for.</p>
+    </div>
+    {%- endif %}
+
+    {%- if here.is("requests") %}
+    {#- Headed by the page when there is more than one; by itself when it is the only one. #}
+    {%- if !paged %}<h3>{{ here.title }}</h3>{% endif %}
+    <div>
+      <p class="doc-hint">A plugin asks to be added to one of {{ plugin }}'s settings when it is refused something that setting decides. Approving adds it and saves the setting, as saving this page would.</p>
+      <table class="doc-table">
+        <thead class="doc-table__head">
+          <tr class="doc-table__row">
+            <th class="doc-table__header" scope="col">Plugin</th>
+            <th class="doc-table__header" scope="col">Asks to be added to</th>
+            <th class="doc-table__header" scope="col">Why</th>
+            <th class="doc-table__header" scope="col">Asked</th>
+            <th class="doc-table__header" scope="col">Decision</th>
+          </tr>
+        </thead>
+        <tbody class="doc-table__body">
+          {%- for request in requests %}
+          <tr class="doc-table__row">
+            <td class="doc-table__cell"><strong>{{ request.requester }}</strong></td>
+            <td class="doc-table__cell">{{ request.setting_label }}</td>
+            <td class="doc-table__cell">{% if request.reason.is_empty() %}<span class="doc-hint">It gave no reason.</span>{% else %}{{ request.reason }}{% endif %}</td>
+            <td class="doc-table__cell">{{ Self::when(request.created_at) }}</td>
+            <td class="doc-table__cell">
+              {%- if request.state == "pending" %}
+              {%- if writes %}
+              <div class="doc-button-group">
+                <form action="/plugins/{{ plugin }}/settings/requests/{{ request.id }}/approve" method="post">
+                  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+                  <button class="doc-button doc-button--small" type="submit">Approve</button>
+                </form>
+                <form action="/plugins/{{ plugin }}/settings/requests/{{ request.id }}/deny" method="post">
+                  <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+                  <button class="doc-button doc-button--secondary doc-button--small" type="submit">Deny</button>
+                </form>
+              </div>
+              {%- else %}
+              <strong class="doc-badge doc-badge--loading">Waiting</strong>
+              {%- endif %}
+              {%- else %}
+              <strong class="doc-badge doc-badge--{% if request.state == "approved" %}ready{% else %}error{% endif %}">{% if request.state == "approved" %}Approved{% else %}Denied{% endif %}</strong>
+              {%- if let Some(by) = request.decided_by %}<br><span class="doc-hint">by {{ by }}{% if let Some(at) = request.decided_at %}, {{ Self::when(at) }}{% endif %}</span>{% endif %}
+              {%- endif %}
+            </td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- else if here.is("credentials") %}
+    <form action="/plugins/{{ plugin }}/settings" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <input type="hidden" name="section" value="{{ here.id }}" />
+      {%- if !paged %}<h3>{{ here.title }}</h3>{% endif %}
+      {%- if let Some(credentials) = named_secrets %}
+      {%- if !credentials.hint.is_empty() %}
+      <p class="doc-hint">{{ credentials.hint }}</p>
+      {%- endif %}
+      {%- if named.is_empty() %}
+      <p class="doc-empty">None yet.</p>
+      {%- else %}
+      <table class="doc-table">
+        <thead class="doc-table__head">
+          <tr class="doc-table__row">
+            <th class="doc-table__header" scope="col">Name</th>
+            <th class="doc-table__header" scope="col">Last set</th>
+            {%- if writes %}<th class="doc-table__header" scope="col">Replace or clear</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody class="doc-table__body">
+          {%- for credential in named %}
+          <tr class="doc-table__row">
+            <th class="doc-table__header" scope="row"><code class="doc-mono">{{ credential.name }}</code></th>
+            <td class="doc-table__cell">
+              {%- if let Some(pointed) = credential.from_store %}
+              From Secret Storage: {% if let Some(label) = pointed.label %}{{ label }}{% else %}a secret{% endif %}
+              {%- if let Some(problem) = pointed.problem %}<br><span class="doc-error-message">It gives {{ plugin }} nothing: {{ problem }}</span>{% endif %}
+              {%- else if credential.unreadable %}
+              Encrypted under a key this platform no longer has. Set it again.
+              {%- else %}
+              {{ Self::when(credential.updated_at) }}{% if let Some(who) = credential.updated_by %}, by {{ who }}{% endif %}
+              {%- endif %}
+            </td>
+            {%- if writes %}
+            <td class="doc-table__cell">
+              <input class="doc-input" name="named-{{ credential.name }}" type="password" autocomplete="new-password" aria-label="Replace {{ credential.name }}" />
+              <label class="doc-label"><input type="checkbox" name="clear-named-{{ credential.name }}" value="yes" /> Clear it</label>
+            </td>
+            {%- endif %}
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+      {%- endif %}
+      {%- if writes %}
+      <fieldset class="doc-fieldset" id="setting-new-credential">
+        <legend class="doc-fieldset__legend">Add one</legend>
+        {%- if let Some(problem) = problems.get("new-credential") %}
+        <span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ problem }}</span>
+        {%- endif %}
+        <div class="doc-form-group">
+          <label class="doc-label" for="new-credential-name">Its name</label>
+          <span class="doc-hint" id="new-credential-name-hint">Up to 64 of a-z, 0-9, - and _, starting with a letter or a digit.</span>
+          <input class="doc-input" id="new-credential-name" name="new-credential-name" type="text" maxlength="64" autocomplete="off" spellcheck="false" aria-describedby="new-credential-name-hint" />
+        </div>
+        <div class="doc-form-group">
+          <label class="doc-label" for="new-credential-value">Its value</label>
+          <input class="doc-input" id="new-credential-value" name="new-credential-value" type="password" autocomplete="new-password" />
+          {%- if let Some(offer) = store %}
+          <label class="doc-label" for="new-credential-secret">Or use a secret from Secret Storage</label>
+          <select class="doc-select" id="new-credential-secret" name="new-credential-secret">
+            <option value=""></option>
+            {%- for secret in offer.secrets %}
+            <option value="{{ secret.id }}">{{ secret.label }}{% if !secret.hint.is_empty() %} ({{ secret.hint }}){% endif %}</option>
+            {%- endfor %}
+          </select>
+          {%- if let Some(problem) = offer.problem %}
+          <span class="doc-hint">{{ problem }}</span>
+          {%- else if offer.secrets.is_empty() %}
+          <span class="doc-hint">No secret in Secret Storage is shared with {{ plugin }} yet. Its owner shares one from the secret's Plugins page.</span>
+          {%- endif %}
+          {%- endif %}
+        </div>
+      </fieldset>
+      {%- endif %}
+      {%- endif %}
+      {%- if writes %}
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Save</button>
+      </div>
+      {%- else %}
+      <p class="doc-hint">You may see these credentials but not change them.</p>
+      {%- endif %}
+    </form>
+    {%- else if let Some(group) = here.group %}
+    <form action="/plugins/{{ plugin }}/settings" method="post">
+      <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+      <input type="hidden" name="section" value="{{ here.id }}" />
+      {%- if !paged && !group.name.is_empty() %}<h3>{{ group.name }}</h3>{% endif %}
+      {%- for field in group.fields %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="{{ field.id() }}">{{ field.label() }}{% if field.schema.required %} <span class="doc-hint">(required)</span>{% endif %}</label>
+        {%- if !field.schema.hint.is_empty() %}
+        <span class="doc-hint" id="{{ field.id() }}-hint">{{ field.schema.hint }}</span>
+        {%- endif %}
+        {%- if let Some(problem) = problems.get(field.schema.key.as_str()) %}
+        <span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ problem }}</span>
+        {%- endif %}
+        {%- if let Some(note) = field.environment_note() %}
+        <span class="doc-hint">{{ note }}</span>
+        {%- endif %}
+        {%- if field.is("secret") %}
+        <span class="doc-hint">{{ field.secret_state() }} It is never shown again; leave this empty to keep it.</span>
+        {%- if !secrets_available %}
+        <span class="doc-error-message">This platform has no settings key, so a secret cannot be stored. Run the bootstrap.</span>
+        {%- endif %}
+        {%- if let Some(pointed) = field.current.from_store %}
+        {%- if let Some(problem) = pointed.problem %}
+        <span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> Secret Storage gives {{ plugin }} nothing for this: {{ problem }}</span>
+        {%- endif %}
+        {%- endif %}
+        <input class="doc-input" id="{{ field.id() }}" name="{{ field.name() }}" type="password" autocomplete="new-password"{% if !writes %} disabled{% endif %} />
+        {%- if let Some(offer) = store %}
+        <label class="doc-label" for="store-{{ field.schema.key }}">Or use a secret from Secret Storage</label>
+        <select class="doc-select" id="store-{{ field.schema.key }}" name="store-{{ field.schema.key }}"{% if !writes %} disabled{% endif %}>
+          <option value=""></option>
+          {%- for secret in offer.secrets %}
+          <option value="{{ secret.id }}"{% if field.points_at(secret.id) %} selected{% endif %}>{{ secret.label }}{% if !secret.hint.is_empty() %} ({{ secret.hint }}){% endif %}</option>
+          {%- endfor %}
+        </select>
+        {%- if let Some(problem) = offer.problem %}
+        <span class="doc-hint">{{ problem }}</span>
+        {%- else if offer.secrets.is_empty() %}
+        <span class="doc-hint">No secret in Secret Storage is shared with {{ plugin }} yet. Its owner shares one from the secret's Plugins page.</span>
+        {%- endif %}
+        {%- endif %}
+        {%- if field.held() %}
+        <label class="doc-label"><input type="checkbox" name="clear-{{ field.schema.key }}" value="yes"{% if !writes %} disabled{% endif %} /> Clear it</label>
+        {%- endif %}
+        {%- else if field.is("boolean") %}
+        <label class="doc-label"><input id="{{ field.id() }}" name="{{ field.name() }}" type="checkbox" value="on"{% if field.checked() %} checked{% endif %}{% if !writes %} disabled{% endif %} /> On</label>
+        {%- else if field.is("choice") && field.unoffered.is_none() %}
+        <select class="doc-select" id="{{ field.id() }}" name="{{ field.name() }}"{% if !writes %} disabled{% endif %}>
+          <option value=""></option>
+          {%- for choice in field.options() %}
+          <option value="{{ choice.value }}"{% if field.chose(choice.value) %} selected{% endif %}>{{ choice.label }}{% if !choice.hint.is_empty() %} ({{ choice.hint }}){% endif %}</option>
+          {%- endfor %}
+          {%- if field.chose_unoffered() %}
+          <option value="{{ field.text() }}" selected>{{ field.text() }} (not offered now)</option>
+          {%- endif %}
+        </select>
+        {%- else if field.is("list") && field.offered.is_some() %}
+        <input type="hidden" name="list-{{ field.schema.key }}" value="drawn" />
+        {%- if field.options().is_empty() && field.held_unoffered().is_empty() %}
+        <p class="doc-hint">Nothing to choose from yet.</p>
+        {%- endif %}
+        <div id="{{ field.id() }}">
+          {%- for choice in field.options() %}
+          <label class="doc-label"><input type="checkbox" name="{{ field.name() }}" value="{{ choice.value }}"{% if field.ticked(choice.value) %} checked{% endif %}{% if !writes %} disabled{% endif %} /> {{ choice.label }}{% if !choice.hint.is_empty() %} <span class="doc-hint">{{ choice.hint }}</span>{% endif %}</label>
+          {%- endfor %}
+          {%- for held in field.held_unoffered() %}
+          <label class="doc-label"><input type="checkbox" name="{{ field.name() }}" value="{{ held }}" checked{% if !writes %} disabled{% endif %} /> {{ held }} <span class="doc-hint">not offered now</span></label>
+          {%- endfor %}
+        </div>
+        {%- else if field.is("map") && field.offered.is_some() %}
+        <input type="hidden" name="map-{{ field.schema.key }}" value="drawn" />
+        <table class="doc-table" id="{{ field.id() }}">
+          <thead class="doc-table__head">
+            <tr class="doc-table__row">
+              <th class="doc-table__header" scope="col">{{ field.keys_label() }}</th>
+              <th class="doc-table__header" scope="col">{{ field.values_label() }}</th>
+            </tr>
+          </thead>
+          <tbody class="doc-table__body">
+            {%- let rows = field.rows() %}
+            {%- for (row_index, row) in rows.iter().enumerate() %}
+            <tr class="doc-table__row">
+              <td class="doc-table__cell">
+                <select class="doc-select" name="map-{{ field.schema.key }}-{{ row_index }}-key" aria-label="{{ field.keys_label() }}"{% if !writes %} disabled{% endif %}>
+                  <option value="">{% if row.key.is_empty() %}Add one{% else %}Take it off{% endif %}</option>
+                  {%- for choice in field.keys() %}
+                  <option value="{{ choice.value }}"{% if row.key == choice.value %} selected{% endif %}>{{ choice.label }}{% if !choice.hint.is_empty() %} ({{ choice.hint }}){% endif %}</option>
+                  {%- endfor %}
+                </select>
+              </td>
+              <td class="doc-table__cell">
+                <details class="nhsuk-details">
+                  <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">{{ field.summary(row) }}</span></summary>
+                  <div class="nhsuk-details__text">
+                    {%- for value in field.values() %}
+                    <label class="doc-label"><input type="checkbox" name="map-{{ field.schema.key }}-{{ row_index }}-value" value="{{ value.value }}"{% if row.has(value.value) %} checked{% endif %}{% if !writes %} disabled{% endif %} /> {{ value.label }}{% if !value.hint.is_empty() %} <span class="doc-hint">{{ value.hint }}</span>{% endif %}</label>
+                    {%- endfor %}
+                  </div>
+                </details>
+              </td>
+            </tr>
+            {%- endfor %}
+          </tbody>
+        </table>
+        {%- else if field.is("list") || field.is("map") %}
+        {%- if let Some(why) = field.unoffered %}
+        <span class="doc-hint">What can be chosen could not be read ({{ why }}), so type it instead.</span>
+        {%- endif %}
+        <textarea class="doc-input" id="{{ field.id() }}" name="{{ field.name() }}" rows="5"{% if !writes %} disabled{% endif %}>{{ field.text() }}</textarea>
+        <span class="doc-hint">{% if field.is("map") %}One to a line, as KEY=one,two.{% else %}One to a line.{% endif %}</span>
+        {%- else %}
+        <input class="doc-input" id="{{ field.id() }}" name="{{ field.name() }}" type="text" value="{{ field.text() }}"{% if !field.schema.hint.is_empty() %} aria-describedby="{{ field.id() }}-hint"{% endif %}{% if !writes %} disabled{% endif %} />
+        {%- endif %}
+      </div>
+      {%- endfor %}
+
+      {%- if writes %}
+      <div class="doc-button-group">
+        <button class="doc-button" type="submit">Save</button>
+        <button class="doc-button doc-button--secondary" type="submit" formaction="/plugins/{{ plugin }}/settings/test">Test connection</button>
+      </div>
+      {%- else %}
+      <p class="doc-hint">You may see these settings but not change them.</p>
+      {%- endif %}
+    </form>
+    {%- endif %}
+
+    {%- if paged %}
+    {%- if self.earlier().is_some() || self.later().is_some() %}
+    <nav aria-label="Pages either side">
+      <ul class="doc-pagination">
+        {%- if let Some(earlier) = self.earlier() %}
+        <li class="doc-pagination__item doc-pagination__item--previous">
+          <a class="doc-pagination__link" href="{{ self.href(earlier) }}" rel="prev"><span class="doc-pagination__direction">Previous</span><span class="nhsuk-u-visually-hidden">:</span> <span class="doc-pagination__title">{{ earlier.title }}</span></a>
+        </li>
+        {%- endif %}
+        {%- if let Some(later) = self.later() %}
+        <li class="doc-pagination__item doc-pagination__item--next">
+          <a class="doc-pagination__link" href="{{ self.href(later) }}" rel="next"><span class="doc-pagination__direction">Next</span><span class="nhsuk-u-visually-hidden">:</span> <span class="doc-pagination__title">{{ later.title }}</span></a>
+        </li>
+        {%- endif %}
+      </ul>
+    </nav>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+{%- else %}
+<div class="nhsuk-grid-row">
+  <div class="nhsuk-grid-column-two-thirds">
+    <h2>Settings</h2>
+    <p class="doc-empty">{{ plugin }} declares no settings.</p>
+  </div>
+</div>
+{%- endif %}
+{% endblock %}

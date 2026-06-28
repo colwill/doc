@@ -1,0 +1,51 @@
+{%- macro pages_block() %}
+{%- for page in pages %}
+<a class="doc-combo__option" href="{{ page.href }}" role="option" aria-selected="false">
+  <span class="doc-combo__name">{{ page.label }}</span>
+  <span class="doc-combo__kind">Page</span>
+</a>
+{%- endfor %}
+{%- endmacro %}
+
+{%- macro documents_block() %}
+{%- for document in documents %}
+<a class="doc-combo__option" href="{{ document.href }}" role="option" aria-selected="false">
+  <span class="doc-combo__name">{{ document.title }}</span>
+  <span class="doc-combo__kind">{{ document.space }}</span>
+</a>
+{%- endfor %}
+{%- endmacro %}
+
+{%- macro resources_block() %}
+{%- for resource in resources %}
+<a class="doc-combo__option" href="{{ resource.href }}" role="option" aria-selected="false">
+  <span class="doc-combo__name">{{ resource.title }}</span>
+  <span class="doc-combo__kind">{{ resource.kind }}</span>
+</a>
+{%- endfor %}
+{%- endmacro %}
+
+{%- macro discussions_block() %}
+{%- for discussion in discussions %}
+<a class="doc-combo__option" href="{{ discussion.href }}" role="option" aria-selected="false">
+  <span class="doc-combo__name">{{ discussion.title }}</span>
+  <span class="doc-combo__kind">Discussion</span>
+</a>
+{%- endfor %}
+{%- endmacro %}
+
+{%- if text.is_empty() %}
+{%- else %}
+{#- Whichever kind belongs to the page this was opened from goes first; the rest follow in their
+    usual order, so a page with no kind of its own reads exactly as it always has. -#}
+{%- if focus == "documents" %}{% call documents_block() %}{% endcall %}{% endif %}
+{%- if focus == "resources" %}{% call resources_block() %}{% endcall %}{% endif %}
+{%- if focus == "discussions" %}{% call discussions_block() %}{% endcall %}{% endif %}
+{% call pages_block() %}{% endcall %}
+{%- if focus != "documents" %}{% call documents_block() %}{% endcall %}{% endif %}
+{%- if focus != "resources" %}{% call resources_block() %}{% endcall %}{% endif %}
+{%- if focus != "discussions" %}{% call discussions_block() %}{% endcall %}{% endif %}
+<a class="doc-combo__option doc-combo__option--all" href="/search?q={{ text|urlencode }}" role="option" aria-selected="false">
+  <span class="doc-combo__name">Search everything for “{{ text }}”</span>
+</a>
+{%- endif %}

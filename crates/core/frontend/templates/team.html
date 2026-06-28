@@ -1,0 +1,213 @@
+{% extends "layout.html" %}
+
+{% block page_lede %}
+{%- if !detail.team.description.is_empty() %}
+<p class="doc-page-header__lede">{{ detail.team.description }}</p>
+{%- endif %}
+{% endblock %}
+
+{% block page_actions %}
+<div class="doc-page-header__actions">
+  {%- if self.on("overview") && manages %}
+  <a class="doc-button doc-button--secondary" href="/teams/{{ detail.team.id }}/edit">Change</a>
+  {%- else if self.on("people") %}
+  {%- if detail.arranges && !detail.members.is_empty() %}
+  <a class="doc-button doc-button--secondary" href="/teams/{{ detail.team.id }}/lead">Change lead</a>
+  {%- endif %}
+  {%- if manages || detail.arranges %}
+  <a class="doc-button doc-button--secondary" href="/teams/{{ detail.team.id }}/members/new">Add a person</a>
+  {%- endif %}
+  {%- else if self.on("positions") && detail.arranges %}
+  <a class="doc-button doc-button--secondary" href="/teams/{{ detail.team.id }}/positions/new">Add one of its own</a>
+  {%- else if self.on("teams") && manages && detail.team.provider.is_none() %}
+  <a class="doc-button doc-button--secondary" href="/teams/new?parent={{ detail.team.id }}">Add a sub-team</a>
+  {%- else if self.on("accounts") %}
+  <a class="doc-button doc-button--secondary" href="/service-accounts/new?team={{ detail.team.id }}">Add a service account</a>
+  {%- endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="doc-with-contents">
+{%- let sections_label = "This team" %}
+{%- include "contents.html" %}
+<div class="doc-with-contents__main" id="team-main">
+{%- if let Some(error) = error %}
+<div class="nhsuk-error-summary" aria-labelledby="team-error" role="alert" tabindex="-1">
+  <h2 class="nhsuk-error-summary__title" id="team-error">That was refused</h2>
+  <div class="nhsuk-error-summary__body"><p>{{ error }}</p></div>
+</div>
+{%- endif %}
+{%- if let Some(notice) = notice %}
+<div class="nhsuk-inset-text"><p>{{ notice }}</p></div>
+{%- endif %}
+
+{%- if self.on("overview") %}
+<h2>Overview</h2>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Organisation</dt>
+    <dd class="doc-summary__value">{{ detail.organisation_of.title }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Inside</dt>
+    <dd class="doc-summary__value">
+      {%- if detail.ancestors.is_empty() %}No team: it is top-level{% endif %}
+      {%- for ancestor in detail.ancestors %}<a href="/teams/{{ ancestor.id }}">{{ ancestor.title }}</a>{% if !loop.last %} › {% endif %}{% endfor %}
+    </dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Lead</dt>
+    <dd class="doc-summary__value">
+      {%- if let Some(lead) = self.lead() %}{{ lead.login }}{% if let Some(name) = lead.name %} <span class="doc-hint">({{ name }})</span>{% endif %}{% else %}Nobody yet{% endif %}
+    </dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Name</dt>
+    <dd class="doc-summary__value"><code>{{ detail.team.name }}</code></dd>
+  </div>
+  {%- if let Some(catalogue) = catalogue %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">In the Catalogue</dt>
+    <dd class="doc-summary__value"><a href="{{ catalogue }}">What it owns and works on</a></dd>
+  </div>
+  {%- endif %}
+  {%- if !detail.team.email.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Email</dt>
+    <dd class="doc-summary__value"><a href="mailto:{{ detail.team.email }}">{{ detail.team.email }}</a></dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Made</dt>
+    <dd class="doc-summary__value">{% if let Some(provider) = self.provided_by() %}By {{ provider }}, which changes it{% else %}In DOC{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Default team</dt>
+    <dd class="doc-summary__value">{% if detail.team.default %}Yes: everyone is placed in it as they arrive{% else %}No{% endif %}</dd>
+  </div>
+</dl>
+
+{%- else if self.on("people") %}
+<h2>People</h2>
+{%- if detail.members.is_empty() %}
+<p class="doc-empty">Nobody yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Person</th>
+      <th class="doc-table__header" scope="col">Position</th>
+      <th class="doc-table__header" scope="col">Added</th>
+      {%- if manages %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Action</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for member in detail.members %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ member.login }}{% if self.leads(member) %} <strong class="doc-badge">Lead</strong>{% endif %}{% if let Some(name) = member.name %}<br /><span class="doc-hint">{{ name }}</span>{% endif %}</th>
+      <td class="doc-table__cell">
+        {%- if detail.arranges && !detail.positions.is_empty() %}
+        <form class="doc-inline-form" action="/teams/{{ detail.team.id }}/members/{{ member.user_id }}/position" method="post" hx-post="/teams/{{ detail.team.id }}/members/{{ member.user_id }}/position" hx-trigger="change" hx-select="#team-main" hx-target="#team-main" hx-swap="outerHTML">
+          <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+          <label class="nhsuk-u-visually-hidden" for="position-{{ member.user_id }}">Position of {{ member.login }}</label>
+          <select class="doc-select doc-select--small" id="position-{{ member.user_id }}" name="position">
+            <option value="">None</option>
+            {%- for position in detail.positions %}
+            {%- if !position.hidden %}
+            <option value="{{ position.name }}"{% if member.position.as_deref() == Some(position.name.as_str()) %} selected{% endif %}>{{ position.title }}</option>
+            {%- endif %}
+            {%- endfor %}
+          </select>
+          <noscript><button class="doc-button doc-button--secondary doc-button--small" type="submit">Save<span class="nhsuk-u-visually-hidden"> {{ member.login }}'s position</span></button></noscript>
+        </form>
+        {%- else if let Some(position) = member.position %}{{ self.titled(position) }}
+        {%- else %}<span class="doc-hint">None</span>{% endif %}
+      </td>
+      <td class="doc-table__cell">{{ Self::how(member.source, member.provider.as_deref()) }}</td>
+      {%- if manages %}
+      <td class="doc-table__cell">
+        {%- if member.source != "provider" %}
+        <form action="/teams/{{ detail.team.id }}/members/{{ member.user_id }}/remove" method="post">
+          <input type="hidden" name="csrf" value="{{ chrome.csrf }}" />
+          <button class="doc-button doc-button--warning doc-button--small" type="submit">Take out<span class="nhsuk-u-visually-hidden"> {{ member.login }}</span></button>
+        </form>
+        {%- endif %}
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if self.on("positions") %}
+<h2>Positions</h2>
+<p class="doc-hint">From its organisation and the teams above it, as this team changes them. The teams inside it have them too.</p>
+{%- if detail.positions.is_empty() %}
+<p class="doc-empty">None. {% if detail.arranges %}Its organisation defines none yet, but it can have its own.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Position</th>
+      <th class="doc-table__header" scope="col">Responsibilities</th>
+      <th class="doc-table__header" scope="col">Held by</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for position in detail.positions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">
+        {%- if detail.arranges %}<a href="/teams/{{ detail.team.id }}/positions/{{ position.name }}">{{ position.title }}</a>{% else %}{{ position.title }}{% endif %}
+        {%- if position.hidden %} <strong class="doc-badge">Hidden here</strong>{% endif %}
+        <br /><span class="doc-hint">{{ self.provenance(position) }}</span>
+      </th>
+      <td class="doc-table__cell">
+        {%- if position.responsibilities.is_empty() %}<span class="doc-hint">None given</span>{% else %}
+        <ul class="nhsuk-list nhsuk-list--bullet nhsuk-u-margin-bottom-0">
+          {%- for responsibility in position.responsibilities %}<li>{{ responsibility }}</li>{% endfor %}
+        </ul>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">
+        {%- if position.holders.is_empty() %}<span class="doc-hint">Nobody</span>{% endif %}
+        {%- for holder in position.holders %}{{ holder.login }}{% if !loop.last %}, {% endif %}{% endfor %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if self.on("teams") %}
+<h2>Teams inside it</h2>
+{%- if detail.sub_teams.is_empty() %}
+<p class="doc-empty">None.</p>
+{%- else %}
+<ul class="nhsuk-list nhsuk-list--bullet">
+  {%- for sub in detail.sub_teams %}
+  <li><a href="/teams/{{ sub.id }}">{{ sub.title }}</a></li>
+  {%- endfor %}
+</ul>
+<p class="doc-hint">Their members get what this team holds.</p>
+{%- endif %}
+
+{%- else if self.on("accounts") %}
+{%- if let Some(accounts) = detail.service_accounts %}
+<h2>Service accounts</h2>
+{%- if accounts.is_empty() %}
+<p class="doc-empty">It owns none. Its members, and the members of the teams inside it, manage those it does.</p>
+{%- else %}
+<ul class="nhsuk-list nhsuk-list--bullet">
+  {%- for account in accounts %}
+  <li><a href="/service-accounts/{{ account.id }}">{{ account.name }}</a>{% if account.disabled %} <strong class="doc-badge doc-badge--down">Disabled</strong>{% endif %}</li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endif %}
+
+{%- endif %}
+</div>
+</div>
+{% endblock %}
