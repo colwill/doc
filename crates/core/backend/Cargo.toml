@@ -1,0 +1,60 @@
+[package]
+name = "doc-backend"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+argon2.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+base64.workspace = true
+chrono.workspace = true
+parking_lot.workspace = true
+clap.workspace = true
+futures.workspace = true
+getrandom.workspace = true
+hex.workspace = true
+hmac.workspace = true
+http.workspace = true
+ipnet.workspace = true
+opentelemetry.workspace = true
+rcgen.workspace = true
+regex.workspace = true
+ring.workspace = true
+url.workspace = true
+x509-parser.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+uuid.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+toml.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+
+bytes.workspace = true
+doc-consensus.workspace = true
+doc-plugin-protocol.workspace = true
+doc-secret.workspace = true
+doc-telemetry = { workspace = true, features = ["axum"] }
+doc-transport.workspace = true
+doc-eventbus.workspace = true
+doc-servicebus.workspace = true
+doc-cachebus.workspace = true
+doc-permissions.workspace = true
+doc-background-tasks.workspace = true
+doc-cron-tasks.workspace = true
+doc-immediate-tasks.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tower.workspace = true
