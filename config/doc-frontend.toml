@@ -1,0 +1,34 @@
+# DOC frontend configuration. Secrets belong in the secrets volume or environment variables,
+# never here. Environment variables override these values (see `.env.example`).
+
+[server]
+# 8081 by default so the frontend and the backend can both run on a developer machine.
+http_addr = "0.0.0.0:8081"
+
+[backend]
+# Overridden by DOC_BACKEND_URL; inside the doc network the host is `backend`.
+base_url = "http://127.0.0.1:8080"
+# Overridden by DOC_BACKEND_TOKEN. Empty means the frontend calls the API unauthenticated;
+# per-user tokens arrive with sessions (T31).
+token = ""
+
+[secrets]
+dir = "/secrets"
+
+[instance]
+# Shown before the logo, so "DEV" reads as DEV[DOC]. Overridden by DOC_INSTANCE_NAME.
+# Empty shows the rundoc logo on its own instead. This is the name used until an administrator sets one for the
+# whole platform in Admin > Settings, which every frontend then shows.
+name = ""
+
+[dev]
+# Serves /dev/boot and makes every page poll it, so a rebuilt frontend reloads the open tab.
+# `just dev` turns this on with DOC_DEV_RELOAD; leave it off everywhere else.
+reload = false
+
+[fabric]
+# "memory" runs the buses in-process; "cluster" uses the Event Bus and Cache Bus clusters.
+mode = "memory"
+port = 4433
+event_bus = ["eventbus-1", "eventbus-2", "eventbus-3"]
+cache_bus = ["cachebus-1", "cachebus-2", "cachebus-3"]

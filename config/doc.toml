@@ -1,0 +1,214 @@
+# DOC platform configuration. Secrets belong in the secrets volume or environment variables,
+# never here. Environment variables override these values (see docs and `.env.example`).
+
+[server]
+http_addr = "0.0.0.0:8080"
+quic_addr = "0.0.0.0:4433"
+
+[database]
+# Overridden by DOC_DATABASE_URL / DOC_MIGRATION_DATABASE_URL / DOC_PLUGINS_DATABASE_URL.
+url = "postgres://doc_app:dev-only-change-me@127.0.0.1:5432/doc"
+migration_url = "postgres://doc_owner:dev-only-change-me@127.0.0.1:5432/doc"
+# Plugins' collections (T62), in a database of their own that only the backend connects to.
+plugins_url = "postgres://doc_data:dev-only-change-me@127.0.0.1:5432/doc_plugins"
+
+[secrets]
+dir = "/secrets"
+
+[bootstrap]
+# Logins that get plugin:core:user:rw before the RBAC plugin runs
+admins = ["acolwill"]
+# Service account used by `just` recipes and CI; gets plugin:core:service:ro.
+operator = "operator"
+# Service account the frontend reads the API with; gets plugin:core:service:ro.
+frontend = "frontend"
+
+[fabric]
+# buses - "memory" for in-process; "cluster" for Raft cluster.
+mode = "memory"
+port = 4433
+event_bus = ["eventbus-1", "eventbus-2", "eventbus-3"]
+service_bus = ["servicebus-1", "servicebus-2", "servicebus-3"]
+cache_bus = ["cachebus-1", "cachebus-2", "cachebus-3"]
+
+[plugins]
+# A plugin is put in `error` if this many seconds pass without it reporting liveness.
+liveness_grace_s = 20
+# Development only. A version already seen is normally held to the binary it first registered
+# with; this lets a rebuild register under the same version, so a plugin restarts on every edit.
+# `just dev` and the Docker stack turn it on; override with DOC_PLUGINS_ALLOW_REBUILDS.
+allow_rebuilds = false
+# A forwarded request or a synchronous `run` that takes longer than this answers 504.
+request_deadline_s = 30
+# One attempt at an async plugin's background `run`, and at any background run a plugin of another
+# classification queues for itself. At most 30 seconds.
+async_deadline_s = 30
+# A one-shot plugin's `run` after each load. At most 10 minutes.
+one_shot_deadline_s = 600
+# During a hot reload, requests wait this long for the new version before answering 503...
+handover_timeout_s = 5
+# ...and the old version gets this long to finish the requests it already has.
+drain_timeout_s = 10
+# The plugin probe puts a plugin in `error` ("timed out") once it has been `loading` (migrations
+# included) or `unloading` for this long. A `load` call is abandoned after 60 s on its own.
+stuck_after_s = 90
+ids = [
+    "rbac",
+    "local",
+    "github",
+    "ghe",
+    # One OpenID Connect plugin per provider: the same binary under a different ID, with its own
+    # settings (`DOC_GOOGLE_ISSUER` for `google`) and its own place on the sign-in page. An ID here
+    # that nothing runs costs nothing, and one that is missing cannot register at all.
+    "oidc",
+    "google",
+    "entra",
+    "akamai",
+    "resources",
+    "service-map",
+    "radar",
+    "kb",
+    "automation",
+    "calendar",
+    "calendar-events",
+    "process",
+    "water",
+    "infra",
+    "notifications",
+    "templates",
+    "maturity",
+    "flags",
+    "dora",
+    "cicd",
+    "reliability",
+    "eol",
+    # Jira Cloud, and the same crate built for Data Center and Server as `jira-dc` (ADR-0007 §3).
+    "jira",
+    "jira-dc",
+    "roadmap",
+    # Made-up data for the five above, switched on for each on its own Settings page (FIX-FAUX-DATA).
+    "faux-data",
+    "insights",
+    # DOC as the name server for its own domains, forwarding every other name upstream.
+    "dns",
+    # Clusters read with a read-only service account, feeding DORA, CI/CD/CT and Reliability.
+    "kubernetes",
+    # Each team's rotas, the holidays its lead records and the gaps they leave, on its calendars.
+    "rota",
+    # An LLM taking Confluence, Backstage, Jira, Markdown and MkDocs into DOC, staged for approval.
+    "vacuum",
+    # Credentials kept once for every plugin, and child tokens from vendors DOC is onboarded to.
+    "secrets",
+    # An agent that uses DOC: one MCP server for your own agent, and jobs DOC runs with Claude.
+    "agent",
+    # Grafana dashboards drawn in DOC, reached through a vendor account in Secret Storage.
+    "grafana",
+    # How services are built: components declared by whoever builds them, and the relationships
+    # between them checked against what the platform can observe (ADR-0017).
+    "architecture",
+    "hello",
+]
+
+# Capabilities are refused unless a plugin is named here (§5). Adding an entry gives that plugin
+# power over the whole platform, so the list is configuration rather than anything a plugin asks for.
+[plugins.capabilities]
+# `offboarding` lets its rules act on somebody an identity provider says has left (T67).
+rbac = ["permission-provider", "offboarding"]
+# DOC accounts: usernames and passwords kept in DOC, for trying it without a company directory.
+local = ["identity-provider", "public-routes"]
+# `team-provider` brings each organisation's GitHub teams and their members into core (T68).
+github = ["identity-provider", "public-routes", "team-provider"]
+ghe = ["identity-provider", "public-routes", "team-provider"]
+# Any OpenID Connect provider: Entra ID, Google, Keycloak, Okta. `just oidc-dev` runs one to try.
+# Each instance is its own plugin, so each needs its own entry here.
+oidc = ["identity-provider", "public-routes"]
+google = ["identity-provider", "public-routes"]
+entra = ["identity-provider", "public-routes"]
+akamai = ["identity-provider", "public-routes"]
+# The Catalogue shows core's organisations and teams rather than keeping its own, and writes them
+# for whoever is asking, who must administer identity themselves (T69).
+resources = ["team-writer"]
+# Each automation's inbound webhook is a public route, checked by its own signature.
+automation = ["public-routes"]
+# Calendar feeds are fetched by calendar apps, with nothing but their secret URL.
+calendar = ["public-routes"]
+# The Data Vacuum mints a scoped token for the administrator starting a run, which lasts minutes
+# and reaches only it (and reads the Knowledge Base, Watercooler and the Catalogue), for their agent.
+vacuum = ["token-issuer"]
+# Secret Storage has core seal and open what it keeps under the settings key, and answers for the
+# secrets other plugins' settings point at (FEAT-SECRETS).
+secrets = ["secret-store"]
+# Agent Smith adds people by email for whoever its call or job acts for, never for itself
+# (FEAT-AGENT); `team-writer` is how a plugin does that. `service-account` gives it one of its own,
+# `agent-smith`, which runbooks run by a schedule, an event or an automation act as. It holds only
+# what administrators grant it in RBAC.
+agent = ["team-writer", "service-account"]
+
+# What the plugins are sorted into: a section each on the Plugins page, in this order, and a pill
+# beside a plugin's name wherever else it is shown. They follow the navigation bar's menus, so a
+# plugin is found under the same name in both: Workspace, Platform and Technology are those menus,
+# and the plugins with no pages of their own — signing in, and the platform's own services and
+# tools — are sorted by what they are for. A plugin in none of them is shown under Other.
+[[plugins.categories]]
+name = "Workspace"
+plugins = [
+    "agent",
+    "automation",
+    "calendar",
+    "calendar-events",
+    "jira",
+    "jira-dc",
+    "kb",
+    "process",
+    "rota",
+    "water",
+]
+
+[[plugins.categories]]
+name = "Platform"
+plugins = [
+    "cicd",
+    "dns",
+    "dora",
+    "flags",
+    "grafana",
+    "infra",
+    "kubernetes",
+    "maturity",
+    "reliability",
+    "resources",
+    "roadmap",
+]
+
+[[plugins.categories]]
+name = "Technology"
+plugins = ["architecture", "eol", "insights", "radar", "service-map", "templates"]
+
+[[plugins.categories]]
+name = "Identity"
+plugins = ["akamai", "entra", "ghe", "github", "google", "oidc"]
+
+[[plugins.categories]]
+name = "Core"
+plugins = ["local", "notifications", "rbac", "secrets"]
+
+[[plugins.categories]]
+name = "Tools"
+plugins = ["faux-data", "hello", "vacuum"]
+
+# The environment names that mean production wherever a plugin uses them, compared without case. A
+# call guarded against changing production, such as a runbook Agent Smith runs against development
+# or test, may not change anything in one of these (FEAT-AGENT).
+[environments]
+production = ["production", "prod", "live"]
+
+# Where this DOC is, which every plugin is given with its settings: pages say https://<domain> where
+# they give DOC's address, and the DNS plugin answers for the domain and names the plugins under it
+# unless its settings say otherwise. Overridden by DOC_INSTANCE_DOMAIN and DOC_INSTANCE_ADDRESS.
+[instance]
+# The domain people reach DOC at, alone: doc.acme.com, not https://doc.acme.com/.
+domain = "rundoc.sh"
+# This machine's IP address as other machines reach it, given wherever a page names the machine DOC
+# runs on. Empty is the address it has on its network, found when the backend starts; pin one in
+# doc.local.toml where that is not the right one.
+address = ""

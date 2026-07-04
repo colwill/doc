@@ -1,0 +1,104 @@
+name: ${DOC_STACK:-doc}-core
+
+x-backend-image: &backend-image
+  build:
+    context: ../..
+    dockerfile: crates/core/Dockerfile
+    args:
+      BIN: doc-backend
+  image: doc/backend:${DOC_IMAGE_TAG:-dev}
+
+x-frontend-image: &frontend-image
+  build:
+    context: ../..
+    dockerfile: crates/core/Dockerfile
+    args:
+      BIN: doc-frontend
+  image: doc/frontend:${DOC_IMAGE_TAG:-dev}
+
+services:
+  # Runs once: fills the secrets volume with the CA, certificates and tokens, then exits.
+  # In its own profile so `docker compose up --wait` does not wait for a job that exits;
+  # `just up` runs it first.
+  bootstrap:
+    <<: *backend-image
+    profiles: [bootstrap]
+    command: ["bootstrap"]
+    user: "0:0"
+    environment:
+      DOC_CONFIG: /config/doc.toml
+      DOC_SECRETS_DIR: /secrets
+      DOC_SECRETS_UID: "10001"
+      DOC_SECRETS_GID: "10001"
+    volumes:
+      - secrets:/secrets
+      - ../../config:/config:ro
+    restart: "no"
+
+  # The API, the plugin host and the owner of the core schemas.
+  backend:
+    <<: *backend-image
+    restart: unless-stopped
+    # A QUIC pool per bus node needs far more descriptors than Docker's default 1024.
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
+    environment:
+      DOC_CONFIG: /config/doc.toml
+      DOC_HTTP_ADDR: 0.0.0.0:8080
+      DOC_QUIC_ADDR: 0.0.0.0:4433
+      DOC_SECRETS_DIR: /secrets
+      DOC_FABRIC_MODE: ${BACKEND_FABRIC_MODE:-cluster}
+      DOC_PLUGINS_ALLOW_REBUILDS: ${DOC_PLUGINS_ALLOW_REBUILDS:-true}
+      # Whose x-forwarded-for names the real client: the frontend, so the backend's rate limits
+      # count each browser rather than everyone the frontend serves as one client.
+      DOC_TRUSTED_PROXIES: ${DOC_TRUSTED_PROXIES:-127.0.0.0/8,::1/128,frontend}
+      DOC_DATABASE_URL: postgres://${DOC_APP_USER:-doc_app}:${DOC_APP_PASSWORD:-dev-only-change-me}@${POSTGRES_HOST:-postgres}:5432/${DOC_DB:-doc}
+      DOC_MIGRATION_DATABASE_URL: postgres://${DOC_OWNER_USER:-doc_owner}:${DOC_OWNER_PASSWORD:-dev-only-change-me}@${POSTGRES_HOST:-postgres}:5432/${DOC_DB:-doc}
+      DOC_PLUGINS_DATABASE_URL: postgres://${DOC_DATA_USER:-doc_data}:${DOC_DATA_PASSWORD:-dev-only-change-me}@${POSTGRES_HOST:-postgres}:5432/${DOC_PLUGINS_DB:-doc_plugins}
+      RUST_LOG: ${DOC_BACKEND_LOG:-info,openraft=warn,quiche=warn,tokio_quiche=warn}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+    volumes:
+      - secrets:/secrets:ro
+      - ../../config:/config:ro
+    ports:
+      - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_PORT:-8080}:8080"
+      # The plugin host. Plugins on the `doc` network dial backend:4433 directly; this is only
+      # for a plugin being developed outside Docker.
+      - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_QUIC_PORT:-14500}:4433/udp"
+    networks: [doc]
+
+  # The server-rendered UI. Its stylesheets and scripts are embedded in the binary, so the
+  # image needs no asset mount.
+  frontend:
+    <<: *frontend-image
+    restart: unless-stopped
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
+    environment:
+      DOC_CONFIG: /config/doc-frontend.toml
+      DOC_HTTP_ADDR: 0.0.0.0:8081
+      DOC_BACKEND_URL: http://backend:8080
+      # Where people reach DOC. It is also how a plugin's own name is recognised: a request for
+      # rbac.<this host> is sent to /p/rbac/ (DOC-SPEC §9.2).
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_INSTANCE_NAME: ${DOC_INSTANCE_NAME:-}
+      DOC_SECRETS_DIR: /secrets
+      DOC_FABRIC_MODE: ${FRONTEND_FABRIC_MODE:-cluster}
+      RUST_LOG: ${DOC_FRONTEND_LOG:-info}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+    volumes:
+      - secrets:/secrets:ro
+      - ../../config:/config:ro
+    depends_on: [backend]
+    ports:
+      - "${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-8081}:8081"
+    networks: [doc]
+
+volumes:
+  secrets: {}
+
+networks:
+  # Created by the storage stack, which `just up` starts first.
+  doc:
+    name: ${DOC_NETWORK:-doc}
+    external: true
