@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block tab_groups %} aria-current="page"{% endblock %}
+
+{%- macro error(name) %}
+{%- if let Some(message) = problem(name) %}
+<span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ message }}</span>
+{%- endif %}
+{%- endmacro %}
+
+{% block main %}
+<p class="doc-step">New group · Step {{ number }} of {{ of }}</p>
+
+<form hx-post="/p/rbac/groups/new" hx-target="#rbac" hx-swap="outerHTML">
+  <input type="hidden" name="step" value="{{ step.name() }}" />
+  {%- for (name, value) in carried() %}
+  <input type="hidden" name="{{ name }}" value="{{ value }}" />
+  {%- endfor %}
+  {%- for plugin in carried_plugins() %}
+  <input type="hidden" name="plugin" value="{{ plugin }}" />
+  {%- endfor %}
+  {%- for permission in carried_permissions() %}
+  <input type="hidden" name="permission" value="{{ permission }}" />
+  {%- endfor %}
+
+  {%- if at("details") %}
+  <h2>What is the group called?</h2>
+  <p class="doc-hint">A group is a role: a named set of permissions somebody holds by being in it.</p>
+  <div class="doc-form-group{% if problem("name").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="group-name">Name</label>
+    <span class="doc-hint" id="group-name-hint">Lower-case letters, numbers and <code class="doc-mono">-</code>, such as <code class="doc-mono">deployers</code>.</span>
+    {% call error("name") %}{% endcall %}
+    <input class="doc-input{% if problem("name").is_some() %} doc-input--error{% endif %}" id="group-name" name="name" value="{{ value("name") }}" maxlength="32" autocomplete="off" aria-describedby="group-name-hint" />
+  </div>
+  <fieldset class="doc-radios">
+    <legend class="doc-label">Members are</legend>
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="group-kind-user" name="kind" type="radio" value="user"{% if value("kind") != "service" %} checked{% endif %} />
+      <label class="doc-radios__label" for="group-kind-user">Users</label>
+    </div>
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="group-kind-service" name="kind" type="radio" value="service"{% if value("kind") == "service" %} checked{% endif %} />
+      <label class="doc-radios__label" for="group-kind-service">Service accounts</label>
+    </div>
+  </fieldset>
+  <div class="doc-form-group{% if problem("description").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="group-description">Description (optional)</label>
+    {% call error("description") %}{% endcall %}
+    <input class="doc-input" id="group-description" name="description" value="{{ value("description") }}" maxlength="500" autocomplete="off" />
+  </div>
+
+  {%- else if at("plugins") %}
+  <h2>Which plugins does it grant in?</h2>
+  <p class="doc-hint">Tick every plugin the group holds permissions for. The first of them is the one it is listed under, which gives it its name and holds its membership.</p>
+  <fieldset class="doc-form-group{% if problem("plugin").is_some() %} doc-form-group--error{% endif %}">
+    <legend class="nhsuk-u-visually-hidden">Plugins</legend>
+    {% call error("plugin") %}{% endcall %}
+    {%- for plugin in plugins %}
+    <div><label class="doc-label"><input type="checkbox" name="plugin" value="{{ plugin }}"{% if ticked(plugin) %} checked{% endif %} /> <code class="doc-mono">{{ plugin }}</code></label></div>
+    {%- endfor %}
+  </fieldset>
+
+  {%- else if at("permissions") %}
+  <h2>What may its members do?</h2>
+  <p class="doc-hint">Tick the permissions the group holds. Leave a plugin's all unticked and it grants nothing there; leave every one unticked and the group grants {{ answers.home() }}'s read-only default.</p>
+  {%- for offer in offers %}
+  <fieldset class="doc-form-group">
+    <legend class="doc-label">{{ offer.plugin }}{% if offer.listed_under %} <span class="doc-hint doc-hint--inline">· listed under this one</span>{% endif %}</legend>
+    {%- for (choice, held) in offer.choices %}
+    <div><label class="doc-label"><input type="checkbox" name="permission" value="{{ choice }}"{% if *held %} checked{% endif %} /> <code class="doc-mono">{{ choice }}</code></label></div>
+    {%- endfor %}
+  </fieldset>
+  {%- endfor %}
+
+  {%- else %}
+  <h2>Who is in it?</h2>
+  <p class="doc-hint">This is optional: create the group now and add people to it whenever you like.</p>
+  <div class="doc-form-group{% if problem("members").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="group-members">{% if answers.kind().to_string() == "user" %}People, by login{% else %}Service accounts, by name{% endif %}</label>
+    <span class="doc-hint" id="group-members-hint">Start typing and choose from the list; add as many as you like, separated by commas. Leave it empty to add nobody yet.</span>
+    {% call error("members") %}{% endcall %}
+    <div class="doc-combo" data-doc-combo data-doc-combo-list>
+      <input class="doc-input doc-combo__input{% if problem("members").is_some() %} doc-input--error{% endif %}"
+             id="group-members" name="members" value="{{ value("members") }}" autocomplete="off"
+             role="combobox" aria-expanded="false" aria-controls="member-options" aria-describedby="group-members-hint"
+             hx-get="/p/rbac/member-options?kind={{ answers.kind() }}" hx-params="members"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#member-options" hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="member-options" role="listbox" aria-label="Matching {% if answers.kind().to_string() == "user" %}people{% else %}service accounts{% endif %}" hidden></div>
+    </div>
+  </div>
+  <h3>What will be created</h3>
+  <table class="doc-table">
+    <tbody class="doc-table__body">
+      {%- for (key, value, step) in summary() %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row">{{ key }}</th>
+        <td class="doc-table__cell">{{ value }}</td>
+        <td class="doc-table__cell"><button class="doc-link-button" type="submit" name="go" value="{{ step }}" formnovalidate>Change<span class="nhsuk-u-visually-hidden"> {{ key }}</span></button></td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit" name="go" value="next">{% if number == of %}Create group{% else %}Continue{% endif %}</button>
+    {%- if number > 1 %}
+    <button class="doc-button doc-button--secondary" type="submit" name="go" value="back" formnovalidate>Back</button>
+    {%- endif %}
+    <a class="doc-button doc-button--secondary" href="/p/rbac/groups">Cancel</a>
+  </div>
+</form>
+{% endblock %}

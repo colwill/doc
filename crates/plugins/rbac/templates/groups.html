@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block tab_groups %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Groups</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/rbac/groups/new">New group</a>
+  </div>
+</div>
+<p class="doc-hint">A group is a role: a named set of permissions, held by users or by service accounts. One group may grant in several plugins; it is listed under the first of them.</p>
+<form hx-get="/p/rbac/groups" hx-trigger="change" hx-target="#rbac" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="filter">Granting in</label>
+    <select class="doc-select" id="filter" name="plugin">
+      <option value="">Any plugin</option>
+      {%- for plugin in plugins %}
+      <option value="{{ plugin }}"{% if filter.as_deref() == Some(plugin.as_str()) %} selected{% endif %}>{{ plugin }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+</form>
+{%- if groups.is_empty() %}
+<p class="doc-empty">No groups yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Group</th>
+      <th class="doc-table__header" scope="col">Members are</th>
+      <th class="doc-table__header" scope="col">Grants in</th>
+      <th class="doc-table__header" scope="col">Permissions</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Members</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for group in groups %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/groups/{{ group.plugin }}/{{ group.name }}">{{ group.plugin }}/{{ group.name }}</a></th>
+      <td class="doc-table__cell">{{ group.kind }}s</td>
+      <td class="doc-table__cell">{{ group.plugins().join(", ") }}</td>
+      <td class="doc-table__cell">{% for permission in group.permissions %}<code class="doc-mono">{{ permission }}</code> {% endfor %}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ group.members }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

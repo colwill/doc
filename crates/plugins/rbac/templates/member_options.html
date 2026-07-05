@@ -1,0 +1,13 @@
+{%- if found.is_empty() %}
+<p class="doc-combo__empty">{% if typed.is_empty() %}There {% if people %}is nobody else to add{% else %}are no other service accounts{% endif %}.{% else %}{% if people %}Nobody{% else %}No service account{% endif %} matches “{{ typed }}”.{% endif %}</p>
+{%- else %}
+{%- for choice in found %}
+<button class="doc-combo__option" type="button" role="option" aria-selected="false" data-value="{{ choice.value }}">
+  <span class="doc-combo__name">{{ choice.label }}</span>
+  {%- if !choice.hint.is_empty() %}<span class="doc-combo__kind">{{ choice.hint }}</span>{% endif %}
+</button>
+{%- endfor %}
+{%- if more %}
+<p class="doc-combo__empty">Type more of the name to narrow it down.</p>
+{%- endif %}
+{%- endif %}

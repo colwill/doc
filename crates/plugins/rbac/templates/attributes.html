@@ -1,0 +1,20 @@
+{%- if attributes.is_empty() %}
+<p class="doc-empty">No attributes.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for (key, value) in attributes %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ key }}</th>
+      <td class="doc-table__cell">{{ value }}</td>
+      <td class="doc-table__cell">
+        <form hx-post="{{ self.attributes_url() }}/remove" hx-target="#rbac" hx-swap="outerHTML">
+          <input type="hidden" name="key" value="{{ key }}" />
+          <button class="doc-button doc-button--warning doc-button--small" type="submit">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}

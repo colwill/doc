@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block tab_people %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="{{ self.url() }}" hidden>{{ label }}</a>
+<h2>Set an attribute on {{ label }}</h2>
+<form hx-post="{{ self.attributes_url() }}" hx-target="#rbac" hx-swap="outerHTML">
+  {%- include "attribute_form.html" %}
+  <a class="doc-button doc-button--secondary" href="{{ self.url() }}?tab=attributes">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block tab_rules %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>New onboarding rule</h2>
+<p class="doc-hint">At every sign-in, a rule in use that matches adds what it gives, where it is missing.</p>
+<form hx-post="/p/rbac/rules" hx-target="#rbac" hx-swap="outerHTML">
+  {%- include "rule_form.html" %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Add rule</button>
+    <a class="doc-button doc-button--secondary" href="/p/rbac/rules">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block tab_rules %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Onboarding rules</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/rbac/rules/new">New rule</a>
+  </div>
+</div>
+<p class="doc-hint">At every sign-in, each rule in use that matches adds what it gives, where it is missing. A rule written on a team a provider reported is applied to nobody: teams are kept here now, and a team holds permissions itself, so grant them on the team's own page.</p>
+{%- if rules.is_empty() %}
+<p class="doc-empty">No rules yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for rule in rules %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/rules/{{ rule.id }}">{{ rule.name }}</a></th>
+      <td class="doc-table__cell">{{ rule.description }}</td>
+      <td class="doc-table__cell">
+        {%- if rule.conditions.names_a_team() %}<strong class="doc-badge doc-badge--down">Names a team</strong>
+        {%- else if rule.enabled %}<strong class="doc-badge doc-badge--up">In use</strong>
+        {%- else %}<strong class="doc-badge">Not in use</strong>{% endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+  <div class="doc-form-group">
+    <label class="doc-label" for="attribute-key">Attribute</label>
+    <span class="doc-hint">Such as <code class="doc-mono">team</code>, with a value such as <code class="doc-mono">payments-core</code>.</span>
+    <input class="doc-input" id="attribute-key" name="key" type="text" maxlength="64" value="{{ self.typed("key") }}" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="attribute-value">Value</label>
+    <input class="doc-input" id="attribute-value" name="value" type="text" maxlength="256" value="{{ self.typed("value") }}" required />
+  </div>
+  <button class="doc-button doc-button--secondary" type="submit">Set attribute</button>

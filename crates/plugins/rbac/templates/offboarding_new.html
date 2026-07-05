@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block tab_offboarding %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>New offboarding rule</h2>
+<p class="doc-hint">When an identity provider says somebody has left, every rule in use that answers for that provider is applied together.</p>
+<form hx-post="/p/rbac/offboarding" hx-target="#rbac" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="offboarding-name">Name</label>
+    <input class="doc-input" id="offboarding-name" name="name" type="text" maxlength="60" value="{{ self.value("name") }}" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="offboarding-description">Description</label>
+    <input class="doc-input" id="offboarding-description" name="description" type="text" maxlength="200" value="{{ self.value("description") }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="offboarding-provider">For leavers from</label>
+    <span class="doc-hint" id="offboarding-provider-hint">An identity provider's ID, such as <code>oidc</code>. Leave it empty for every provider.</span>
+    <input class="doc-input" id="offboarding-provider" name="provider" type="text" maxlength="32" list="offboarding-providers" value="{{ self.value("provider") }}" aria-describedby="offboarding-provider-hint" />
+    <datalist id="offboarding-providers">
+      {%- for provider in providers %}
+      <option value="{{ provider }}"></option>
+      {%- endfor %}
+    </datalist>
+  </div>
+  <fieldset class="doc-form-group">
+    <legend class="doc-label">What happens to them</legend>
+    <label class="doc-label"><input type="checkbox" name="disable" value="true"{% if self.ticked("disable") %} checked{% endif %} /> They can no longer sign in</label>
+    <label class="doc-label"><input type="checkbox" name="remove_identity" value="true"{% if self.ticked("remove_identity") %} checked{% endif %} /> Take away their account with that provider</label>
+    <label class="doc-label"><input type="checkbox" name="remove_provided_memberships" value="true"{% if self.ticked("remove_provided_memberships") %} checked{% endif %} /> Take them out of the teams that provider put them in</label>
+    <label class="doc-label"><input type="checkbox" name="remove_memberships" value="true"{% if self.ticked("remove_memberships") %} checked{% endif %} /> Take them out of every team, however they were added</label>
+    <label class="doc-label"><input type="checkbox" name="revoke_tokens" value="true"{% if self.ticked("revoke_tokens") %} checked{% endif %} /> Stop their sessions and access tokens</label>
+  </fieldset>
+  <label class="doc-label"><input type="checkbox" name="enabled" value="true"{% if self.ticked("enabled") %} checked{% endif %} /> In use</label>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Add rule</button>
+    <a class="doc-button doc-button--secondary" href="/p/rbac/offboarding">Cancel</a>
+  </div>
+</form>
+{% endblock %}

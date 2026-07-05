@@ -1,0 +1,13 @@
+{%- if found.is_empty() %}
+<p class="doc-combo__empty">{% if typed.is_empty() %}There is no permission to offer.{% else %}No permission matches “{{ typed }}”.{% endif %}</p>
+{%- else %}
+{%- for choice in found %}
+<button class="doc-combo__option" type="button" role="option" aria-selected="false" data-value="{{ choice.value }}">
+  <span class="doc-combo__name"><code class="doc-mono">{{ choice.label }}</code></span>
+  {%- if !choice.hint.is_empty() %}<span class="doc-combo__kind">{{ choice.hint }}</span>{% endif %}
+</button>
+{%- endfor %}
+{%- if more %}
+<p class="doc-combo__empty">Type more of it to narrow it down, such as the plugin's name.</p>
+{%- endif %}
+{%- endif %}

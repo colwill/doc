@@ -1,0 +1,8 @@
+{%- if let Some(error) = error %}
+<p class="doc-error-message" role="alert"><span>No map:</span> {{ error }}</p>
+{%- else %}
+{{ svg|safe }}
+{%- for note in notes %}
+<p class="doc-hint">{{ note }}</p>
+{%- endfor %}
+{%- endif %}

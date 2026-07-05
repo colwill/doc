@@ -1,0 +1,18 @@
+{%- if let Some(error) = error %}
+<p class="doc-hint">Resources could not be listed: {{ error }}. You can still write one as kind:name.</p>
+{%- else if kinds.is_empty() %}
+<p class="doc-empty">{% if typed.is_empty() %}The Catalogue has no resources yet.{% else %}Nothing in the Catalogue matches "{{ typed }}".{% endif %}</p>
+{%- else %}
+<h3>{% if typed.is_empty() %}Choose a resource{% else %}Matching "{{ typed }}"{% endif %}</h3>
+{%- for kind in kinds %}
+<h4>{{ kind.plural }}</h4>
+<ul>
+  {%- for pick in kind.picks %}
+  <li><a href="/p/rbac/access-map?resource={{ pick.value|urlencode }}">{{ pick.name }}</a>{% if !pick.title.is_empty() %} <span class="doc-hint">{{ pick.title }}</span>{% endif %}</li>
+  {%- endfor %}
+</ul>
+{%- if kind.more > 0 %}
+<p class="doc-hint">And {{ kind.more }} more. Type part of a name to find them.</p>
+{%- endif %}
+{%- endfor %}
+{%- endif %}

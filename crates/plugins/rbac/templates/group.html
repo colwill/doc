@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block tab_groups %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ group.plugin }}/{{ group.name }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if section == "members" %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/members/new">Add a member</a>
+    {%- else if section == "attributes" %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/attributes/new">Set an attribute</a>
+    {%- else %}
+    <form hx-post="{{ self.url() }}/delete" hx-target="#rbac" hx-swap="outerHTML" hx-confirm="Delete {{ group.plugin }}/{{ group.name }}? Its members lose what it grants at once.">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete group</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+<p class="doc-hint">A group of {{ group.kind }}s{% if !group.description.is_empty() %}: {{ group.description }}{% endif %}</p>
+<p class="doc-hint">Listed under <code class="doc-mono">{{ group.plugin }}</code>{% if group.plugins().len() > 1 %}, granting in {{ group.plugins().join(", ") }}{% endif %}. Its members hold <code class="doc-mono">{{ group.membership() }}</code>.</p>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This group">
+      <ul class="doc-contents__list">
+        {%- for (key, title, href) in self.sections() %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ href }}"{% if key == section %} aria-current="page"{% endif %}>{{ title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "permissions" %}
+<h3>Permissions</h3>
+<p class="doc-hint">Tick what the group grants and save. Nothing ticked at all leaves it granting {{ group.plugin }}'s read-only default.</p>
+<form hx-post="/p/rbac/groups/{{ group.plugin }}/{{ group.name }}/permissions" hx-target="#rbac" hx-swap="outerHTML">
+  {%- for offer in offers %}
+  <fieldset class="doc-form-group">
+    <legend class="doc-label">{{ offer.plugin }}{% if offer.listed_under %} <span class="doc-hint doc-hint--inline">· listed under this one</span>{% endif %}</legend>
+    {%- for (choice, held) in offer.choices %}
+    <div><label class="doc-label"><input type="checkbox" name="permission" value="{{ choice }}"{% if *held %} checked{% endif %} /> <code class="doc-mono">{{ choice }}</code></label></div>
+    {%- endfor %}
+  </fieldset>
+  {%- endfor %}
+  <button class="doc-button doc-button--secondary" type="submit">Save permissions</button>
+</form>
+
+{%- if !others.is_empty() %}
+<form hx-get="/p/rbac/groups/{{ group.plugin }}/{{ group.name }}" hx-trigger="change" hx-target="#rbac" hx-swap="outerHTML">
+  {%- for plugin in shown %}
+  <input type="hidden" name="show" value="{{ plugin }}" />
+  {%- endfor %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="another">Grant in another plugin</label>
+    <span class="doc-hint" id="another-hint">Show its permissions here, then tick what the group holds and save.</span>
+    <select class="doc-select" id="another" name="show" aria-describedby="another-hint">
+      {%- for plugin in others %}
+      <option value="{{ plugin }}">{{ plugin }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <noscript><button class="doc-button doc-button--secondary" type="submit">Show its permissions</button></noscript>
+</form>
+{%- endif %}
+
+{%- else if section == "members" %}
+<h3>Members</h3>
+{%- if members.is_empty() %}
+<p class="doc-empty">Nobody is in this group yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for member in members %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/principals/{{ member.holder.kind() }}/{{ member.holder.key() }}">{{ member.label.as_deref().unwrap_or("-") }}</a></th>
+      <td class="doc-table__cell">{{ member.source }}, by {{ member.granted_by }}</td>
+      <td class="doc-table__cell">
+        <form hx-post="/p/rbac/groups/{{ group.plugin }}/{{ group.name }}/members/remove" hx-target="#rbac" hx-swap="outerHTML">
+          <input type="hidden" name="kind" value="{{ member.holder.kind() }}" />
+          <input type="hidden" name="id" value="{{ member.holder.key() }}" />
+          <button class="doc-button doc-button--warning doc-button--small" type="submit">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else %}
+<h3>Attributes</h3>
+{%- include "attributes.html" %}
+{%- endif %}
+  </div>
+</div>
+
+{% endblock %}

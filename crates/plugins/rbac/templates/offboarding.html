@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block tab_offboarding %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Offboarding rules</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/rbac/offboarding/new">New rule</a>
+  </div>
+</div>
+<p class="doc-hint">When an identity provider says somebody has left the directory it speaks for, every rule in use that answers for that provider is applied together. Without a rule, nothing happens to them.</p>
+{%- if rules.is_empty() %}
+<p class="doc-empty">No rules yet, so nobody is offboarded.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Rule</th>
+      <th class="doc-table__header" scope="col">For leavers from</th>
+      <th class="doc-table__header" scope="col">What happens to them</th>
+      <th class="doc-table__header" scope="col">In use</th>
+      <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Action</span></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for rule in rules %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">
+        {{ rule.name }}
+        {%- if !rule.description.is_empty() %}<br /><span class="doc-hint">{{ rule.description }}</span>{% endif %}
+      </th>
+      <td class="doc-table__cell">{% if rule.provider.is_empty() %}any provider{% else %}<code>{{ rule.provider }}</code>{% endif %}</td>
+      <td class="doc-table__cell">
+        <ul class="nhsuk-list">
+          {%- if rule.disable %}<li>They can no longer sign in</li>{% endif %}
+          {%- if rule.remove_identity %}<li>Their account with that provider is taken away</li>{% endif %}
+          {%- if rule.remove_provided_memberships %}<li>The teams that provider put them in</li>{% endif %}
+          {%- if rule.remove_memberships %}<li>Every team they are in</li>{% endif %}
+          {%- if rule.revoke_tokens %}<li>Their sessions and access tokens stop working</li>{% endif %}
+          {%- if !rule.does_something() %}<li class="doc-hint">Nothing</li>{% endif %}
+        </ul>
+      </td>
+      <td class="doc-table__cell">
+        <form hx-post="/p/rbac/offboarding/{{ rule.id }}/enabled" hx-target="#rbac" hx-swap="outerHTML">
+          <input type="hidden" name="enabled" value="{% if rule.enabled %}false{% else %}true{% endif %}" />
+          {%- if rule.enabled %}
+          <button class="doc-link-button" type="submit"><strong class="doc-badge doc-badge--up">In use</strong></button>
+          {%- else %}
+          <button class="doc-link-button" type="submit"><strong class="doc-badge">Not in use</strong></button>
+          {%- endif %}
+        </form>
+      </td>
+      <td class="doc-table__cell">
+        <form hx-post="/p/rbac/offboarding/{{ rule.id }}/delete" hx-target="#rbac" hx-swap="outerHTML" hx-confirm="Delete {{ rule.name }}?">
+          <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

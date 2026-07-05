@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block tab_people %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ label }}</h2>
+  {%- if on("attributes") %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ url() }}/attributes/new">Set an attribute</a>
+  </div>
+  {%- endif %}
+</div>
+<p class="doc-hint">{% if kind == "user" %}A person.{% else if kind == "team" %}A team. Everybody in it, and in the teams inside it, holds what it holds.{% else %}A service account. Its owner can also grant it permissions, up to their own access, on <a href="/service-accounts/{{ id }}">its page</a>.{% endif %}</p>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="{{ label }}">
+      <ul class="doc-contents__list">
+        {%- for (key, title, href) in sections() %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ href }}"{% if on(key) %} aria-current="page"{% endif %}>{{ title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if on("groups") %}
+<h3>Groups</h3>
+{%- if memberships.is_empty() %}
+<p class="doc-empty">Not in any group.</p>
+{%- else %}
+<ul>
+  {%- for membership in memberships %}
+  <li><a href="/p/rbac/groups/{{ membership.plugin }}/{{ membership.name }}">{{ membership.plugin }}/{{ membership.name }}</a></li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+
+{%- else if on("ties") %}
+<h3>{% if kind == "team" %}People in it{% else %}Teams{% endif %}</h3>
+{%- if ties.is_empty() %}
+<p class="doc-empty">{% if kind == "team" %}Nobody is in it yet.{% else %}Not in any team.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for tie in ties %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/principals/{{ tie.id }}">{{ tie.label }}</a></th>
+      <td class="doc-table__cell">{{ tie.how }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if on("attributes") %}
+<h3>Attributes</h3>
+{%- include "attributes.html" %}
+
+{%- else if on("map") %}
+<h3>Access map</h3>
+<div hx-get="/p/rbac/access-map/principal/{{ kind }}/{{ id }}" hx-trigger="load">
+  <p class="doc-hint">Drawing what {{ label }} can reach…</p>
+</div>
+{%- else %}
+<h3>What it can do</h3>
+{%- if access.is_empty() %}
+<p class="doc-empty">Nothing: it holds no permissions, directly or through groups.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Plugin</th>
+      <th class="doc-table__header" scope="col">Access</th>
+      <th class="doc-table__header" scope="col">Custom permissions</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for reach in access %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ reach.plugin }}</th>
+      <td class="doc-table__cell">{{ reach.scope }}</td>
+      <td class="doc-table__cell">{% if reach.custom.is_empty() %}<span class="doc-hint">None</span>{% else %}{{ reach.custom }}{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<p class="doc-hint">Everything it holds, directly and through its groups, taken together.</p>
+{%- endif %}
+
+<form hx-get="{{ url() }}" hx-trigger="change" hx-target="#rbac" hx-swap="outerHTML">
+  <input type="hidden" name="tab" value="permissions" />
+  <div class="doc-form-group">
+    <label class="doc-label" for="permissions-plugin">Show permissions for</label>
+    <select class="doc-select" id="permissions-plugin" name="plugin">
+      <option value=""{% if plugin.is_empty() %} selected{% endif %}>Every plugin</option>
+      {%- for name in plugins %}
+      <option value="{{ name }}"{% if name.as_str() == plugin.as_str() %} selected{% endif %}>{{ name }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+</form>
+
+<h3>Granted</h3>
+{%- if granted() == 0 %}
+<p class="doc-empty">{% if plugin.is_empty() %}Nothing granted yet.{% else %}Nothing granted in {{ plugin }}.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Permission or group</th>
+      <th class="doc-table__header" scope="col">Plugin</th>
+      <th class="doc-table__header" scope="col">Granted</th>
+      <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Revoke</span></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for assignment in assignments %}
+    {%- if shown(assignment.permission) %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ assignment.permission }}</code></th>
+      <td class="doc-table__cell">{{ PrincipalPage::plugin_of(assignment.permission) }}</td>
+      <td class="doc-table__cell">{{ assignment.source }}, by {{ assignment.granted_by }}</td>
+      <td class="doc-table__cell">
+        <form hx-post="/p/rbac/principals/{{ kind }}/{{ id }}/grants/remove" hx-target="#rbac" hx-swap="outerHTML">
+          <input type="hidden" name="permission" value="{{ assignment.permission }}" />
+          <input type="hidden" name="plugin" value="{{ plugin }}" />
+          <button class="doc-button doc-button--warning doc-button--small" type="submit">Revoke</button>
+        </form>
+      </td>
+    </tr>
+    {%- endif %}
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+<h3>Not granted</h3>
+{%- if not_granted.is_empty() %}
+<p class="doc-empty">It already holds everything {% if plugin.is_empty() %}the plugins offer{% else %}{{ plugin }} offers{% endif %} a {{ kind }}.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Permission or group</th>
+      <th class="doc-table__header" scope="col">Plugin</th>
+      <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Grant</span></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for choice in not_granted %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ choice.permission }}</code></th>
+      <td class="doc-table__cell">{{ choice.plugin }}</td>
+      <td class="doc-table__cell">
+        <form hx-post="/p/rbac/principals/{{ kind }}/{{ id }}/grants" hx-target="#rbac" hx-swap="outerHTML">
+          <input type="hidden" name="permission" value="{{ choice.permission }}" />
+          <input type="hidden" name="plugin" value="{{ plugin }}" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Grant</button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block tab_groups %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="{{ self.url() }}" hidden>{{ group.plugin }}/{{ group.name }}</a>
+{%- if adding == "members" %}
+<h2>Add a member to {{ group.plugin }}/{{ group.name }}</h2>
+<form hx-post="{{ self.url() }}/members" hx-target="#rbac" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="member">{% if group.kind.to_string() == "user" %}User, by login{% else %}Service account, by name{% endif %}</label>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="member" name="member" type="text" value="{{ self.typed("member") }}" required autocomplete="off"
+             role="combobox" aria-expanded="false" aria-controls="add-member-options"
+             hx-get="/p/rbac/member-options?kind={{ group.kind }}&amp;in={{ group.plugin }}/{{ group.name }}" hx-params="member"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#add-member-options" hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="add-member-options" role="listbox" aria-label="Matching {% if group.kind.to_string() == "user" %}people{% else %}service accounts{% endif %}" hidden></div>
+    </div>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Add member</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/members">Cancel</a>
+  </div>
+</form>
+{%- else %}
+<h2>Set an attribute on {{ group.plugin }}/{{ group.name }}</h2>
+<form hx-post="{{ self.attributes_url() }}" hx-target="#rbac" hx-swap="outerHTML">
+  {%- include "attribute_form.html" %}
+  <a class="doc-button doc-button--secondary" href="{{ self.attributes_url() }}">Cancel</a>
+</form>
+{%- endif %}
+{% endblock %}

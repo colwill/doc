@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block tab_map %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Access map</h2>
+<p class="doc-hint">Who can reach a resource: the teams connected to it, their roles, and the people and service accounts that hold them, including any assigned to it directly. What one person or account can reach is on their own page.</p>
+<form hx-get="/p/rbac/access-map" hx-target="#rbac" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="resource">Resource</label>
+    <span class="doc-hint">Choose one below, or type part of its name. Written kind:name, such as service:card-gateway</span>
+    <input class="doc-input" id="resource" name="resource" type="text" value="{{ resource }}" autocomplete="off"
+           hx-get="/p/rbac/access-map/choices" hx-trigger="input changed delay:300ms" hx-target="#map-choices" hx-swap="innerHTML" />
+  </div>
+  <button class="doc-button" type="submit">Show who can reach it</button>
+</form>
+<div id="map-choices" aria-live="polite">
+  {%- if let Some(choices) = choices %}
+  {{ choices.render().unwrap_or_default()|safe }}
+  {%- endif %}
+</div>
+{%- if let Some(map) = map %}
+{{ map.render().unwrap_or_default()|safe }}
+{%- endif %}
+{% endblock %}

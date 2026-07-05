@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block tab_rules %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ rule.name }}</h2>
+  <div class="doc-heading-row__actions">
+    <form hx-post="/p/rbac/rules/{{ rule.id }}/delete" hx-target="#rbac" hx-swap="outerHTML" hx-confirm="Delete the rule {{ rule.name }}? What it already gave stays.">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete rule</button>
+    </form>
+  </div>
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This rule">
+      <ul class="doc-contents__list">
+        <li class="doc-contents__item"><a class="doc-contents__link" href="/p/rbac/rules/{{ rule.id }}"{% if !trying %} aria-current="page"{% endif %}>The rule</a></li>
+        <li class="doc-contents__item"><a class="doc-contents__link" href="/p/rbac/rules/{{ rule.id }}/try"{% if trying %} aria-current="page"{% endif %}>Try it on someone</a></li>
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if !trying %}
+<h3>The rule</h3>
+<form hx-post="/p/rbac/rules/{{ rule.id }}" hx-target="#rbac" hx-swap="outerHTML">
+  {%- include "rule_form.html" %}
+  <button class="doc-button" type="submit">Save</button>
+</form>
+
+{%- else %}
+<h3>Try it on someone</h3>
+<form hx-post="/p/rbac/rules/{{ rule.id }}/test" hx-target="#rbac" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="test-login">Login</label>
+    <span class="doc-hint">Matched against their last sign-in and their attributes; nothing is changed.</span>
+    <input class="doc-input" id="test-login" name="login" type="text" required />
+  </div>
+  <button class="doc-button doc-button--secondary" type="submit">Preview</button>
+</form>
+{%- if let Some(test) = test %}
+<div class="doc-card">
+  <h4 class="doc-card__heading">{{ test["user"].as_str().unwrap_or_default() }}</h4>
+  <div class="doc-card__content">
+    {%- if test["matches"].as_bool().unwrap_or(false) %}
+    <p><strong class="doc-badge doc-badge--up">Matches</strong></p>
+    <p>It would add: {% for permission in self.list(test, "permissions") %}<code class="doc-mono">{{ permission }}</code> {% endfor %}{% for pair in self.list(test, "attributes") %}<code class="doc-mono">{{ pair }}</code> {% endfor %}{% if self.list(test, "permissions").is_empty() && self.list(test, "attributes").is_empty() %}nothing new; they already have it all.{% endif %}</p>
+    {%- else %}
+    <p><strong class="doc-badge">Does not match</strong> their last sign-in or attributes.</p>
+    {%- endif %}
+  </div>
+</div>
+{%- endif %}
+
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{%- if select %}
+<select class="doc-select" id="permission" name="permission">
+  {%- for choice in choices %}
+  <option value="{{ choice }}">{{ choice }}</option>
+  {%- endfor %}
+</select>
+{%- else %}
+{%- for choice in choices %}
+<div><label class="doc-label"><input type="checkbox" name="permission" value="{{ choice }}" /> <code class="doc-mono">{{ choice }}</code></label></div>
+{%- endfor %}
+{%- endif %}

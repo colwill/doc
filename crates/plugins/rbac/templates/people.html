@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block tab_people %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>People</h2>
+{%- if users.is_empty() %}
+<p class="doc-empty">Nobody has signed in yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for person in users %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/principals/user/{{ person.id }}">{{ person.name }}</a></th>
+      <td class="doc-table__cell">signs in with {{ person.detail }}</td>
+      <td class="doc-table__cell">{% if person.disabled %}<strong class="doc-badge doc-badge--down">Disabled</strong>{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+<h2>Service accounts</h2>
+{%- if accounts.is_empty() %}
+<p class="doc-empty">No service accounts yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for account in accounts %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/principals/service/{{ account.id }}">{{ account.name }}</a></th>
+      <td class="doc-table__cell">{% if account.disabled %}<strong class="doc-badge doc-badge--down">Disabled</strong>{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+<h2>Teams</h2>
+<p class="doc-hint">A team holds permissions of its own. Everybody in it, and in the teams inside it, holds what it holds.</p>
+{%- if teams.is_empty() %}
+<p class="doc-empty">No teams yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for team in teams %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rbac/principals/team/{{ team.id }}">{{ team.title }}</a></th>
+      <td class="doc-table__cell"><code>{{ team.name }}</code></td>
+      <td class="doc-table__cell">
+        {%- if team.default %}<strong class="doc-badge">Everybody joins it</strong>{% endif %}
+        {%- if !team.provider.is_empty() %} kept by {{ team.provider }}{% endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+<div id="rbac">
+  <nav class="doc-tabs" aria-label="Access control">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/rbac/groups"{% block tab_groups %}{% endblock %}>Groups</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/rbac/people"{% block tab_people %}{% endblock %}>People and teams</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/rbac/rules"{% block tab_rules %}{% endblock %}>Onboarding rules</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/rbac/offboarding"{% block tab_offboarding %}{% endblock %}>Offboarding rules</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/rbac/access-map"{% block tab_map %}{% endblock %}>Access map</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/audit"{% block tab_audit %}{% endblock %}>Audit log</a></li>
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>
