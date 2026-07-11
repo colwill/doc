@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block tab_accounts %} aria-current="page"{% endblock %}
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Accounts</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/local/accounts/new">Add an account</a>
+  </div>
+</div>
+<p>People sign in with these with a username and a password. You give each a one-time password, and they choose their own at their first sign-in.</p>
+{%- if rows.is_empty() %}
+<p class="doc-empty">No accounts yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Username</th>
+      <th class="doc-table__header" scope="col">Email address</th>
+      <th class="doc-table__header" scope="col">State</th>
+      <th class="doc-table__header" scope="col">Last signed in</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/local/accounts/{{ row.id }}">{{ row.username }}</a>{% if !row.name.is_empty() %}<br /><span class="doc-hint">{{ row.name }}</span>{% endif %}</th>
+      <td class="doc-table__cell">{{ row.email }}</td>
+      <td class="doc-table__cell">{% if row.state == "Active" %}<strong class="doc-badge doc-badge--up">{{ row.state }}</strong>{% else if row.state == "Disabled" %}<strong class="doc-badge doc-badge--down">{{ row.state }}</strong>{% else %}<strong class="doc-badge">{{ row.state }}</strong>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.signed_in }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

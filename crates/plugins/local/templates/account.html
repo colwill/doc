@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block tab_accounts %} aria-current="page"{% endblock %}
+{% block main %}
+{%- if editing.is_some() %}
+<a class="doc-trail" href="/p/local/accounts/{{ account.id }}" hidden>{{ account.username }}</a>
+<h2>What DOC shows of {{ account.username }}</h2>
+<form hx-post="/p/local/accounts/{{ account.id }}" hx-target="#local" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-first-name">First name</label>
+    <input class="doc-input" id="account-first-name" name="first_name" type="text" maxlength="100" value="{{ self.value("first_name") }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-surname">Surname</label>
+    <input class="doc-input" id="account-surname" name="surname" type="text" maxlength="100" value="{{ self.value("surname") }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-email">Email address</label>
+    <input class="doc-input" id="account-email" name="email" type="email" maxlength="256" value="{{ self.value("email") }}" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/local/accounts/{{ account.id }}">Cancel</a>
+  </div>
+</form>
+{%- else %}
+<div class="doc-heading-row">
+  <h2>{{ account.username }}</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/local/accounts/{{ account.id }}/edit">Change details</a>
+    <form hx-post="/p/local/accounts/{{ account.id }}/one-time" hx-target="#local" hx-swap="outerHTML" hx-confirm="Give {{ account.username }} a new one-time password? Their old password stops working at once.">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">New one-time password</button>
+    </form>
+    <form hx-post="/p/local/accounts/{{ account.id }}/disabled" hx-target="#local" hx-swap="outerHTML"{% if !account.disabled %} hx-confirm="Disable {{ account.username }}? They can no longer sign in with it."{% endif %}>
+      {%- if account.disabled %}
+      <input type="hidden" name="disabled" value="false" />
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">Enable</button>
+      {%- else %}
+      <input type="hidden" name="disabled" value="true" />
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Disable</button>
+      {%- endif %}
+    </form>
+  </div>
+</div>
+{%- if let Some(password) = one_time %}
+<div class="nhsuk-warning-callout">
+  <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Hand {{ account.username }} this one-time password</span></h3>
+  <p>It is shown only this once. It works {{ expires }}, for one sign-in, and they choose their own password straight after.</p>
+  <pre class="doc-code">{{ password }}</pre>
+</div>
+{%- endif %}
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">State</dt>
+    <dd class="doc-summary__value">{{ state }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Last signed in</dt>
+    <dd class="doc-summary__value">{{ signed_in }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Name</dt>
+    <dd class="doc-summary__value">{% if account.first_name.is_empty() && account.surname.is_empty() %}Not given{% else %}{{ account.first_name }} {{ account.surname }}{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Email address</dt>
+    <dd class="doc-summary__value">{% if account.email.is_empty() %}Not given{% else %}{{ account.email }}{% endif %}</dd>
+  </div>
+</dl>
+<p class="doc-hint">A new one-time password is for someone who has lost theirs, or whose password others may know. Their old one stops working at once.</p>
+{%- endif %}
+{% endblock %}

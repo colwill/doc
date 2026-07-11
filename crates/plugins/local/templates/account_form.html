@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block tab_accounts %} aria-current="page"{% endblock %}
+{% block main %}
+<h2>Add an account</h2>
+<p>You will be shown a one-time password to hand them. It works once, within 7 days, and they choose their own password straight after.</p>
+<form hx-post="/p/local/accounts" hx-target="#local" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-username">Username</label>
+    <span class="doc-hint" id="account-username-hint">What they sign in with and go by on DOC. It can never be changed or used again.</span>
+    <input class="doc-input" id="account-username" name="username" type="text" maxlength="64" autocomplete="off" value="{{ username }}" aria-describedby="account-username-hint" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-first-name">First name</label>
+    <input class="doc-input" id="account-first-name" name="first_name" type="text" maxlength="100" value="{{ first_name }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-surname">Surname</label>
+    <input class="doc-input" id="account-surname" name="surname" type="text" maxlength="100" value="{{ surname }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="account-email">Email address</label>
+    <input class="doc-input" id="account-email" name="email" type="email" maxlength="256" value="{{ email }}" />
+  </div>
+  <button class="doc-button" type="submit">Add account</button>
+</form>
+{% endblock %}
