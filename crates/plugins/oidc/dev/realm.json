@@ -1,0 +1,52 @@
+{
+  "realm": "doc",
+  "enabled": true,
+  "displayName": "DOC development",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "clients": [
+    {
+      "clientId": "doc-platform",
+      "name": "DOC",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-only-change-me",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1:8081/auth/*",
+        "http://localhost:8081/auth/*",
+        "http://127.0.0.1:18081/auth/*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://127.0.0.1:8081/*##http://127.0.0.1:18081/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "ada",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "ada@example.org",
+      "firstName": "Ada",
+      "lastName": "Lovelace",
+      "credentials": [{ "type": "password", "value": "dev-only-change-me", "temporary": false }],
+      "realmRoles": ["default-roles-doc"]
+    },
+    {
+      "username": "grace",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "grace@example.org",
+      "firstName": "Grace",
+      "lastName": "Hopper",
+      "credentials": [{ "type": "password", "value": "dev-only-change-me", "temporary": false }],
+      "realmRoles": ["default-roles-doc"]
+    }
+  ]
+}
