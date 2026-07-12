@@ -1,0 +1,23 @@
+{#- Who looks after a space: its teams, or the organisation as a whole. Used by the wizard and by
+    the space's own page, so both ask it the same way. Needs `owner_choices` and
+    `owners_problem()`. -#}
+<fieldset class="doc-checkboxes{% if owners_problem().is_some() %} doc-form-group--error{% endif %}">
+  <legend class="nhsuk-u-visually-hidden">Who looks after this space</legend>
+  {%- if let Some(message) = owners_problem() %}
+  <span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ message }}</span>
+  {%- endif %}
+  {%- if owner_choices.is_empty() %}
+  <p class="doc-empty">The catalogue holds no teams or organisations yet, so there is nobody to name.</p>
+  {%- else %}
+  {%- for choice in owner_choices %}
+  {%- if choice.divided %}
+  <p class="doc-checkboxes__divider">or</p>
+  {%- endif %}
+  <div class="doc-checkboxes__item">
+    <input class="doc-checkboxes__input" id="owner-{{ loop.index0 }}" name="owners" type="checkbox" value="{{ choice.value }}"{% if choice.checked %} checked{% endif %} aria-describedby="owner-{{ loop.index0 }}-kind" />
+    <label class="doc-checkboxes__label" for="owner-{{ loop.index0 }}">{{ choice.label }}</label>
+    <span class="doc-checkboxes__hint" id="owner-{{ loop.index0 }}-kind">{{ choice.kind }}</span>
+  </div>
+  {%- endfor %}
+  {%- endif %}
+</fieldset>

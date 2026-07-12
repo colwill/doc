@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block tab_sources %} aria-current="page"{% endblock %}
+
+{#- Change and Back always go to the wizard itself, even from the Markdown upload form, and as an
+    ordinary form: a button's own hx-post takes its encoding from the button, not the form. -#}
+{%- macro error(name) %}
+{%- if let Some(message) = problem(name) %}
+<span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ message }}</span>
+{%- endif %}
+{%- endmacro %}
+
+{#- A resource, chosen from the Catalogue rather than remembered. -#}
+{%- macro resource(name, label, hint) %}
+<div class="doc-form-group{% if problem(name).is_some() %} doc-form-group--error{% endif %}">
+  <label class="doc-label" for="source-{{ name }}">{{ label }}</label>
+  <span class="doc-hint" id="source-{{ name }}-hint">{{ hint|safe }}</span>
+  {% call error(name) %}{% endcall %}
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input{% if problem(name).is_some() %} doc-input--error{% endif %}"
+           id="source-{{ name }}" name="{{ name }}" value="{{ value(name) }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="source-{{ name }}-options" aria-describedby="source-{{ name }}-hint"
+           hx-get="/p/resources/options?field={{ name }}" hx-params="{{ name }}"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#source-{{ name }}-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="source-{{ name }}-options" role="listbox" aria-label="Matching resources" hidden></div>
+  </div>
+</div>
+{%- endmacro %}
+
+{%- macro text(name, label, hint, placeholder) %}
+<div class="doc-form-group{% if problem(name).is_some() %} doc-form-group--error{% endif %}">
+  <label class="doc-label" for="source-{{ name }}">{{ label }}</label>
+  {%- if !hint.is_empty() %}
+  <span class="doc-hint" id="source-{{ name }}-hint">{{ hint|safe }}</span>
+  {%- endif %}
+  {% call error(name) %}{% endcall %}
+  <input class="doc-input{% if problem(name).is_some() %} doc-input--error{% endif %}" id="source-{{ name }}" name="{{ name }}" value="{{ value(name) }}" placeholder="{{ placeholder }}" autocomplete="off"{% if !hint.is_empty() %} aria-describedby="source-{{ name }}-hint"{% endif %} />
+</div>
+{%- endmacro %}
+
+{% block main %}
+<p class="doc-step">Add a source · Step {{ number }} of {{ of }}</p>
+
+{%- if at("check") && answers.uploads() %}
+<form hx-post="/p/kb/sources/new/upload" hx-encoding="multipart/form-data" hx-target="#kb" hx-swap="outerHTML">
+{%- else %}
+<form hx-post="/p/kb/sources/new" hx-target="#kb" hx-swap="outerHTML">
+{%- endif %}
+  <input type="hidden" name="step" value="{{ step.name() }}" />
+  {%- if checking %}
+  <input type="hidden" name="checking" value="yes" />
+  {%- endif %}
+  {%- for (name, value) in carried() %}
+  <input type="hidden" name="{{ name }}" value="{{ value }}" />
+  {%- endfor %}
+
+  {%- if at("kind") %}
+  <h2>What kind of source is it?</h2>
+  <fieldset class="doc-radios{% if problem("kind").is_some() %} doc-form-group--error{% endif %}">
+    <legend class="nhsuk-u-visually-hidden">Kind of source</legend>
+    {% call error("kind") %}{% endcall %}
+    {%- for (name, label, hint) in kinds() %}
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="kind-{{ name }}" name="kind" type="radio" value="{{ name }}"{% if chosen("kind", name) %} checked{% endif %} aria-describedby="kind-{{ name }}-hint" />
+      <label class="doc-radios__label" for="kind-{{ name }}">{{ label }}</label>
+      <span class="doc-radios__hint" id="kind-{{ name }}-hint">{{ hint }}</span>
+    </div>
+    {%- endfor %}
+  </fieldset>
+
+  {%- else if at("details") %}
+  {%- if answers.kind() == "github" %}
+  <h2>Which repository?</h2>
+  {% call text("repository", "Repository", "Written owner/name. A repository in an organisation the GitHub plugin syncs is read with its credentials; any other must be public.", "acme/payments-docs") %}{% endcall %}
+  {% call text("ref", "Branch, tag or commit (optional)", "", "HEAD") %}{% endcall %}
+  {% call text("path", "Folder (optional)", "Only what is under it, such as docs. A <code class=\"doc-mono\">mkdocs.yml</code> there gives the order.", "") %}{% endcall %}
+  {%- else if answers.kind() == "confluence" %}
+  <h2>Which Confluence space?</h2>
+  <fieldset class="doc-radios">
+    <legend class="doc-radios__legend">Confluence</legend>
+    {% call error("flavour") %}{% endcall %}
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="flavour-cloud" name="flavour" type="radio" value="cloud"{% if !chosen("flavour", "datacenter") %} checked{% endif %} />
+      <label class="doc-radios__label" for="flavour-cloud">Cloud</label>
+    </div>
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="flavour-datacenter" name="flavour" type="radio" value="datacenter"{% if chosen("flavour", "datacenter") %} checked{% endif %} />
+      <label class="doc-radios__label" for="flavour-datacenter">Data Center</label>
+    </div>
+  </fieldset>
+  {% call text("url", "Site", "Its address.", "https://acme.atlassian.net") %}{% endcall %}
+  {% call text("space_key", "Confluence space key", "", "PAY") %}{% endcall %}
+  {% call text("credential", "Credential", "The name it is set under, as <code class=\"doc-mono\">DOC_KB_CREDENTIAL_&lt;NAME&gt;</code>. For Cloud it holds email:api-token, for Data Center a personal access token.", "") %}{% endcall %}
+  {%- else if answers.kind() == "drive" %}
+  <h2>Which folder?</h2>
+  {% call text("folder", "Folder or shared drive ID", "The last part of its address. Docs, Markdown and text files under it are imported.", "") %}{% endcall %}
+  {% call text("credential", "Credential", "The name a service account's JSON key is set under, as <code class=\"doc-mono\">DOC_KB_CREDENTIAL_&lt;NAME&gt;</code>. Share the folder with that account.", "") %}{% endcall %}
+  {%- endif %}
+
+  {%- else if at("space") %}
+  <h2>Which space should its pages go in?</h2>
+  <div class="doc-form-group{% if problem("space").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="source-space">Space</label>
+    <span class="doc-hint" id="source-space-hint">{% if spaces.is_empty() %}There are no spaces yet, so this makes one.{% else %}Choose one, or name a new one.{% endif %}</span>
+    {% call error("space") %}{% endcall %}
+    <input class="doc-input{% if problem("space").is_some() %} doc-input--error{% endif %}" id="source-space" name="space" value="{{ value("space") }}" list="source-spaces" placeholder="payments-docs" autocomplete="off" aria-describedby="source-space-hint" />
+    <datalist id="source-spaces">
+      {%- for (key, name) in spaces %}
+      <option value="{{ key }}">{{ name }}</option>
+      {%- endfor %}
+    </datalist>
+  </div>
+  {% call text("name", "Name for a new space (optional)", "Shown instead of its key. An existing space keeps its own.", "") %}{% endcall %}
+
+  {%- else if at("owners") %}
+  <h2>Who looks after this space?</h2>
+  <p class="doc-hint">The team or teams whose documentation this is, or the organisation as a whole. This is who keeps the pages, which is not the same as what they are about &mdash; that is the next question.</p>
+  {% include "owners_field.html" %}
+
+  {%- else if at("extras") %}
+  <h2>{% if answers.uploads() %}What do the pages document?{% else %}What do its pages document, and how often should it sync?{% endif %}</h2>
+  {% call resource("resource", "Documents (optional)", "What every page documents. Start typing its name and choose it.") %}{% endcall %}
+  {%- if !answers.uploads() %}
+  <fieldset class="doc-radios">
+    <legend class="doc-radios__legend">Sync</legend>
+    {%- for (name, label, _cron) in schedules() %}
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="schedule-{{ name }}" name="schedule_choice" type="radio" value="{{ name }}"{% if chosen("schedule_choice", name) || (name == &"none" && value("schedule_choice").is_empty()) %} checked{% endif %} />
+      <label class="doc-radios__label" for="schedule-{{ name }}">{{ label }}</label>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {% call text("schedule", "Your own schedule", "Cron, in UTC. Used only with \"A cron schedule of my own\".", "0 3 * * *") %}{% endcall %}
+  {%- endif %}
+
+  {%- else %}
+  <h2>Check your answers</h2>
+  <dl class="doc-summary">
+    {%- for row in checked() %}
+    <div class="doc-summary__row doc-summary__row--action">
+      <dt class="doc-summary__key">{{ row.key }}</dt>
+      <dd class="doc-summary__value">{{ row.value }}</dd>
+      <dd class="doc-summary__action">
+        <button class="doc-link-button" type="submit" name="go" value="{{ row.step }}" hx-post="/p/kb/sources/new" hx-target="#kb" hx-swap="outerHTML">Change<span class="nhsuk-u-visually-hidden"> {{ row.key }}</span></button>
+      </dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- if answers.git() %}
+  <div class="doc-form-group{% if problem("repository").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="source-repository">The repository, as a .zip</label>
+    <span class="doc-hint" id="source-repository-hint">Zip the repository's folder, or download it as a zip from its git host, or run <code class="doc-mono">git archive --format=zip -o repo.zip HEAD</code>. Up to 16 MB. A <code class="doc-mono">.git</code> folder zipped with it says its name, branch and commit; what its <code class="doc-mono">.gitignore</code> leaves out is left out here too.</span>
+    {% call error("repository") %}{% endcall %}
+    <input class="doc-input" id="source-repository" name="repository" type="file" accept=".zip,application/zip" aria-describedby="source-repository-hint" />
+  </div>
+  {%- else if answers.uploads() %}
+  <div class="doc-form-group{% if problem("files").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="source-files">Markdown files</label>
+    <span class="doc-hint" id="source-files-hint">Up to 16 MB in all. A <code class="doc-mono">mkdocs.yml</code> among them gives the order. For more, use <code class="doc-mono">cli kb import</code>.</span>
+    {% call error("files") %}{% endcall %}
+    <input class="doc-input" id="source-files" name="files" type="file" multiple accept=".md,.markdown,.txt,.yml,.yaml" aria-describedby="source-files-hint" />
+  </div>
+  {%- endif %}
+  {%- endif %}
+
+  <div class="doc-button-group">
+    {%- if at("check") %}
+    {%- if answers.uploads() %}
+    <button class="doc-button" type="submit">Upload and import</button>
+    {%- else %}
+    <button class="doc-button" type="submit" name="go" value="add">Add the source</button>
+    {%- endif %}
+    {%- else %}
+    <button class="doc-button" type="submit" name="go" value="next">Continue</button>
+    {%- endif %}
+    {%- if !at("kind") && !at("check") || checking %}
+    <button class="doc-button doc-button--secondary" type="submit" name="go" value="back" formnovalidate hx-post="/p/kb/sources/new" hx-target="#kb" hx-swap="outerHTML">Back</button>
+    {%- endif %}
+    <a class="doc-button doc-button--secondary" href="/p/kb/sources">Cancel</a>
+  </div>
+</form>
+{% endblock %}

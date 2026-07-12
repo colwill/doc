@@ -1,0 +1,12 @@
+{#- Where what follows came from: the catalogue resource it documents, the space it lives in, and
+    the plugin that holds it. Each tag says its kind in words as well as in colour. -#}
+{%- if !tags.is_empty() %}
+<ul class="doc-kinds">
+  {%- for tag in tags %}
+  <li class="doc-kind doc-kind--{{ tag.kind }}">
+    <span class="doc-kind__label">{{ tag.label }}</span>
+    <a href="{{ tag.href }}">{{ tag.name }}</a>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}

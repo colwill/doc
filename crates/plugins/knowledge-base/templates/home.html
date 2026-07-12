@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block tab_catalogue %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Software Catalogue</h2>
+<p class="doc-hint">Every service, with the docs each source has for it.</p>
+
+<h3>Services</h3>
+{%- if let Some(reason) = hidden %}
+<p class="doc-empty">Services are read from Resource Definitions as you, and it answered: {{ reason }}</p>
+{%- else if services.is_empty() %}
+<p class="doc-empty">Resource Definitions has no services yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Service</th>
+      <th class="doc-table__header" scope="col">Owner</th>
+      <th class="doc-table__header" scope="col">Docs</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for service in services %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ service.href }}">{{ service.title }}</a></th>
+      <td class="doc-table__cell">{{ service.owner }}</td>
+      <td class="doc-table__cell">{{ service.docs }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p class="doc-hint">Docs about anything else are in the <a href="/p/kb/spaces">{{ spaces }} spaces</a>.</p>
+{% endblock %}

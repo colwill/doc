@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block tab_spaces %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Spaces</h2>
+<p class="doc-hint">Each space is filled from its sources: uploads, a GitHub repository, a git repository uploaded as a zip, a Confluence space or a Google Drive folder.</p>
+{%- if spaces.is_empty() %}
+<p class="doc-empty">Nothing has been imported yet. Import a folder of Markdown with <code class="doc-mono">cli kb import &lt;dir&gt;</code>.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Space</th>
+      <th class="doc-table__header" scope="col">Pages</th>
+      <th class="doc-table__header" scope="col">From</th>
+      <th class="doc-table__header" scope="col">Looked after by</th>
+      <th class="doc-table__header" scope="col">Documents</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for space in spaces %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ space.link.href }}">{{ space.link.label }}</a></th>
+      <td class="doc-table__cell">{{ space.link.note }}</td>
+      <td class="doc-table__cell">{{ space.sources }}</td>
+      <td class="doc-table__cell">
+        {%- if space.owners.is_empty() %}<a href="{{ space.link.href }}">Not set</a>
+        {%- else %}
+        <ul class="doc-kinds">
+          {%- for tag in space.owners %}
+          <li class="doc-kind doc-kind--{{ tag.kind }}"><span class="doc-kind__label">{{ tag.label }}</span><a href="{{ tag.href }}">{{ tag.name }}</a></li>
+          {%- endfor %}
+        </ul>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">{% if let Some((href, resource)) = space.resource %}<a href="{{ href }}"><code class="doc-mono">{{ resource }}</code></a>{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{#- Archived spaces are kept whole and shown to nobody else: this is where they are brought back,
+    and the only place anything is deleted for good. #}
+{%- if admin && !archived.is_empty() %}
+<h3 id="archived">Archived</h3>
+<p class="doc-hint">Out of the listings, out of search and out of the catalogue, and syncing no more &mdash; but every page is still here. Restoring one puts it all back. Deleting one cannot be undone.</p>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Space</th>
+      <th class="doc-table__header" scope="col">Pages</th>
+      <th class="doc-table__header" scope="col">Archived</th>
+      <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">What can be done with it</span></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for space in archived %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ space.link.label }}</th>
+      <td class="doc-table__cell">{{ space.link.note }}</td>
+      <td class="doc-table__cell">{{ space.archived }}</td>
+      <td class="doc-table__cell">
+        <div class="doc-button-group">
+          <form hx-post="/p/kb/spaces/{{ space.key }}/restore" hx-target="#kb" hx-swap="outerHTML">
+            <button class="doc-button doc-button--secondary doc-button--small" type="submit">Restore<span class="nhsuk-u-visually-hidden"> {{ space.link.label }}</span></button>
+          </form>
+          <form hx-post="/p/kb/spaces/{{ space.key }}/delete" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Delete {{ space.link.label }} and every page in it, for good? This cannot be undone.">
+            <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete for good<span class="nhsuk-u-visually-hidden"> {{ space.link.label }}</span></button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

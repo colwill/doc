@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block tab_spaces %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="{{ space.href }}" hidden>{{ space.label }}</a>
+<a class="doc-trail" href="{{ page_href }}" hidden>{{ title }}</a>
+<h2>Edit {{ title }}</h2>
+<p class="doc-hint">{{ explained }}</p>
+<form hx-post="/p/kb/edit/{{ address }}" hx-target="#kb" hx-swap="outerHTML">
+  <div class="doc-editor" data-doc-editor>
+    <label class="doc-label" for="kb-page">Page</label>
+    <textarea class="doc-textarea" id="kb-page" name="markdown" rows="24" spellcheck="true" data-doc-editor-images="{{ images }}">{{ markdown }}</textarea>
+    {%- if let Some(html) = html %}
+    <template data-doc-editor-html>{{ html|safe }}</template>
+    {%- endif %}
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a href="{{ page_href }}">Cancel</a>
+  </div>
+</form>
+{%- if admin %}
+<div class="nhsuk-warning-callout">
+  <h2 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Deleting this page</span></h2>
+  <p>Deleting takes {{ title }} out of the Knowledge Base, search and the catalogue, with any changes made to it in DOC. It cannot be undone.</p>
+  {%- if sourced %}
+  <p>{{ origin_starting }} still has it, so it comes back the next time the space syncs. To keep it out, stop following the source or delete the space.</p>
+  {%- endif %}
+  <form hx-post="/p/kb/spaces/{{ space_key }}/pages/delete" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Delete {{ title }}? This cannot be undone.">
+    <input type="hidden" name="path" value="{{ path }}" />
+    <button class="doc-button doc-button--warning" type="submit">Delete this page</button>
+  </form>
+</div>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block tab_spaces %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="{{ space.href }}" hidden>{{ space.label }}</a>
+<div class="doc-heading-row">
+  <h2>{{ heading|safe }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if let Some(runbook) = runbook %}
+    <form class="doc-inline-form" hx-post="/p/agent/runbooks/run" hx-target="#kb" hx-swap="outerHTML">
+      <input type="hidden" name="space" value="{{ runbook.space }}" />
+      <input type="hidden" name="path" value="{{ runbook.path }}" />
+      <label class="nhsuk-u-visually-hidden" for="runbook-environment">Run it against</label>
+      <select class="doc-select doc-select--small" id="runbook-environment" name="environment">
+        {%- for environment in runbook.environments %}
+        <option value="{{ environment.value }}"{% if environment.selected %} selected{% endif %}>{{ environment.label }}</option>
+        {%- endfor %}
+      </select>
+      <button class="doc-button doc-button--small" type="submit">Run with Agent Smith</button>
+    </form>
+    {%- endif %}
+    {%- if let Some(edit_href) = edit_href %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ edit_href }}">Edit</a>
+    {%- endif %}
+  </div>
+</div>
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents of {{ space.label }}</summary>
+    <nav aria-label="Contents of {{ space.label }}">
+      <p class="doc-contents__heading"><a href="{{ space.href }}">{{ space.label }}</a></p>
+      {{ contents|safe }}
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+    {%- if let Some(edited) = edited %}
+    <div class="nhsuk-inset-text doc-edited">
+      <p>Edited in DOC by {{ edited.by }}, {{ edited.when }}. DOC shows this version, and {{ edited.origin }} keeps its own{% if edited.gone %}, though it no longer has this page{% endif %}.</p>
+      {%- if edited.changed %}
+      <p>{{ edited.origin_starting }} has changed this page since it was edited here.</p>
+      {%- endif %}
+      {%- if let Some(pull_request) = edited.pull_request %}
+      <p>Proposed to the repository in <a href="{{ pull_request }}" rel="noopener noreferrer">a pull request</a>{% if edited.since %}, and edited since{% endif %}.</p>
+      {%- endif %}
+      {%- if writes %}
+      <div class="doc-button-group">
+        {%- if edited.repository && (edited.pull_request.is_none() || edited.since) %}
+        <form hx-post="/p/kb/propose/{{ address }}" hx-target="#kb" hx-swap="outerHTML">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">{% if edited.pull_request.is_some() %}Update the pull request{% else %}Open a pull request{% endif %}</button>
+        </form>
+        {%- endif %}
+        <form hx-post="/p/kb/discard/{{ address }}" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Discard the changes made in DOC? {% if edited.gone %}{{ edited.origin_starting }} no longer has this page, so it goes altogether.{% else %}The page goes back to what {{ edited.origin }} has.{% endif %}">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Discard changes</button>
+        </form>
+      </div>
+      {%- endif %}
+    </div>
+    {%- endif %}
+    <div class="doc-prose">{{ html|safe }}</div>
+    <dl class="doc-summary">
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">From</dt>
+        <dd class="doc-summary__value">{{ source }}{% if let Some(original) = original %}: <a href="{{ original }}" rel="noopener noreferrer">the original</a>{% endif %}, updated {{ updated }}</dd>
+      </div>
+      {%- if !resources.is_empty() %}
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Documents</dt>
+        <dd class="doc-summary__value">{% for (href, resource) in resources %}<a href="{{ href }}"><code class="doc-mono">{{ resource }}</code></a>{% if !loop.last %}, {% endif %}{% endfor %}</dd>
+      </div>
+      {%- endif %}
+      {%- if !tags.is_empty() %}
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">Labels</dt>
+        <dd class="doc-summary__value">{% for tag in tags %}<span class="doc-badge">{{ tag }}</span> {% endfor %}</dd>
+      </div>
+      {%- endif %}
+    </dl>
+    {%- if previous.is_some() || next.is_some() %}
+    <nav aria-label="Pages either side">
+      <ul class="doc-pagination">
+        {%- if let Some(previous) = previous %}
+        <li class="doc-pagination__item doc-pagination__item--previous">
+          <a class="doc-pagination__link" href="{{ previous.href }}" rel="prev"><span class="doc-pagination__direction">Previous</span><span class="nhsuk-u-visually-hidden">:</span> <span class="doc-pagination__title">{{ previous.label }}</span></a>
+        </li>
+        {%- endif %}
+        {%- if let Some(next) = next %}
+        <li class="doc-pagination__item doc-pagination__item--next">
+          <a class="doc-pagination__link" href="{{ next.href }}" rel="next"><span class="doc-pagination__direction">Next</span><span class="nhsuk-u-visually-hidden">:</span> <span class="doc-pagination__title">{{ next.label }}</span></a>
+        </li>
+        {%- endif %}
+      </ul>
+    </nav>
+    {%- endif %}
+  </div>
+</div>
+{% endblock %}

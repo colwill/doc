@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block tab_catalogue %} aria-current="page"{% endblock %}
+
+{% block main %}
+{%- if section == "link" %}
+<a class="doc-trail" href="{{ self.url() }}" hidden>{{ title }}</a>
+<h2>Link a space to {{ title }}</h2>
+<p class="doc-hint">Every page in a space linked here is {{ name }}'s documentation, beside the pages that name it and those of the repositories it is built from.</p>
+{%- if linkable.is_empty() %}
+<p class="doc-empty">Every space is linked already.</p>
+{%- else %}
+<form hx-post="{{ self.url() }}/links" hx-target="#kb" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="space">Space</label>
+    <select class="doc-select" id="space" name="space">
+      {%- for (key, label) in linkable %}
+      <option value="{{ key }}">{{ label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Link it</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/links">Cancel</a>
+  </div>
+</form>
+{%- endif %}
+{%- else %}
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  {%- if section == "links" && admin && !linkable.is_empty() %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/links/new">Link a space</a>
+  </div>
+  {%- endif %}
+</div>
+{#- What these docs are of, and where to read about it: the same tag a document carries. -#}
+{%- let tags = resource_tags %}
+{%- include "kinds.html" %}
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="{{ title }}">
+      <ul class="doc-contents__list">
+        {%- for (key, label, href) in self.sections() %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ href }}"{% if key == section %} aria-current="page"{% endif %}>{{ label }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "docs" %}
+<dl class="doc-summary">
+  {%- if !description.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Description</dt>
+    <dd class="doc-summary__value">{{ description }}</dd>
+  </div>
+  {%- endif %}
+  {%- if let Some((href, owner)) = owner %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Owner</dt>
+    <dd class="doc-summary__value"><a href="{{ href }}">{{ owner }}</a></dd>
+  </div>
+  {%- endif %}
+</dl>
+{%- if let Some(reason) = hidden %}
+<p class="doc-hint">{{ reason }}</p>
+{%- endif %}
+
+{%- if groups.is_empty() && front.is_none() %}
+<div class="doc-empty">
+  <p>No docs name <code class="doc-mono">service:{{ name }}</code> yet, and nothing is written in the repositories it is connected to.</p>
+  <p>Connect a repository to this service in <a href="{{ resource_page }}">Resource Definitions</a> and the Markdown in it is documentation here. Or import some with <code class="doc-mono">cli kb import &lt;dir&gt; --resource service:{{ name }}</code>, or name the service in a page's <code class="doc-mono">resources</code> front matter or a <code class="doc-mono">service-{{ name }}</code> label.</p>
+</div>
+{%- else %}
+{%- if let Some(front) = front %}
+<h3>{{ front.page.label }}</h3>
+{%- let tags = front.tags %}
+{%- include "kinds.html" %}
+<p><a href="{{ front.page.href }}">Read it on its own</a></p>
+<div class="doc-prose">{{ front.html|safe }}</div>
+{%- if !groups.is_empty() %}
+<h3>More in {{ front.repository.label }}</h3>
+{%- endif %}
+{%- endif %}
+{%- for group in groups %}
+{%- if front.is_none() %}
+<h3><a href="{{ group.space.href }}">{{ group.space.label }}</a></h3>
+{%- let tags = group.tags %}
+{%- include "kinds.html" %}
+{%- endif %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Page</th>
+      <th class="doc-table__header" scope="col">Source</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for document in group.documents %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ document.href }}">{{ document.label }}</a></th>
+      <td class="doc-table__cell">{{ document.note }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endfor %}
+{%- endif %}
+{%- else %}
+<h3>Linked spaces</h3>
+<p class="doc-hint">Every page in a space linked here is {{ name }}'s documentation, beside the pages that name it and those of the repositories it is built from.</p>
+{%- if !linked.is_empty() %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for space in linked %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ space.href }}">{{ space.label }}</a></th>
+      {%- if admin %}
+      <td class="doc-table__cell">
+        <form hx-post="/p/kb/catalogue/{{ name }}/links/remove" hx-target="#kb" hx-swap="outerHTML">
+          <input type="hidden" name="space" value="{{ space.note }}" />
+          <button class="doc-link-button" type="submit">Unlink<span class="nhsuk-u-visually-hidden"> {{ space.label }}</span></button>
+        </form>
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+  </div>
+</div>
+{%- endif %}
+{% endblock %}

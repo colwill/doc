@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block tab_sources %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Sources</h2>
+  <div class="doc-heading-row__actions">
+    <form hx-post="/p/kb/sources/repositories" hx-target="#kb" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">Look for repositories now</button>
+    </form>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/kb/sources/new">Add a source</a>
+  </div>
+</div>
+<p class="doc-hint">Where each space's pages come from. A source syncs when asked, or on its own schedule, which is checked every minute. Each is a <strong>DocumentationSource</strong> in the catalogue, connected to the repository it reads and to every page it brings in. Credentials are only named here: add one on the plugin's <a href="/plugins/kb/settings">Settings</a> page, or set it as <code class="doc-mono">DOC_KB_CREDENTIAL_&lt;NAME&gt;</code>.</p>
+<p class="doc-hint">With <a href="/plugins/kb/features">Documentation from repositories</a> on, every repository the platform knows has a source here, kept in step for you and read again whenever the repository is pushed to. The Markdown in a repository — wherever it sits — is documentation in DOC.</p>
+{%- if sources.is_empty() %}
+<div class="doc-empty">
+  <p>No sources yet. Add a GitHub repository, a Confluence space, a Google Drive folder or Markdown files.</p>
+  <a class="doc-button doc-button--secondary" href="/p/kb/sources/new">Add a source</a>
+</div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Space</th>
+      <th class="doc-table__header" scope="col">Source</th>
+      <th class="doc-table__header" scope="col">Status</th>
+      <th class="doc-table__header" scope="col">Schedule</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for source in sources %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/kb/spaces/{{ source.space }}">{{ source.space }}</a></th>
+      <td class="doc-table__cell">
+        <strong>{{ source.kind }}</strong>
+        <span class="doc-hint">{{ source.what }}</span>
+        {%- if source.managed %}
+        <span class="doc-hint">From the repository sync</span>
+        {%- endif %}
+        <span class="doc-hint"><a href="{{ source.resource }}">In the catalogue</a></span>
+      </td>
+      <td class="doc-table__cell">
+        <strong class="doc-badge {{ source.badge }}">{{ source.state }}</strong>
+        {%- if !source.last.is_empty() %}<span class="doc-hint">{{ source.last }}</span>{% endif %}
+        {%- if !source.error.is_empty() %}<span class="doc-error-message">{{ source.error }}</span>{% endif %}
+        {%- if source.syncs %}
+        <form hx-post="/p/kb/sources/{{ source.id }}/sync" hx-target="#kb" hx-swap="outerHTML">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Sync now</button>
+        </form>
+        {%- endif %}
+        {%- if admin && !source.managed %}
+        <form hx-post="/p/kb/sources/{{ source.id }}/archive" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Archive this source? It stops syncing and leaves the catalogue. The pages it brought in stay where they are, and you can restore it.">
+          <button class="doc-link-button" type="submit">Archive<span class="nhsuk-u-visually-hidden"> the {{ source.kind }} source for {{ source.space }}</span></button>
+        </form>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">
+        {%- if source.managed %}
+        Whenever the repository is pushed to
+        {%- if admin %}
+        <form hx-post="/p/kb/sources/repositories/forget" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Stop following {{ source.repository }}? Its space is archived, not deleted: every page is kept, and you can restore it or delete it for good from the Spaces page.">
+          <input type="hidden" name="repository" value="{{ source.repository }}" />
+          <button class="doc-link-button" type="submit">Stop following<span class="nhsuk-u-visually-hidden"> {{ source.repository }}</span></button>
+        </form>
+        {%- endif %}
+        {%- else if source.syncs %}
+        <form hx-post="/p/kb/sources/{{ source.id }}/schedule" hx-target="#kb" hx-swap="outerHTML">
+          <input class="doc-input" name="schedule" value="{{ source.schedule }}" aria-label="Schedule for {{ source.space }}'s {{ source.kind }} source" placeholder="Only when asked" autocomplete="off" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Set</button>
+        </form>
+        {%- else %}
+        Whenever something is imported
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if admin && !archived.is_empty() %}
+<h3 id="archived">Archived sources</h3>
+<p class="doc-hint">Out of the catalogue and syncing no more. The pages each brought in are still in its space. Restoring one starts it syncing again; deleting one takes the source away and leaves its pages.</p>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Source</th>
+      <th class="doc-table__header" scope="col">Space</th>
+      <th class="doc-table__header" scope="col">Archived</th>
+      <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">What can be done with it</span></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for source in archived %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ source.kind }}<span class="doc-hint">{{ source.what }}</span></th>
+      <td class="doc-table__cell">{{ source.space }}</td>
+      <td class="doc-table__cell">{{ source.archived }}</td>
+      <td class="doc-table__cell">
+        <div class="doc-button-group">
+          <form hx-post="/p/kb/sources/{{ source.id }}/restore" hx-target="#kb" hx-swap="outerHTML">
+            <button class="doc-button doc-button--secondary doc-button--small" type="submit">Restore<span class="nhsuk-u-visually-hidden"> the {{ source.kind }} source for {{ source.space }}</span></button>
+          </form>
+          <form hx-post="/p/kb/sources/{{ source.id }}/delete" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Delete this source for good? This cannot be undone. The pages it brought in stay in {{ source.space }}.">
+            <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete for good<span class="nhsuk-u-visually-hidden"> the {{ source.kind }} source for {{ source.space }}</span></button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !forgotten.is_empty() %}
+<h3>Repositories no longer followed</h3>
+<p class="doc-hint">An administrator stopped following these, so the repository sync passes them over.</p>
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for repository in forgotten %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ repository }}</code></th>
+      <td class="doc-table__cell">
+        <form hx-post="/p/kb/sources/repositories/follow" hx-target="#kb" hx-swap="outerHTML">
+          <input type="hidden" name="repository" value="{{ repository }}" />
+          <button class="doc-link-button" type="submit">Follow again<span class="nhsuk-u-visually-hidden"> {{ repository }}</span></button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{% endblock %}

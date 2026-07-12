@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block tab_spaces %} aria-current="page"{% endblock %}
+
+{% block main %}
+{%- if section == "change" %}
+<a class="doc-trail" href="{{ self.url() }}" hidden>{{ name }}</a>
+<h2>Who looks after {{ name }}?</h2>
+<p class="doc-hint">The team or teams whose documentation it is, or the organisation as a whole. Every page in it is told to the catalogue again.</p>
+<form hx-post="{{ self.url() }}/owners" hx-target="#kb" hx-swap="outerHTML">
+  {% include "owners_field.html" %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/owners">Cancel</a>
+  </div>
+</form>
+{%- else if section == "rename" %}
+<a class="doc-trail" href="{{ self.url() }}" hidden>{{ name }}</a>
+<h2>Rename {{ name }}</h2>
+<form hx-post="{{ self.url() }}/name" hx-target="#kb" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="space-name">Name</label>
+    <span class="doc-hint" id="space-name-hint">What the space is called wherever it is shown. Its key, <code class="doc-mono">{{ key }}</code>, stays as it is, so links to its pages keep working, and a sync no longer changes the name.</span>
+    <input class="doc-input" id="space-name" name="name" type="text" value="{{ name }}" maxlength="120" required autocomplete="off" aria-describedby="space-name-hint" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}">Cancel</a>
+  </div>
+</form>
+{%- else %}
+<div class="doc-heading-row">
+  <h2>{{ name }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if section == "owners" && writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/owners/change">Change who looks after it</a>
+    {%- else if section == "pages" && admin %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/name">Rename</a>
+    <form hx-post="{{ self.url() }}/archive" hx-target="#kb" hx-swap="outerHTML" hx-confirm="Archive {{ name }}? Its pages are kept and nothing is lost: it goes out of the listings, out of search and out of the catalogue, and stops syncing. You can restore it, or delete it for good, from the Spaces page.">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Archive the space</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+<p class="doc-hint">{{ count }}{% if let Some((href, resource)) = resource %}, documenting <a href="{{ href }}"><code class="doc-mono">{{ resource }}</code></a>{% endif %}.</p>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This space">
+      <ul class="doc-contents__list">
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ self.url() }}"{% if section == "pages" %} aria-current="page"{% endif %}>Pages</a></li>
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ self.url() }}/owners"{% if section == "owners" %} aria-current="page"{% endif %}>Who looks after it</a></li>
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "pages" %}
+{%- if owners.is_empty() && writes %}
+<div class="doc-card">
+  <div class="doc-card__content">
+    <h3 class="doc-card__heading">Nobody looks after this space</h3>
+    <p>It was made before a space had to say. <a href="{{ self.url() }}/owners/change">Choose the team or teams whose documentation it is</a>, or the organisation as a whole, and every page in it is told to the catalogue again.</p>
+  </div>
+</div>
+{%- endif %}
+{%- if admin %}
+<p class="doc-hint">Deleting it takes out every page in it, its sources and their files, here and in the catalogue.{% if let Some(repository) = follows %} It is kept in step with <code class="doc-mono">{{ repository }}</code>, which is then no longer followed; it can be followed again on the <a href="/p/kb/sources">Sources</a> page.{% endif %}</p>
+{%- endif %}
+<div class="doc-prose">{{ tree|safe }}</div>
+{%- else %}
+<h3>Who looks after it</h3>
+{%- if owners.is_empty() %}
+<p class="doc-empty">Nobody yet.</p>
+{%- else %}
+<ul class="doc-kinds">
+  {%- for tag in owners %}
+  <li class="doc-kind doc-kind--{{ tag.kind }}"><span class="doc-kind__label">{{ tag.label }}</span><a href="{{ tag.href }}">{{ tag.name }}</a></li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endif %}
+  </div>
+</div>
+{%- endif %}
+{% endblock %}

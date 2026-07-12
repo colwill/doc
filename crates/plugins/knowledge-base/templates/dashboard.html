@@ -1,0 +1,15 @@
+{%- if pages.is_empty() %}
+<p class="doc-empty">{% if keeps == 0 %}Your teams keep no spaces in the Knowledge Base yet.{% else %}Nothing has changed in your teams' spaces lately.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for page in pages %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ page.href }}">{{ page.title }}</a><br /><span class="doc-hint">{{ page.space }}</span></th>
+      <td class="doc-table__cell">{{ page.when }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="/p/kb/spaces">All spaces</a></p>

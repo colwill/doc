@@ -1,0 +1,18 @@
+<div id="kb">
+  <nav class="doc-tabs" aria-label="Knowledge Base">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/kb/"{% block tab_catalogue %}{% endblock %}>Software Catalogue</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/kb/spaces"{% block tab_spaces %}{% endblock %}>Spaces</a></li>
+      {%- if writes %}
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/kb/sources"{% block tab_sources %}{% endblock %}>Sources</a></li>
+      {%- endif %}
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>

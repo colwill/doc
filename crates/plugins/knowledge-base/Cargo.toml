@@ -1,0 +1,37 @@
+[package]
+name = "doc-knowledge-base"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+ammonia.workspace = true
+askama.workspace = true
+async-trait.workspace = true
+base64.workspace = true
+chrono.workspace = true
+comrak.workspace = true
+croner.workspace = true
+flate2.workspace = true
+hex.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+ring.workspace = true
+rustls.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sha2.workspace = true
+tar.workspace = true
+zip.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url.workspace = true
+uuid.workspace = true
+
+doc-plugin-sdk = { workspace = true, features = ["reqwest"] }

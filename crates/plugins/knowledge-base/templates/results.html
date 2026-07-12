@@ -1,0 +1,24 @@
+{%- if text.is_empty() %}
+{%- else if hits.is_empty() %}
+<p class="doc-hint">Nothing matches “{{ text }}”.</p>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Best matches for “{{ text }}”</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Page</th>
+      <th class="doc-table__header" scope="col">Space</th>
+      <th class="doc-table__header" scope="col">Where it matches</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for hit in hits %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ hit.href }}">{{ hit.title }}</a></th>
+      <td class="doc-table__cell">{{ hit.space }}</td>
+      <td class="doc-table__cell">{{ hit.snippet|safe }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}

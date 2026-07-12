@@ -1,0 +1,11 @@
+{%- if let Some(page) = page %}
+<p class="doc-results__meta"><span>{{ page.note }}</span></p>
+{%- if summary.is_empty() %}
+<p class="doc-hint">This page has no words in it yet.</p>
+{%- else %}
+<p>{{ summary }}</p>
+{%- endif %}
+<p><a href="{{ page.href }}">Read {{ page.label }}</a></p>
+{%- else %}
+<p class="doc-hint">The Knowledge Base no longer has this page.</p>
+{%- endif %}

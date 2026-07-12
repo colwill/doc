@@ -1,0 +1,43 @@
+{%- if let Some(featured) = featured %}
+{%- let tags = featured.tags %}
+{%- include "kinds.html" %}
+{%- if !featured.summary.is_empty() %}
+<p>{{ featured.summary }}</p>
+{%- endif %}
+<p><a href="{{ featured.page.href }}">Read {{ featured.page.label }}</a></p>
+{%- endif %}
+
+{%- if groups.is_empty() && featured.is_none() %}
+{%- if repositories.is_empty() %}
+<p class="doc-hint">No docs name it yet.</p>
+{%- else %}
+<p class="doc-hint">No docs name it, and nothing is written in {{ repositories.join(", ") }}. The Markdown in a connected repository is documentation here once the Knowledge Base has read it — see <a href="/p/kb/sources">its sources</a>.</p>
+{%- endif %}
+{%- else %}
+{%- for group in groups %}
+{%- if headings %}
+<h4><a href="{{ group.space.href }}">{{ group.space.label }}</a></h4>
+{%- let tags = group.tags %}
+{%- include "kinds.html" %}
+{%- else if featured.is_some() && !group.documents.is_empty() %}
+<p class="doc-hint">Also in {{ group.space.label }}</p>
+{%- endif %}
+{%- if !group.documents.is_empty() %}
+<ul class="doc-results doc-results--plain">
+  {%- for document in group.documents %}
+  <li class="doc-results__item">
+    <a class="doc-results__title" href="{{ document.href }}">{{ document.label }}</a>
+    <p class="doc-results__meta"><span>{{ document.note }}</span></p>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- if group.more > 0 %}
+<p class="doc-hint">({% if group.documents.is_empty() && featured.is_none() %}{{ group.more }} {% if group.more == 1 %}page{% else %}pages{% endif %}{% else %}and {{ group.more }} more{% endif %} in <a href="{{ group.space.href }}">{{ group.space.label }}</a>)</p>
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+
+{%- if let Some(href) = catalogue %}
+<p><a href="{{ href }}">In the Software Catalogue</a></p>
+{%- endif %}
