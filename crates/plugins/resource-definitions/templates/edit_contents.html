@@ -1,0 +1,11 @@
+{#- The parts of editing a resource, down the side as a resource's own parts are. -#}
+<details class="doc-contents" open>
+  <summary class="doc-contents__summary">Contents</summary>
+  <nav aria-label="Editing this resource">
+    <ul class="doc-contents__list">
+      {%- for part in contents %}
+      <li class="doc-contents__item"><a class="doc-contents__link" href="{{ part.href }}"{% if part.current %} aria-current="page"{% endif %}>{{ part.label }}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+</details>

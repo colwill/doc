@@ -1,0 +1,18 @@
+{%- if rows.is_empty() %}
+<p class="doc-empty">{% if teams == 0 %}You are in no team yet, so no services are yours.{% else %}Your teams own no services, and none are connected to them.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a><br /><span class="doc-hint">{{ row.teams }}</span></th>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.word }}</strong>{% if !row.said.is_empty() %}<br /><span class="doc-hint">{{ row.said }}</span>{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- if more > 0 %}
+<p class="doc-hint">And {{ more }} more.</p>
+{%- endif %}
+{%- endif %}
+<p><a href="/p/resources/kinds/service">Every service</a></p>

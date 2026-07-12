@@ -1,0 +1,16 @@
+<div id="resources">
+  <nav class="doc-tabs" aria-label="Catalogue">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/resources/"{% block tab_catalogue %}{% endblock %}>Catalogue</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/resources/kinds/team"{% block tab_teams %}{% endblock %}>Teams</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/resources/explore"{% block tab_explore %}{% endblock %}>Explore</a></li>
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>

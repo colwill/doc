@@ -1,0 +1,16 @@
+{%- if text.is_empty() %}
+{%- else if found.is_empty() %}
+<p class="doc-empty">Nothing is called anything like “{{ text }}”.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for item in found %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ item.href }}">{{ item.name }}</a></th>
+      <td class="doc-table__cell">{{ item.kind }}</td>
+      <td class="doc-table__cell">{{ item.title }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}

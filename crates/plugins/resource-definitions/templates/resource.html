@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block tab_catalogue %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="/p/resources/kinds/{{ kind.slug() }}" hidden>{{ kind }}</a>
+<div class="doc-heading-row">
+  <h2>{% if title.is_empty() %}{{ name }}{% else %}{{ title }}{% endif %}</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    {%- if section == "connections" %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.action("connect") }}">Add a related resource</a>
+    {%- else %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/resources/edit/{{ kind.slug() }}/{{ name }}">Edit</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/resources/new?kind={{ kind }}">New resource</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ edit_url }}">Edit as YAML</a>
+    {%- if let Some(elsewhere) = platform %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ elsewhere }}">On the platform</a>
+    {%- else %}
+    <button class="doc-button doc-button--warning doc-button--small" hx-post="{{ self.action("delete") }}" hx-target="#resources" hx-swap="outerHTML" hx-confirm="Delete {{ kind }}:{{ name }}? It stops being related to anything else.">Delete</button>
+    {%- endif %}
+    {%- endif %}
+  </div>
+  {%- endif %}
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This resource">
+      <ul class="doc-contents__list">
+        {%- for part in sections %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ self.part(part.id) }}"{% if part.id == section %} aria-current="page"{% endif %}>{{ part.label }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "details" %}
+{%- if !pinned.is_empty() %}
+<div class="doc-stat-group">
+  {%- for insight in pinned %}
+  <div class="doc-stat" hx-get="{{ insight.url }}" hx-trigger="load" hx-swap="innerHTML">
+    <span class="doc-stat__label">{{ insight.label }}</span>
+    <span class="doc-stat__value">&hellip;</span>
+    <span class="doc-stat__note">Reading from {{ insight.plugin }}</span>
+  </div>
+  {%- endfor %}
+</div>
+{%- endif %}
+
+{#- Pictures go across the page below the figures, never above them. Each brings its own heading,
+    so the heading can be the way to whatever it is a picture of; until it arrives, its name stands
+    in. What is pinned is chosen under Edit, where everything else about the page is changed. #}
+{%- for picture in pictures %}
+<div class="doc-pinned-picture" hx-get="{{ picture.url }}" hx-trigger="load">
+  <h3>{{ picture.label }}</h3>
+  <p class="doc-hint">Reading from {{ picture.plugin }}…</p>
+</div>
+{%- endfor %}
+
+<h3>Details</h3>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Kind</dt>
+    <dd class="doc-summary__value"><a href="/p/resources/kinds/{{ kind.slug() }}">{{ kind }}</a></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Name</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ name }}</code></dd>
+  </div>
+  {%- if let Some(resource) = resource %}
+  {%- if !resource.description.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Description</dt>
+    <dd class="doc-summary__value">{{ resource.description }}</dd>
+  </div>
+  {%- endif %}
+  {%- if let Some(owner) = resource.owner %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Owner</dt>
+    <dd class="doc-summary__value">{% if let Some(link) = owner_href %}<a href="{{ link }}">{{ owner }}</a>{% endif %}</dd>
+  </div>
+  {%- endif %}
+  {%- if let Some(address) = resource.email %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Email</dt>
+    <dd class="doc-summary__value">{{ address }}</dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">From</dt>
+    <dd class="doc-summary__value">{{ resource.source }}, updated {{ resource.updated_at.format("%-d %B %Y %H:%M") }}</dd>
+  </div>
+  {%- endif %}
+</dl>
+
+{%- if !metadata.is_empty() %}
+<h3>Metadata</h3>
+<dl class="doc-summary">
+  {%- for line in metadata %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">{{ line.key }}</dt>
+    <dd class="doc-summary__value">
+      {%- if let Some(href) = line.href %}<a href="{{ href }}">{{ line.value }}</a>{% else %}{{ line.value }}{% endif %}
+    </dd>
+  </div>
+  {%- endfor %}
+</dl>
+{%- endif %}
+
+{%- else if section == "connections" %}
+<p class="doc-hint">Everything the Catalogue relates to {{ self.called() }}, kind by kind.</p>
+{%- if related.is_empty() %}
+<p class="doc-empty">Nothing is related to it yet.</p>
+{%- endif %}
+{%- for group in related %}
+<h3>{{ group.heading }}</h3>
+{% let rows = group.rows %}{% include "links.html" %}
+{%- endfor %}
+{%- for reason in hidden %}
+<p class="doc-hint">Some of it is read from rbac as you, and it said: {{ reason }}</p>
+{%- endfor %}
+
+
+{%- else %}
+{%- for panel in panels %}
+{%- if panel.id() == section %}
+<h3>{{ panel.label }}</h3>
+<div id="{{ panel.id() }}" hx-get="{{ panel.url }}" hx-trigger="load">
+  <p class="doc-hint">Loading from {{ panel.plugin }}…</p>
+</div>
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

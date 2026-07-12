@@ -1,0 +1,21 @@
+<table class="doc-table doc-table--fixed">
+  <tbody class="doc-table__body">
+    {%- for link in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ link.href }}">{{ link.name }}</a></th>
+      <td class="doc-table__cell">{{ link.title }}</td>
+      <td class="doc-table__cell">
+        {%- if link.derived %}
+        <strong class="doc-badge doc-badge--unknown">{% if link.via == "owner" %}owns it{% else if link.via == "member" %}in the team{% else %}from rbac{% endif %}</strong>
+        {%- else if writes %}
+        <form hx-post="{{ self.action("disconnect") }}" hx-target="#resources" hx-swap="outerHTML">
+          <input type="hidden" name="kind" value="{{ link.kind }}" />
+          <input type="hidden" name="name" value="{{ link.key }}" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Remove</button>
+        </form>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

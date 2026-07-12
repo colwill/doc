@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block tab_catalogue %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="/p/resources/kinds/{{ kind.slug() }}" hidden>{{ kind }}</a>
+<h2>Edit {{ name }}</h2>
+<div class="doc-with-contents">
+  {%- include "edit_contents.html" %}
+  <div class="doc-with-contents__main">
+<h3>Pinned</h3>
+<p class="nhsuk-lede-text">What is pinned to the top of its page, for anybody who opens it. Figures sit in a row, one measured fact each; a picture, such as a diagram, goes across the page below them. Everyone who can see the page sees the same.</p>
+<p class="doc-hint">Drag a row by its handle to put it in order, or move it with the up and down arrow keys. Tick the ones to pin. Four or five figures is about as many as anybody reads at once.</p>
+
+{%- if rows.is_empty() %}
+<p class="doc-empty">No plugin offers anything to pin about a {{ kind }} yet.</p>
+<p><a class="doc-button doc-button--secondary" href="/p/resources/r/{{ kind.slug() }}/{{ name }}">Back to {% if title.is_empty() %}{{ name }}{% else %}{{ title }}{% endif %}</a></p>
+{%- else %}
+<form action="/p/resources/pinned/{{ kind.slug() }}/{{ name }}" method="post"
+      hx-post="/p/resources/pinned/{{ kind.slug() }}/{{ name }}" hx-target="#resources" hx-swap="outerHTML">
+  <table class="doc-table doc-arrange">
+    <thead class="doc-table__head">
+      <tr>
+        <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Drag to reorder</span></th>
+        <th class="doc-table__header" scope="col">Order</th>
+        <th class="doc-table__header" scope="col">Insight</th>
+        <th class="doc-table__header" scope="col">Pinned</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body" data-reorder>
+      {%- for row in rows %}
+      {%- let at = loop.index0 %}
+      <tr class="doc-table__row">
+        <td class="doc-table__cell doc-arrange__grip">
+          <button class="doc-arrange__handle" type="button" data-reorder-handle data-reorder-name="{{ row.insight.label }}" aria-label="Move {{ row.insight.label }}: drag it, or use the up and down arrow keys">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm9-12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+          </button>
+        </td>
+        <td class="doc-table__cell">
+          <input class="doc-input doc-arrange__order" data-reorder-order name="order.{{ at }}" type="text" inputmode="numeric" value="{{ Self::order(at) }}" readonly aria-label="Where {{ row.insight.label }} is, counted from the top" />
+          <input type="hidden" name="insight.{{ at }}" value="{{ row.insight.id }}" />
+        </td>
+        <th class="doc-table__header" scope="row">
+          {{ row.insight.label }}
+          <br /><span class="doc-hint">{% if !row.insight.description.is_empty() %}{{ row.insight.description }} &mdash; {% endif %}from {{ row.insight.plugin }}{% if row.insight.wide %}, shown across the page below the figures{% endif %}</span>
+        </th>
+        <td class="doc-table__cell">
+          <input type="checkbox" name="pin.{{ at }}" {% if row.pinned %}checked{% endif %} aria-label="Pin {{ row.insight.label }} to the top of this page" />
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/resources/r/{{ kind.slug() }}/{{ name }}"
+       hx-get="/p/resources/r/{{ kind.slug() }}/{{ name }}" hx-target="#resources" hx-swap="outerHTML">Cancel</a>
+  </div>
+</form>
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

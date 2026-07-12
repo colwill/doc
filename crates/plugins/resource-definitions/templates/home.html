@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block tab_catalogue %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Catalogue</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--small" href="/p/resources/new">New resource</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/resources/apply">Apply YAML</a>
+  </div>
+  {%- endif %}
+</div>
+<p class="doc-hint">Everything the platform knows about, and how it all relates.</p>
+
+<div class="doc-card-group">
+  {%- for kind in kinds %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading"><a href="/p/resources/kinds/{{ kind.slug }}">{{ kind.plural }}</a></h3>
+    <div class="doc-card__content">
+      {%- if let Some(count) = kind.count %}
+      <p><strong>{{ count }}</strong></p>
+      {%- endif %}
+      <p class="doc-hint">From {{ kind.from }}</p>
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+
+<h2>Connection definitions</h2>
+<p class="doc-hint">The order to drill through kinds, from the highest level down. Only kinds next to each other in one of these can be related.</p>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Definition</th>
+      <th class="doc-table__header" scope="col">Kinds</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for (name, kinds, url) in definitions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ url }}">{{ name }}</a></th>
+      <td class="doc-table__cell">{{ kinds }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,20 @@
+{%- if let Some(reason) = hidden %}
+<p class="doc-hint">{% if let Some(kind) = kind %}{{ kind.plural() }} are{% else %}These are{% endif %} read from rbac as you, and it said: {{ reason }}</p>
+{%- else if branches.is_empty() %}
+<p class="doc-empty">No {% if let Some(kind) = kind %}{{ kind.plural() }}{% else %}more{% endif %} here.</p>
+{%- else %}
+<ul>
+  {%- for branch in branches %}
+  <li>
+    <a href="{{ branch.href }}">{{ branch.label }}</a> <span class="doc-hint">{{ branch.kind }}</span>
+    {%- if branch.derived %} <strong class="doc-badge doc-badge--unknown">from rbac</strong>{% endif %}
+    {%- if let Some(url) = branch.level_url %}
+    {%- if let Some(next) = next %}
+    <button class="doc-button doc-button--secondary doc-button--small" hx-get="{{ url }}" hx-target="#{{ branch.target }}">{{ next.plural() }}</button>
+    {%- endif %}
+    {%- endif %}
+    <div id="{{ branch.target }}"></div>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}

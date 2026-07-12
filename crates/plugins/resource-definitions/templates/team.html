@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block tab_teams %} aria-current="page"{% endblock %}
+
+{%- macro people(list) %}
+<ul>
+  {%- for person in list.iter() %}
+  <li><a href="{{ person.href }}">{{ person.label }}</a>{% if !person.hint.is_empty() %} <span class="doc-hint">{{ person.hint }}</span>{% endif %}</li>
+  {%- endfor %}
+</ul>
+{%- endmacro %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{% if title.is_empty() %}{{ name }}{% else %}{{ title }}{% endif %}</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    {%- if on("members") %}
+    {#- Membership is the platform's, so it is added on the platform's own page. -#}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/teams/{{ team_id }}/members/new">Add a member</a>
+    {%- else %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/resources/edit/team/{{ name }}">Edit</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ edit_url }}">Edit as YAML</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/teams/{{ team_id }}">On the platform</a>
+    {%- endif %}
+  </div>
+  {%- endif %}
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="{{ name }}">
+      <ul class="doc-contents__list">
+        {%- for (url, label, current) in tabs() %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ url }}"{% if current %} aria-current="page"{% endif %}>{{ label }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+
+{%- if on("overview") %}
+<h3>Overview</h3>
+<dl class="doc-summary">
+  {%- if let Some(resource) = resource %}
+  {%- if !resource.description.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">About</dt>
+    <dd class="doc-summary__value">{{ resource.description }}</dd>
+  </div>
+  {%- endif %}
+  {%- if let Some(address) = resource.email %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Email</dt>
+    <dd class="doc-summary__value"><a href="mailto:{{ address }}">{{ address }}</a></dd>
+  </div>
+  {%- endif %}
+  {%- endif %}
+  {%- if let Some(organisation) = organisation %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Organisation</dt>
+    <dd class="doc-summary__value"><a href="{{ organisation.href }}">{{ organisation.label }}</a></dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Kept by</dt>
+    <dd class="doc-summary__value">{% if let Some(provider) = provider %}{{ provider }}, which keeps its name and its people{% else %}The platform, on <a href="/teams/{{ team_id }}">its team page</a>{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Members</dt>
+    <dd class="doc-summary__value"><a href="{{ url() }}?tab=members">{{ members.len() }}</a></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Roles</dt>
+    <dd class="doc-summary__value">{% if roles.is_empty() %}None{% else %}{% for role in roles %}<a href="{{ url() }}?tab=roles">{{ role.name }}</a>{% if !loop.last %}, {% endif %}{% endfor %}{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Services</dt>
+    <dd class="doc-summary__value">{% if services.is_empty() %}None{% else %}{% for service in services %}<a href="{{ service.named.href }}">{{ service.named.label }}</a>{% if !loop.last %}, {% endif %}{% endfor %}{% endif %}</dd>
+  </div>
+</dl>
+{%- for panel in panels %}
+<div class="doc-card">
+  <h3 class="doc-card__heading">{{ panel.label }}</h3>
+  <div class="doc-card__content" hx-get="{{ panel.url }}" hx-trigger="load">
+    <p class="doc-hint">Loading from {{ panel.plugin }}…</p>
+  </div>
+</div>
+{%- endfor %}
+
+{%- else if on("members") %}
+<h3>Members</h3>
+{%- if members.is_empty() %}
+<p class="doc-empty">Nobody is in this team yet. People are added here or on <a href="/teams/{{ team_id }}">its team page</a>, or by whatever provides it.</p>
+{%- else %}
+{% call people(members) %}{% endcall %}
+{%- endif %}
+
+{%- else if on("roles") %}
+<h3>Roles</h3>
+{%- if roles.is_empty() %}
+<p class="doc-empty">The team holds no roles. Give it one in <a href="/p/rbac">Access control</a>, which is where what a role grants is decided, or tag one on this team's <a href="/p/resources/edit/team/{{ name }}">Edit</a> form to say it belongs to them.</p>
+{%- else %}
+{%- for role in roles %}
+<div class="doc-card">
+  <h4 class="doc-card__heading"><a href="{{ role.href }}">{{ role.name }}</a></h4>
+  <div class="doc-card__content">
+    <p><strong>Grants</strong></p>
+    {%- if role.permissions.is_empty() %}
+    <p class="doc-hint">Nothing you can see.</p>
+    {%- else %}
+    <ul>{% for permission in role.permissions %}<li><code class="doc-mono">{{ permission }}</code></li>{% endfor %}</ul>
+    {%- endif %}
+    <p><strong>Held by</strong></p>
+    {%- if role.holders.is_empty() %}
+    <p class="doc-hint">None of the team's members.</p>
+    {%- else %}
+    {% call people(role.holders) %}{% endcall %}
+    {%- endif %}
+  </div>
+</div>
+{%- endfor %}
+<h3>Permissions</h3>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Permission</th>
+      <th class="doc-table__header" scope="col">Through</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for (permission, through) in permissions() %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ permission }}</code></th>
+      <td class="doc-table__cell">{{ through }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if on("services") %}
+<h3>Services</h3>
+{%- if services.is_empty() %}
+<p class="doc-empty">The team owns no services, and works on none.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Service</th>
+      <th class="doc-table__header" scope="col">The team</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for service in services %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ service.named.href }}">{{ service.named.label }}</a>{% if !service.named.hint.is_empty() %}<span class="doc-hint">{{ service.named.hint }}</span>{% endif %}</th>
+      <td class="doc-table__cell">{% if service.owned && service.connected %}Owns and works on it{% else if service.owned %}Owns it{% else %}Works on it{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else %}
+<h3>What its services depend on</h3>
+{%- if depended.is_empty() %}
+<p class="doc-empty">Nothing related to its services is in the Catalogue yet.</p>
+{%- else %}
+{%- for kind in depended %}
+<h4>{{ kind.plural }}</h4>
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for (item, via) in kind.items %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ item.href }}">{{ item.label }}</a>{% if !item.hint.is_empty() %}<span class="doc-hint">{{ item.hint }}</span>{% endif %}</th>
+      <td class="doc-table__cell"><span class="doc-hint">Through {{ via.join(", ") }}</span></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endfor %}
+{%- endif %}
+<h3>On the Service Map</h3>
+<div hx-get="{{ map_url() }}" hx-trigger="load">
+  <p class="doc-hint">Drawing the team's services and what surrounds them…</p>
+</div>
+{%- endif %}
+
+{%- for reason in hidden %}
+<p class="doc-hint">Some of it is read from rbac as you, and it said: {{ reason }}</p>
+{%- endfor %}
+  </div>
+</div>
+{% endblock %}

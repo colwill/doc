@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block tab_catalogue %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="/p/resources/kinds/{{ kind.slug() }}" hidden>{{ kind }}</a>
+<a class="doc-trail" href="{{ here }}" hidden>{{ name }}</a>
+<h2>Add a resource related to {{ name }}</h2>
+<form hx-post="{{ self.action("connect") }}" hx-target="#resources" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="connect-to">Resource</label>
+    <span class="doc-hint" id="connect-to-hint">Anything the Catalogue can relate it to, such as its repository, a team that works on it, a role or what it runs on. Start typing a name and choose it.</span>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="connect-to" name="connection" value="{{ typed }}"
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="connect-to-options" aria-describedby="connect-to-hint"
+             hx-get="/p/resources/options?field=connection&amp;for={{ kind }}" hx-params="connection"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#connect-to-options" hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="connect-to-options" role="listbox" aria-label="Matching resources" hidden></div>
+    </div>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Add it</button>
+    <a class="doc-button doc-button--secondary" href="{{ here }}?section=connections">Cancel</a>
+  </div>
+</form>
+{% endblock %}

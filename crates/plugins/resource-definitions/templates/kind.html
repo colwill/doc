@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block tab_catalogue %}{% if kind.slug() != "team" %} aria-current="page"{% endif %}{% endblock %}
+{% block tab_teams %}{% if kind.slug() == "team" %} aria-current="page"{% endif %}{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ kind.plural() }}</h2>
+  {%- if writes && kind.written() %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/resources/new?kind={{ kind.name() }}">New {{ kind.name() }}</a>
+  </div>
+  {%- else if let Some(made) = kind.made() %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ made.href }}">{{ made.label }}</a>
+  </div>
+  {%- endif %}
+</div>
+{%- if !listed %}
+<p class="doc-empty">{{ kind.plural() }} are shown on the roles and people that hold them.</p>
+{%- else %}
+<div id="rows">{% include "rows.html" %}</div>
+{%- endif %}
+{% endblock %}

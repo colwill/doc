@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>{% if editing.is_some() %}Edit {{ fields.name }}{% else %}New resource{% endif %}</h2>
+{%- if !contents.is_empty() %}
+<div class="doc-with-contents">
+  {%- include "edit_contents.html" %}
+  <div class="doc-with-contents__main">
+{%- endif %}
+{%- if !writes %}
+<p class="doc-empty">You can see the catalogue but not change it.</p>
+{%- else %}
+{%- if let Some(yaml) = yaml %}
+<p class="doc-hint">What this says is written to the catalogue exactly as an applied document is. To write it as YAML instead, <a href="{{ yaml }}">edit it as YAML</a>.</p>
+{%- else %}
+<p class="doc-hint">What this describes is written to the catalogue exactly as an applied document is. To write one instead, or to change several things at once, use <a href="/p/resources/apply">Apply</a>.</p>
+{%- endif %}
+<form hx-post="{% if let Some(action) = editing %}{{ action }}{% else %}/p/resources/new{% endif %}" hx-target="#resources" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="kind">Kind</label>
+    {%- if editing.is_some() %}
+    <input class="doc-input" id="kind" name="kind" value="{{ fields.kind }}" readonly aria-describedby="kind-hint" />
+    <span class="doc-hint" id="kind-hint">What it is is not changed here; a resource of another kind is a new one.</span>
+    {%- else %}
+    <select class="doc-select" id="kind" name="kind">
+      {%- for choice in kinds %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+    {%- endif %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    {%- if editing.is_some() %}
+    <input class="doc-input" id="name" name="name" value="{{ fields.name }}" readonly aria-describedby="name-hint" />
+    <span class="doc-hint" id="name-hint">What it is known by. Renaming it here would make another resource, so it is left as it is.</span>
+    {%- else %}
+    <span class="doc-hint" id="name-hint">What it is known by, such as <code class="doc-mono">card-gateway</code>. A repository is <code class="doc-mono">owner/name</code>.</span>
+    <input class="doc-input" id="name" name="name" value="{{ fields.name }}" required autocomplete="off" aria-describedby="name-hint" />
+    {%- endif %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ fields.title }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">Description</label>
+    <span class="doc-hint">What it does, in a sentence.</span>
+    <input class="doc-input" id="description" name="description" value="{{ fields.description }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="owner">Owner</label>
+    <span class="doc-hint" id="owner-hint">The team that owns it. Start typing its name and choose it.</span>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="owner" name="owner" value="{{ fields.owner }}"
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="owner-options" aria-describedby="owner-hint"
+             hx-get="/p/resources/options?field=owner&amp;kinds=Team&amp;values=name" hx-params="owner"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#owner-options" hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="owner-options" role="listbox" aria-label="Matching teams" hidden></div>
+    </div>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="email">Email address</label>
+    <span class="doc-hint" id="email-hint">A team's own address, where it has one. Nothing else has one.</span>
+    <input class="doc-input" id="email" name="email" type="email" value="{{ fields.email }}" autocomplete="off" aria-describedby="email-hint" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="metadata">Metadata</label>
+    <span class="doc-hint" id="metadata-hint">One <code class="doc-mono">key=value</code> to a line, such as <code class="doc-mono">tier=1</code> or <code class="doc-mono">path=services/card-gateway</code>.</span>
+    <textarea class="doc-textarea" id="metadata" name="metadata" rows="3" aria-describedby="metadata-hint">{{ fields.metadata }}</textarea>
+  </div>
+  <fieldset class="doc-form-group">
+    <legend class="doc-label">Related resources</legend>
+    <span class="doc-hint">What it is related to: its repository, the teams that work on it, the roles that reach it, what it runs on. Start typing a name and choose it.</span>
+    {%- for slot in slots %}
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="connection-{{ loop.index }}" name="connection" value="{{ slot }}"
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-label="Related resource" aria-controls="connection-options-{{ loop.index }}"
+             hx-get="/p/resources/options?field=connection" hx-params="connection,kind"
+             hx-include="#kind" hx-trigger="focus, input changed delay:200ms"
+             hx-target="#connection-options-{{ loop.index }}" hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="connection-options-{{ loop.index }}" role="listbox" aria-label="Matching resources" hidden></div>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {%- if editing.is_some() && fields.kind == "Team" %}
+  <p class="doc-hint">Who is in this team is kept by the platform: add or remove people on the team's <a href="/p/resources/r/team/{{ fields.name }}?tab=members">Members</a> tab.</p>
+  {%- endif %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">{% if editing.is_some() %}Save it{% else %}Add it{% endif %}</button>
+    <a class="doc-button doc-button--secondary" href="/p/resources/">Cancel</a>
+  </div>
+</form>
+{%- endif %}
+{%- if !contents.is_empty() %}
+  </div>
+</div>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>Apply YAML</h2>
+{%- if !writes %}
+<p class="doc-empty">You can read the catalogue but not change it.</p>
+{%- else %}
+<p class="doc-hint">One or more documents, separated by <code class="doc-mono">---</code>. Each creates a resource or changes only the fields it names, and relates it to what it lists under <code class="doc-mono">connections</code>. Nothing is written unless all of it is right.</p>
+<form hx-post="/p/resources/apply" hx-target="#resources" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="documents">Documents</label>
+    <textarea class="doc-textarea" id="documents" name="documents" rows="18" spellcheck="false">{{ documents }}</textarea>
+  </div>
+  <p class="doc-button-group">
+    <button class="doc-button doc-button--secondary" type="submit" name="dry_run" value="yes">Preview</button>
+    <button class="doc-button" type="submit" name="dry_run" value="no">Apply</button>
+  </p>
+</form>
+{%- if let Some(report) = report %}
+<h3>{% if report.dry_run %}What would change{% else %}What changed{% endif %}</h3>
+{%- if report.changes.is_empty() %}
+<p class="doc-empty">Nothing: all {{ report.unchanged }} things it describes are already so.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Change</th>
+      <th class="doc-table__header" scope="col">Resource or definition</th>
+      <th class="doc-table__header" scope="col">Detail</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for change in report.changes %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--ready">{{ change.action }}</strong></td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ change.what }}</code></td>
+      <td class="doc-table__cell">{{ change.detail }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<p class="doc-hint">{{ report.unchanged }} already as described.</p>
+{%- endif %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

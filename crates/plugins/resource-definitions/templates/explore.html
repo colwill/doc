@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block tab_explore %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Explore</h2>
+<form hx-get="/p/resources/explore" hx-trigger="change" hx-target="#resources" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="definition">Follow</label>
+    <select class="doc-select" id="definition" name="definition">
+      {%- for (name, picked) in definitions %}
+      <option value="{{ name }}"{% if *picked %} selected{% endif %}>{{ name }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+</form>
+{%- if let Some(definition) = chosen %}
+<p><code class="doc-mono">{{ definition }}</code></p>
+{%- if let Some(reason) = hidden %}
+<p class="doc-hint">These are read from rbac as you, and it said: {{ reason }}</p>
+{%- else if starts.is_empty() %}
+{%- if let Some(first) = first %}
+<p class="doc-empty">There are no {{ first.plural() }} to start from yet.</p>
+{%- endif %}
+{%- else %}
+<ul>
+  {%- for start in starts %}
+  <li>
+    <a href="{{ start.href }}">{{ start.label }}</a>
+    {%- if let Some(next) = next %}
+    <button class="doc-button doc-button--secondary doc-button--small" hx-get="{{ start.level_url }}" hx-target="#{{ start.target }}">{{ next.plural() }}</button>
+    {%- endif %}
+    <div id="{{ start.target }}"></div>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endif %}
+{% endblock %}

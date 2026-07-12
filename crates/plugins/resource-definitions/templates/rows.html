@@ -1,0 +1,34 @@
+{%- if let Some(reason) = hidden %}
+<p class="doc-hint">These are read from rbac as you, and it said: {{ reason }}</p>
+{%- else if rows.is_empty() %}
+<p class="doc-empty">No {{ kind.plural() }} match.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Name</th>
+      <th class="doc-table__header" scope="col">Title</th>
+      {%- if kind.stored() %}
+      <th class="doc-table__header" scope="col">Owner</th>
+      {%- endif %}
+      {%- if kind.written() %}
+      <th class="doc-table__header" scope="col">From</th>
+      {%- endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.name }}</a></th>
+      <td class="doc-table__cell">{{ row.title }}</td>
+      {%- if kind.stored() %}
+      <td class="doc-table__cell">{% if let Some(owner) = row.owner %}<a href="/p/resources/r/team/{{ owner }}">{{ owner }}</a>{% endif %}</td>
+      {%- endif %}
+      {%- if kind.written() %}
+      <td class="doc-table__cell">{{ row.source }}</td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
