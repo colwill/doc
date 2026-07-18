@@ -1,0 +1,71 @@
+<div id="service-map-page">
+  <h2>Service Map</h2>
+  <div class="doc-with-contents">
+    {#- The filters take the column a contents list takes elsewhere, so the map has the rest of
+        the width. They apply as they change; the Show button is there for a browser with no
+        script, which submits the form to this page instead. -#}
+    <details class="doc-filters" open>
+      <summary class="doc-filters__summary">Filters</summary>
+      <form method="get" hx-get="/p/service-map/map" hx-trigger="change" hx-target="#service-map" aria-label="What the map shows">
+        <h2 class="doc-filters__heading">Filters</h2>
+        <div class="doc-form-group">
+          <label class="doc-label" for="focus">A map of</label>
+          <select class="doc-select" id="focus" name="focus">
+            {%- for (label, list) in groups %}
+            {%- if !list.is_empty() %}
+            <optgroup label="{{ label }}">
+              {%- for choice in list %}
+              <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+              {%- endfor %}
+            </optgroup>
+            {%- endif %}
+            {%- endfor %}
+          </select>
+        </div>
+        <div class="doc-form-group">
+          <label class="doc-label" for="depth">How far</label>
+          <select class="doc-select" id="depth" name="depth">
+            {%- for (depth, chosen) in depths %}
+            <option value="{{ depth }}"{% if *chosen %} selected{% endif %}>{{ depth }} {% if *depth == 1 %}step{% else %}steps{% endif %}</option>
+            {%- endfor %}
+          </select>
+        </div>
+        <div class="doc-form-group">
+          <label class="doc-label" for="organisation">Only services in</label>
+          <select class="doc-select" id="organisation" name="organisation">
+            <option value="">Any organisation</option>
+            {%- for choice in organisation_filters %}
+            <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+            {%- endfor %}
+          </select>
+        </div>
+        <div class="doc-form-group">
+          <label class="doc-label" for="team">Only services of</label>
+          <select class="doc-select" id="team" name="team">
+            <option value="">Any team</option>
+            {%- for choice in team_filters %}
+            <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+            {%- endfor %}
+          </select>
+        </div>
+        <details class="doc-filters__more">
+          <summary>Show{% if shown_kinds < kinds.len() %} &mdash; {{ shown_kinds }} of {{ kinds.len() }}{% endif %}</summary>
+          <fieldset class="doc-filters__choices">
+            <legend class="doc-label">Kinds of thing on the map</legend>
+            {%- for (kind, shown) in kinds %}
+            <label class="doc-filters__choice"><input type="checkbox" name="kinds" value="{{ kind }}"{% if *shown %} checked{% endif %} /> {{ kind }}</label>
+            {%- endfor %}
+          </fieldset>
+        </details>
+        <noscript>
+          <div class="doc-button-group">
+            <button class="doc-button doc-button--secondary doc-button--small" type="submit">Show</button>
+          </div>
+        </noscript>
+      </form>
+    </details>
+    <div class="doc-with-contents__main">
+      <div id="service-map">{{ map|safe }}</div>
+    </div>
+  </div>
+</div>

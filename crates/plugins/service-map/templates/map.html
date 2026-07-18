@@ -1,0 +1,24 @@
+{%- if let Some(error) = error %}
+<p class="doc-error-message" role="alert"><span>No map:</span> {{ error }}</p>
+{%- else %}
+{{ svg|safe }}
+{%- for reason in hidden %}
+<p class="doc-hint">Some of it is read from rbac as you, and it said: {{ reason }}</p>
+{%- endfor %}
+{%- if truncated %}
+<p class="doc-hint">The map stops at 200 nodes; narrow it with the filters.</p>
+{%- endif %}
+{%- if let Some(url) = full %}
+<p><a href="{{ url }}">Open it in the Service Map</a></p>
+{%- else if !expanders.is_empty() %}
+<h3>Go further</h3>
+<p class="doc-button-group">
+  {%- for (label, url) in expanders %}
+  <button class="doc-button doc-button--secondary doc-button--small" hx-get="{{ url }}" hx-target="#service-map">{{ label }}</button>
+  {%- endfor %}
+</p>
+{%- if more > 0 %}
+<p class="doc-hint">And {{ more }} more; go deeper or narrow the map to reach them.</p>
+{%- endif %}
+{%- endif %}
+{%- endif %}
