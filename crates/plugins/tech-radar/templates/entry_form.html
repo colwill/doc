@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block tab_entries %} aria-current="page"{% endblock %}
+
+{% block main %}
+{%- if let Some(key) = editing %}
+<h2>Edit {{ title }}</h2>
+{%- else %}
+<h2>Add an entry</h2>
+{%- endif %}
+{%- if !writes %}
+<div class="doc-empty"><p>You can see the radar but not change it.</p></div>
+{%- else %}
+<form {% if let Some(key) = editing %}hx-post="/p/radar/entries/{{ key }}"{% else %}hx-post="/p/radar/entries"{% endif %} hx-target="#radar" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <span class="doc-hint">The technology or technique, such as Rust or Trunk-based development.</span>
+    <input class="doc-input" id="title" name="title" value="{{ title }}" required maxlength="100" autocomplete="off" />
+  </div>
+  {%- if editing.is_none() %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="key">Key (optional)</label>
+    <span class="doc-hint">Its address and its name in imports: lowercase letters, digits and -. Made from the title if you leave it out.</span>
+    <input class="doc-input" id="key" name="key" value="{{ key }}" maxlength="64" autocomplete="off" />
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="quadrant">Quadrant</label>
+    <select class="doc-select" id="quadrant" name="quadrant">
+      {%- for choice in quadrants %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- if editing.is_none() %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="ring">Ring</label>
+    <span class="doc-hint">Moving it later is recorded on its timeline.</span>
+    <select class="doc-select" id="ring" name="ring">
+      {%- for choice in rings %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">Description (optional)</label>
+    <span class="doc-hint">Markdown. What it is, and why it is in its ring.</span>
+    <textarea class="doc-textarea" id="description" name="description" rows="8">{{ description }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="url">Link (optional)</label>
+    <span class="doc-hint">Where to learn more, such as its documentation.</span>
+    <input class="doc-input" id="url" name="url" type="url" value="{{ url }}" autocomplete="off" />
+  </div>
+  {%- if editing.is_none() %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="note">Why it is going on the radar (optional)</label>
+    <span class="doc-hint">The first line of its timeline.</span>
+    <textarea class="doc-textarea" id="note" name="note" rows="3">{{ note }}</textarea>
+  </div>
+  {%- endif %}
+  <div class="doc-button-group">
+    {%- if let Some(key) = editing %}
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/radar/entries/{{ key }}">Cancel</a>
+    {%- else %}
+    <button class="doc-button" type="submit">Add it</button>
+    {%- endif %}
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

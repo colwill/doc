@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block tab_entries %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/radar/entries/{{ key }}/edit">Edit</a>
+    <button class="doc-button doc-button--warning doc-button--small" type="button" hx-post="/p/radar/entries/{{ key }}/delete" hx-target="#radar" hx-swap="outerHTML" hx-confirm="Take {{ title }} off the radar? Its timeline goes with it.">Remove</button>
+  </div>
+  {%- endif %}
+</div>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Ring</dt>
+    <dd class="doc-summary__value"><strong>{{ ring }}</strong>{% if !moved.is_empty() %} <span class="doc-radar__moved">{{ moved }}</span>{% endif %}<span class="doc-hint">{{ meaning }}</span></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Quadrant</dt>
+    <dd class="doc-summary__value">{{ quadrant }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">In this ring since</dt>
+    <dd class="doc-summary__value">{{ moved_at }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Number on the radar</dt>
+    <dd class="doc-summary__value">{{ number }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Key</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ key }}</code></dd>
+  </div>
+  {%- if !url.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Learn more</dt>
+    <dd class="doc-summary__value"><a href="{{ url }}" rel="noopener noreferrer">{{ url }}</a></dd>
+  </div>
+  {%- endif %}
+</dl>
+{%- if !description.is_empty() %}
+<div class="doc-prose">{{ description|safe }}</div>
+{%- endif %}
+{{ svg|safe }}
+<h3>Timeline</h3>
+<ol class="doc-timeline">
+  {%- for step in steps %}
+  <li class="doc-timeline__item doc-timeline__item--done">
+    <span class="doc-timeline__title">{{ step.title }}</span>
+    <span class="doc-timeline__meta">{{ step.meta }}</span>
+    {%- if !step.note.is_empty() %}
+    <div class="doc-timeline__body">{{ step.note|safe }}</div>
+    {%- endif %}
+  </li>
+  {%- endfor %}
+</ol>
+{%- if writes %}
+<h3>Move it</h3>
+<form hx-post="/p/radar/entries/{{ key }}/move" hx-target="#radar" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="ring">Ring</label>
+    <select class="doc-select" id="ring" name="ring">
+      {%- for choice in rings %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="note">Why</label>
+    <span class="doc-hint">Markdown, for the timeline. Keep it in the same ring with a note to record that it was reviewed.</span>
+    <textarea class="doc-textarea" id="note" name="note" rows="3"></textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Move</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

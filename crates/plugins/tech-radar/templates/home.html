@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block tab_radar %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Radar</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/radar/entries/new">Add an entry</a>
+  </div>
+  {%- endif %}
+</div>
+{{ board|safe }}
+<h3>The rings</h3>
+<dl class="doc-summary">
+  {%- for (name, meaning) in rings %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">{{ name }}</dt>
+    <dd class="doc-summary__value">{{ meaning }}</dd>
+  </div>
+  {%- endfor %}
+</dl>
+<p class="doc-hint">A triangle pointing up moved in towards Adopt in the last 90 days, one pointing down moved out, and a circle with a ring around it is new.</p>
+{% endblock %}

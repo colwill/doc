@@ -1,0 +1,18 @@
+<div id="radar">
+  <nav class="doc-tabs" aria-label="Tech Radar">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/radar/"{% block tab_radar %}{% endblock %}>Radar</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/radar/entries"{% block tab_entries %}{% endblock %}>Entries</a></li>
+      {%- if writes %}
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/radar/import"{% block tab_import %}{% endblock %}>Import</a></li>
+      {%- endif %}
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>

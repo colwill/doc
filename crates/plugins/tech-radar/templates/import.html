@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block tab_import %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Import</h2>
+{%- if !writes %}
+<div class="doc-empty"><p>You can see the radar but not change it.</p></div>
+{%- else %}
+<p>Paste a radar in the JSON Backstage's tech radar loads. Quadrants and rings are matched by ID,
+  then by name, then by their place in the file's lists. Entries are matched by key: new ones arrive
+  with their whole timeline, and ones already here take the file's details and ring. Importing the
+  same file again changes nothing.</p>
+<p>The radar as that JSON is at <code class="doc-mono">GET /api/v1/plugins/radar/api/radar</code>.</p>
+<form hx-post="/p/radar/import" hx-target="#radar" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="file">The radar</label>
+    <span class="doc-hint">An object with quadrants, rings and entries, each entry with a timeline.</span>
+    <textarea class="doc-textarea doc-mono" id="file" name="file" rows="16">{{ file }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Import</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+<div id="radar-board" hx-get="/p/radar/board" hx-trigger="doc-plugin-ui-radar from:body" hx-swap="outerHTML">
+  {%- if count == 0 %}
+  <div class="doc-empty">
+    <p>Nothing is on the radar yet.</p>
+    {%- if writes %}
+    <a class="doc-button doc-button--secondary" href="/p/radar/entries/new">Add the first entry</a>
+    <a class="doc-button doc-button--secondary" href="/p/radar/import">Import a radar from Backstage</a>
+    {%- endif %}
+  </div>
+  {%- else %}
+  {{ svg|safe }}
+  <div class="doc-card-group">
+    {%- for quadrant in quadrants %}
+    <div class="doc-card">
+      <h3 class="doc-card__heading doc-radar__colour--{{ quadrant.colour }}">{{ quadrant.name }}</h3>
+      <div class="doc-card__content">
+        {%- if quadrant.rings.is_empty() %}
+        <p>Nothing here yet.</p>
+        {%- endif %}
+        {%- for ring in quadrant.rings %}
+        <h4>{{ ring.name }}</h4>
+        <ol class="doc-radar__legend" start="{{ ring.start }}">
+          {%- for entry in ring.entries %}
+          <li><a href="{{ entry.href }}">{{ entry.title }}</a>{% if !entry.moved.is_empty() %} <span class="doc-radar__moved">{{ entry.moved }}</span>{% endif %}</li>
+          {%- endfor %}
+        </ol>
+        {%- endfor %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- endif %}
+</div>

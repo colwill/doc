@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block tab_entries %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Entries</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/radar/entries/new">Add an entry</a>
+  </div>
+  {%- endif %}
+</div>
+<form hx-get="/p/radar/entries" hx-target="#radar" hx-swap="outerHTML" hx-push-url="true">
+  <input type="hidden" name="q" value="{{ q }}" />
+  <div class="doc-form-group">
+    <label class="doc-label" for="quadrant">Quadrant</label>
+    <select class="doc-select" id="quadrant" name="quadrant">
+      <option value="">Any</option>
+      {%- for choice in quadrants %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="ring">Ring</label>
+    <select class="doc-select" id="ring" name="ring">
+      <option value="">Any</option>
+      {%- for choice in rings %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Show</button>
+    {%- if filtered %}
+    <a class="doc-button doc-button--secondary" href="/p/radar/entries">Show everything</a>
+    {%- endif %}
+  </div>
+</form>
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  {%- if filtered %}
+  <p>Nothing on the radar matches that.</p>
+  {%- else %}
+  <p>Nothing is on the radar yet.</p>
+  {%- if writes %}
+  <a class="doc-button doc-button--secondary" href="/p/radar/entries/new">Add the first entry</a>
+  {%- endif %}
+  {%- endif %}
+</div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header doc-table__header--numeric" scope="col">No.</th>
+      <th class="doc-table__header" scope="col">Entry</th>
+      <th class="doc-table__header" scope="col">Quadrant</th>
+      <th class="doc-table__header" scope="col">Ring</th>
+      <th class="doc-table__header" scope="col">Last moved</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.number }}</td>
+      <td class="doc-table__cell"><a href="{{ row.href }}">{{ row.title }}</a>{% if !row.moved.is_empty() %} <span class="doc-radar__moved">{{ row.moved }}</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.quadrant }}</td>
+      <td class="doc-table__cell">{{ row.ring }}</td>
+      <td class="doc-table__cell">{{ row.changed }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}
