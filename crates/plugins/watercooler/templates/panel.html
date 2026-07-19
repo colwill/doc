@@ -1,0 +1,17 @@
+{%- if threads.is_empty() %}
+<p class="doc-hint">No discussions yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for row in threads %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a></th>
+      <td class="doc-table__cell">{{ row.author }}</td>
+      <td class="doc-table__cell">{{ row.replies }} {% if row.replies == 1 %}reply{% else %}replies{% endif %}</td>
+      <td class="doc-table__cell">{{ row.last }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="{{ page }}">All its discussions</a>{% if writes %} · <a href="/p/water/threads/new?tag={{ tag|urlencode }}">Start a discussion</a>{% endif %}</p>

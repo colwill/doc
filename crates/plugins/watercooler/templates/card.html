@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block tab_cards %} aria-current="page"{% endblock %}
+
+{% block main %}
+<p class="doc-hint">{{ kind }} card{% if !for_me %} for {{ card.recipient }}{% endif %}, from {{ card.creator }}</p>
+<div class="doc-heading-row">
+  <h2>{{ card.title }}</h2>
+  {%- if can_delete %}
+  <div class="doc-heading-row__actions">
+    <form hx-post="/p/water/cards/{{ card.id }}/delete" hx-target="#water" hx-swap="outerHTML" hx-confirm="Delete {{ card.title }}, with everything written on it?">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete it</button>
+    </form>
+  </div>
+  {%- endif %}
+</div>
+{%- if for_me %}
+<p>This card is for you. Everyone who signed it:</p>
+{%- else if revealed %}
+<p>Revealed to {{ card.recipient }} on {{ reveal }}.</p>
+{%- else %}
+<p>{{ card.recipient }} sees it on {{ reveal }}. Until then it is hidden from them.</p>
+{%- endif %}
+{%- if signed.is_empty() %}
+<div class="doc-empty"><p>No one has signed it yet.</p></div>
+{%- endif %}
+<div class="doc-card-group">
+  {%- for signature in signed %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ signature.signer }}</h3>
+    <div class="doc-card__content"><div class="doc-prose">{{ signature.html|safe }}</div></div>
+    <div class="doc-card__footer">{{ signature.when }}</div>
+  </div>
+  {%- endfor %}
+</div>
+{%- if can_sign %}
+<h3>{% if mine.is_empty() %}Sign it{% else %}Change what you wrote{% endif %}</h3>
+<form hx-post="/p/water/cards/{{ card.id }}/sign" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="message">Your message</label>
+    <span class="doc-hint">Markdown.</span>
+    <textarea class="doc-textarea" id="message" name="message" rows="4">{{ mine }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Sign</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

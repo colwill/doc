@@ -1,0 +1,21 @@
+<form hx-post="/p/water/threads/{{ id }}/replies" hx-target="#water" hx-swap="outerHTML">
+  {%- if !answering.is_empty() %}
+  <input type="hidden" name="parent" value="{{ answering }}" />
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="body">Your reply</label>
+    <span class="doc-hint">Markdown. Typing / and a name also tags a resource or a plugin.</span>
+    {% call parts::suggesting("textarea", "body", "body", body) %}{% endcall %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="tags">Tag more resources or plugins (optional)</label>
+    <span class="doc-hint">The thread is tagged with them too.</span>
+    {% call parts::tagbox("tags", "tags", 0, picked.as_slice()) %}{% endcall %}
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Reply</button>
+    {%- if !answering.is_empty() %}
+    <a class="doc-button doc-button--secondary" href="/p/water/threads/{{ id }}#m-{{ answering }}">Cancel</a>
+    {%- endif %}
+  </div>
+</form>

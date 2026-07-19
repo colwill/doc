@@ -1,0 +1,10 @@
+{%- if writes %}
+<form class="doc-like" hx-post="/p/water/threads/{{ id }}/messages/{{ post.id }}/like" hx-swap="outerHTML">
+  <button type="submit" class="doc-like__button{% if post.liked %} doc-like__button--liked{% endif %}" aria-pressed="{% if post.liked %}true{% else %}false{% endif %}"{% if !post.likers.is_empty() %} title="Liked by {{ post.likers }}"{% endif %}>
+    <svg class="doc-like__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 21h4V9H2v12Zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6c-.4.4-.6.9-.6 1.4v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2Z"/></svg>
+    <span>{% if post.liked %}Liked{% else %}Like{% endif %}</span>{% if post.likes > 0 %} <span class="doc-like__count">{{ post.likes }}</span>{% endif %}
+  </button>
+</form>
+{%- else if post.likes > 0 %}
+<span class="doc-like__button doc-like__button--static"{% if !post.likers.is_empty() %} title="Liked by {{ post.likers }}"{% endif %}><svg class="doc-like__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 21h4V9H2v12Zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6c-.4.4-.6.9-.6 1.4v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2Z"/></svg> <span class="doc-like__count">{{ post.likes }}</span><span class="nhsuk-u-visually-hidden"> likes</span></span>
+{%- endif %}

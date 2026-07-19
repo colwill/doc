@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<h2>Start a discussion</h2>
+{%- if !writes %}
+<p class="doc-empty">You can read discussions but not start them.</p>
+{%- else %}
+<form hx-post="/p/water/threads" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ title }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="tags">Tags</label>
+    <span class="doc-hint">What the discussion is about: at least one service, team, repository, plugin or other resource. Click to see them, or type to search.</span>
+    {% call parts::tagbox("tags", "tags", 0, picked) %}{% endcall %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="body">Message</label>
+    <span class="doc-hint">Markdown. Typing / and a name also tags a resource or a plugin.</span>
+    {% call parts::suggesting("textarea", "body", "body", body) %}{% endcall %}
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Start it</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

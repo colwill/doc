@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block tab_events %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Events</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/water/events/new?kind=hackathon">New hackathon</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/water/events/new?kind=game-night">New game night</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/water/events/new?kind=challenge">New challenge</a>
+  </div>
+  {%- endif %}
+</div>
+<p>Hackathons, game nights and challenges. Each has its own discussion and is on its team's calendar.</p>
+<h3>Coming up</h3>
+{%- if coming.is_empty() %}
+<div class="doc-empty"><p>Nothing is planned yet.</p></div>
+{%- else %}
+{% call parts::events(coming) %}{% endcall %}
+{%- endif %}
+{%- if !past.is_empty() %}
+<h3>Past</h3>
+{% call parts::events(past) %}{% endcall %}
+{%- endif %}
+{% endblock %}

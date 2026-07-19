@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block tab_discussions %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Discussions</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/water/threads/new">Start a discussion</a>
+  </div>
+  {%- endif %}
+</div>
+<h3>Latest</h3>
+{%- if threads.is_empty() %}
+<div class="doc-empty">
+  <p>No one has started a discussion yet.</p>
+  {%- if writes %}
+  <a class="doc-button doc-button--secondary" href="/p/water/threads/new">Start a discussion</a>
+  {%- endif %}
+</div>
+{%- else %}
+<div class="doc-form-group">
+  <label class="doc-label" for="filter">Filter what's shown</label>
+  <span class="doc-hint" id="filter-hint">Narrows the list below as you type; words in a title, its tags or who started it all match. To search everything, not only what is shown here, use Search in the header.</span>
+  <input class="doc-input" id="filter" type="search" autocomplete="off" aria-describedby="filter-hint"
+         data-doc-filter data-filter-target="#discussion-list" data-filter-empty="#discussion-none" />
+</div>
+<div id="discussion-list">
+{% call parts::threads(threads) %}{% endcall %}
+</div>
+<p class="doc-empty" id="discussion-none" hidden>Nothing shown matches.</p>
+{%- endif %}
+{% endblock %}

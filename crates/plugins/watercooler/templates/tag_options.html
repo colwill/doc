@@ -1,0 +1,6 @@
+{%- for choice in choices %}
+<li><button type="button" class="doc-suggest__option" tabindex="-1" data-value="{{ choice.value }}" data-label="{{ choice.name }}" data-hint="{{ choice.kind }}" data-kind="{{ choice.css }}">{{ choice.name }} <span class="doc-hint">{{ choice.hint }}</span></button></li>
+{%- endfor %}
+{%- if !note.is_empty() %}
+<li class="doc-suggest__empty">{{ note }}</li>
+{%- endif %}

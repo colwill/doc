@@ -1,0 +1,142 @@
+{% macro suggesting(kind, id, name, value) %}
+<div class="doc-suggest" x-data="docSuggest">
+  {%- if kind == "textarea" %}
+  <textarea class="doc-textarea" id="{{ id }}" name="{{ name }}" rows="6" x-ref="field" @input.debounce.250ms="lookup" @keydown="navigate" @blur="close">{{ value }}</textarea>
+  {%- else %}
+  <input class="doc-input" id="{{ id }}" name="{{ name }}" value="{{ value }}" autocomplete="off" x-ref="field" @input.debounce.250ms="lookup" @keydown="navigate" @blur="close" />
+  {%- endif %}
+  <input type="hidden" name="typed" form="doc-suggest-none" x-ref="query" hx-get="/p/water/suggest" hx-trigger="doc-suggest" hx-target="next .doc-suggest__list" hx-swap="innerHTML" />
+  <ul class="doc-suggest__list" role="listbox" x-ref="list" x-show="open" @mousedown.prevent="choose"></ul>
+</div>
+{% endmacro %}
+
+{% macro tagbox(id, name, max, picked) %}
+<div class="doc-tags" x-data="docTags" data-name="{{ name }}"{% if max > 0 %} data-max="{{ max }}"{% endif %}>
+  <ul class="doc-tags__list" x-ref="chosen" @click="remove">
+    {%- for tag in picked %}
+    <li class="doc-kind doc-kind--{{ tag.css }}" data-value="{{ tag.value }}"><span class="doc-kind__label">{{ tag.kind }}</span><span>{{ tag.label }}</span><input type="hidden" name="{{ name }}" value="{{ tag.value }}" /><button type="button" class="doc-tags__remove" aria-label="Remove {{ tag.label }}">×</button></li>
+    {%- endfor %}
+  </ul>
+  <input class="doc-input" id="{{ id }}" type="text" autocomplete="off" placeholder="Search services, teams, repositories, docs…" role="combobox" aria-autocomplete="list" x-bind:aria-expanded="open" x-ref="field" @focus="lookup" @click="lookup" @input.debounce.200ms="lookup" @keydown="navigate" @blur="close" />
+  <input type="hidden" name="typed" form="doc-suggest-none" x-ref="query" hx-get="/p/water/tag-options" hx-trigger="doc-suggest" hx-target="next .doc-suggest__list" hx-swap="innerHTML" />
+  <ul class="doc-suggest__list" role="listbox" x-ref="list" x-show="open" @mousedown.prevent="choose"></ul>
+</div>
+{% endmacro %}
+
+{% macro badges(tags) %}
+<ul class="doc-kinds">
+  {%- for tag in tags %}
+  <li class="doc-kind doc-kind--{{ tag.css }}"><span class="doc-kind__label">{{ tag.kind }}</span><a href="{{ tag.href }}">{{ tag.label }}</a></li>
+  {%- endfor %}
+</ul>
+{% endmacro %}
+
+{#- `typing` is for the Search page, which is where words are typed; Discussions only narrows by
+    tag, since the search in the header covers the words. -#}
+{% macro search(q, picked, typing) %}
+<form hx-get="/p/water/search" hx-target="#water" hx-swap="outerHTML" hx-push-url="true">
+  {%- if typing %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="q">Words in a discussion</label>
+    <input class="doc-input" id="q" name="q" type="search" value="{{ q }}" autocomplete="off" />
+  </div>
+  {%- else %}
+  <input type="hidden" name="q" value="{{ q }}" />
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="tag">Tagged (optional)</label>
+    <span class="doc-hint">Only discussions about this resource.</span>
+    {% call tagbox("tag", "tag", 1, picked.as_slice()) %}{% endcall %}
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button doc-button--secondary doc-button--small" type="submit">Show these</button>
+  </div>
+</form>
+{% endmacro %}
+
+{% macro threads(rows) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Thread</th>
+      <th class="doc-table__header" scope="col">Started by</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Replies</th>
+      <th class="doc-table__header" scope="col">Last post</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">
+        <a href="{{ row.href }}">{{ row.title }}</a><br />
+        {%- if !row.tags.is_empty() %}
+        {% call badges(row.tags.as_slice()) %}{% endcall %}
+        {%- endif %}
+        {%- if !row.headline.is_empty() %}
+        <span class="doc-hint">{{ row.headline|safe }}</span>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">{{ row.author }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.replies }}</td>
+      <td class="doc-table__cell">{{ row.last }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro events(lines) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">When</th>
+      <th class="doc-table__header" scope="col">Event</th>
+      <th class="doc-table__header" scope="col">Organised by</th>
+      <th class="doc-table__header" scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for line in lines %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ line.when }}</td>
+      <td class="doc-table__cell"><span class="doc-kind"><span class="doc-kind__label">{{ line.kind }}</span><a href="{{ line.href }}">{{ line.title }}</a></span></td>
+      <td class="doc-table__cell"><a href="/p/water/tags/team/{{ line.team }}">{{ line.team }}</a></td>
+      <td class="doc-table__cell">{{ line.status }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro cards(lines) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Card</th>
+      <th class="doc-table__header" scope="col">For</th>
+      <th class="doc-table__header" scope="col">Revealed</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Signed by</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for line in lines %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><span class="doc-kind"><span class="doc-kind__label">{{ line.kind }}</span><a href="{{ line.href }}">{{ line.title }}</a></span></td>
+      <td class="doc-table__cell">{{ line.recipient }}</td>
+      <td class="doc-table__cell">{{ line.reveal }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ line.signatures }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro kudos(given) %}
+{%- for kudos in given %}
+<div class="doc-card" id="k-{{ kudos.id }}">
+  <h3 class="doc-card__heading">{{ kudos.from }} to <a href="{{ kudos.href }}">{{ kudos.to }}</a></h3>
+  <div class="doc-card__content"><div class="doc-prose">{{ kudos.html|safe }}</div></div>
+  <div class="doc-card__footer">{{ kudos.when }}{% if !kudos.team.is_empty() %} · told the {{ kudos.team }} team{% endif %}</div>
+</div>
+{%- endfor %}
+{% endmacro %}

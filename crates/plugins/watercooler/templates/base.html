@@ -1,0 +1,17 @@
+<div id="water">
+  <nav class="doc-tabs" aria-label="Watercooler">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/water/"{% block tab_discussions %}{% endblock %}>Discussions</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/water/events"{% block tab_events %}{% endblock %}>Events</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/water/kudos"{% block tab_kudos %}{% endblock %}>Kudos</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/water/cards"{% block tab_cards %}{% endblock %}>Cards</a></li>
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>

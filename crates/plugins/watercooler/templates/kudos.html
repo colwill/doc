@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block tab_kudos %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<h2>{{ heading }}</h2>
+{%- if writes %}
+<form hx-post="/p/water/kudos" hx-target="#water" hx-swap="outerHTML">
+  {%- if !person.is_empty() %}
+  <input type="hidden" name="back" value="user/{{ person }}" />
+  {%- endif %}
+  {%- for choice in teams %}{% if choice.selected %}
+  <input type="hidden" name="back" value="team/{{ choice.value }}" />
+  {%- endif %}{% endfor %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="person">To a person</label>
+    <span class="doc-hint" id="person-hint">Start typing their name and choose them.</span>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="person" name="person" value="{{ person }}"
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="person-options" aria-describedby="person-hint"
+             hx-get="/people/options?field=person" hx-params="person"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#person-options"
+             hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="person-options" role="listbox" aria-label="Matching people" hidden></div>
+    </div>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="to_team">Or to a whole team</label>
+    <select class="doc-select" id="to_team" name="to_team">
+      <option value="">No team</option>
+      {%- for choice in teams %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="team">Tell a team about kudos for a person (optional)</label>
+    <select class="doc-select" id="team" name="team">
+      <option value="">No one</option>
+      {%- for choice in tell %}
+      <option value="{{ choice.value }}">{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="message">What for</label>
+    <span class="doc-hint">Markdown.</span>
+    <textarea class="doc-textarea" id="message" name="message" rows="3" required></textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Give kudos</button>
+  </div>
+</form>
+{%- endif %}
+{%- if given.is_empty() %}
+<div class="doc-empty"><p>No kudos yet.</p></div>
+{%- else %}
+{% call parts::kudos(given) %}{% endcall %}
+{%- endif %}
+{% endblock %}

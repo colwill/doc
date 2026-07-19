@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block tab_events %} aria-current="page"{% endblock %}
+
+{% block main %}
+<p class="doc-hint">{{ kind }} organised by <a href="/p/water/tags/team/{{ event.team }}">{{ event.team }}</a></p>
+<div class="doc-heading-row">
+  <h2>{{ event.title }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if section == "about" && organises %}
+    {%- if open && event.kind != "game-night" %}
+    <form hx-post="{{ self.url() }}/close" hx-target="#water" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">Close it</button>
+    </form>
+    {%- endif %}
+    <form hx-post="{{ self.url() }}/delete" hx-target="#water" hx-swap="outerHTML" hx-confirm="Cancel {{ event.title }}? It comes off the calendar; its discussion stays.">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Cancel it</button>
+    </form>
+    {%- else if section == "teams" %}
+    {%- if open && writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/register">Register a team</a>
+    {%- if !registered.is_empty() %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/submit">Submit</a>
+    {%- endif %}
+    {%- endif %}
+    {%- if organises && event.status != "announced" && !registered.is_empty() %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/winners">Announce the winners</a>
+    {%- endif %}
+    {%- else if section == "leaderboard" && open && writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}/enter">Enter a score</a>
+    {%- endif %}
+  </div>
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This event">
+      <ul class="doc-contents__list">
+        {%- for (key, title, href) in self.sections() %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ href }}"{% if key == section %} aria-current="page"{% endif %}>{{ title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "about" %}
+<h3>About</h3>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">When</dt>
+    <dd class="doc-summary__value">{{ when }}</dd>
+  </div>
+  {%- if !event.location.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Where</dt>
+    <dd class="doc-summary__value">{{ event.location }}</dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Organiser</dt>
+    <dd class="doc-summary__value">{{ event.organiser }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Status</dt>
+    <dd class="doc-summary__value">{% if open %}<strong class="doc-badge doc-badge--ready">Open</strong>{% else if event.status == "announced" %}<strong class="doc-badge doc-badge--ready">Winners announced</strong>{% else %}<strong class="doc-badge doc-badge--unknown">Closed</strong>{% endif %}</dd>
+  </div>
+  {%- if !thread_href.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Discussion</dt>
+    <dd class="doc-summary__value"><a href="{{ thread_href }}">Talk about it</a></dd>
+  </div>
+  {%- endif %}
+  {%- if !calendar_href.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Calendar</dt>
+    <dd class="doc-summary__value"><a href="{{ calendar_href }}">On {{ event.team }}'s calendar</a></dd>
+  </div>
+  {%- endif %}
+</dl>
+{%- if !event.html.is_empty() %}
+<div class="doc-prose">{{ event.html|safe }}</div>
+{%- endif %}
+
+{%- else if section == "teams" %}
+{%- if !winners.is_empty() %}
+<h3>Winners</h3>
+<ol class="doc-timeline">
+  {%- for winner in winners %}
+  <li class="doc-timeline__item doc-timeline__item--done">
+    <span class="doc-timeline__title">{{ winner.place }}. {{ winner.team }}</span>
+    {%- if !winner.note.is_empty() %}
+    <span class="doc-timeline__meta">{{ winner.note }}</span>
+    {%- endif %}
+  </li>
+  {%- endfor %}
+</ol>
+{%- endif %}
+<h3>Teams</h3>
+{%- if registered.is_empty() %}
+<div class="doc-empty"><p>No team has registered yet.</p></div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Team</th>
+      <th class="doc-table__header" scope="col">Registered by</th>
+      <th class="doc-table__header" scope="col">Submission</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in registered %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/water/tags/team/{{ row.team }}">{{ row.team }}</a></th>
+      <td class="doc-table__cell">{{ row.by }}</td>
+      <td class="doc-table__cell">
+        {%- if row.title.is_empty() %}Nothing yet{% else %}<strong>{{ row.title }}</strong>
+        {%- if !row.html.is_empty() %}<div class="doc-prose">{{ row.html|safe }}</div>{% endif %}
+        {%- if !row.links.is_empty() %}
+        <ul>
+          {%- for link in row.links %}
+          <li><a href="{{ link }}" rel="noopener noreferrer">{{ link }}</a></li>
+          {%- endfor %}
+        </ul>
+        {%- endif %}
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if section == "answers" %}
+<h3>Who is coming</h3>
+<div class="doc-stat-group">
+  <div class="doc-stat"><span class="doc-stat__label">Yes</span><span class="doc-stat__value">{{ counts.0 }}</span></div>
+  <div class="doc-stat"><span class="doc-stat__label">Maybe</span><span class="doc-stat__value">{{ counts.1 }}</span></div>
+  <div class="doc-stat"><span class="doc-stat__label">No</span><span class="doc-stat__value">{{ counts.2 }}</span></div>
+</div>
+{%- if writes %}
+<form hx-post="{{ self.url() }}/rsvp" hx-trigger="change" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="response">Will you be there?</label>
+    <select class="doc-select" id="response" name="response">
+      <option value="" disabled selected>Choose</option>
+      <option value="yes">Yes</option>
+      <option value="maybe">Maybe</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+  <noscript><button class="doc-button" type="submit">Answer</button></noscript>
+</form>
+{%- else if !calendar_href.is_empty() %}
+<p><a href="{{ calendar_href }}">Answer on its calendar event</a></p>
+{%- endif %}
+{%- if !answers.is_empty() %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for (who, response) in answers %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ who }}</th>
+      <td class="doc-table__cell">{{ response }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+{%- else if section == "leaderboard" %}
+<h3>Leaderboard</h3>
+{%- if board.is_empty() %}
+<div class="doc-empty"><p>No one has entered yet.</p></div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Place</th>
+      <th class="doc-table__header" scope="col">Who</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Best</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Entries</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for score in board %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell doc-table__cell--numeric">{{ score.place }}</td>
+      <th class="doc-table__header" scope="row">{{ score.entrant }}</th>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ score.best }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ score.entries }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

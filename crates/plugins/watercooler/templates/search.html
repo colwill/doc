@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<h2>Search discussions</h2>
+{% call parts::search(q, picked, true) %}{% endcall %}
+{%- if asked %}
+{%- if threads.is_empty() %}
+<div class="doc-empty"><p>No discussion matches{% if !q.is_empty() %} “{{ q }}”{% endif %}{% if !tag.is_empty() %} tagged {{ tag }}{% endif %}.</p></div>
+{%- else %}
+<h3>{{ threads.len() }} found</h3>
+{% call parts::threads(threads) %}{% endcall %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

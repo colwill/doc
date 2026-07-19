@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block tab_discussions %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<ul class="doc-kinds">
+  <li class="doc-kind doc-kind--{{ css }}"><span class="doc-kind__label">{{ kind }}</span><a href="{{ resource_href }}">{{ title }}</a></li>
+</ul>
+<div class="doc-heading-row">
+  <h2>Discussions about {{ title }}</h2>
+  {%- if writes && !threads.is_empty() %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/water/threads/new?tag={{ tag|urlencode }}">Start a discussion about it</a>
+  </div>
+  {%- endif %}
+</div>
+{%- if !gathered.is_empty() %}
+<p>With those about:</p>
+{% call parts::badges(gathered) %}{% endcall %}
+{%- endif %}
+{%- if threads.is_empty() %}
+<div class="doc-empty">
+  <p>No one has discussed {{ tag }} yet.</p>
+  {%- if writes %}
+  <a class="doc-button doc-button--secondary" href="/p/water/threads/new?tag={{ tag|urlencode }}">Start a discussion</a>
+  {%- endif %}
+</div>
+{%- else %}
+{% call parts::threads(threads) %}{% endcall %}
+{%- endif %}
+{% call parts::search(q, picked, false) %}{% endcall %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block tab_events %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<h2>New event</h2>
+{%- if !writes %}
+<p class="doc-empty">You can see events but not plan them.</p>
+{%- else %}
+<form hx-post="/p/water/events" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="kind">What</label>
+    <span class="doc-hint">Hackathons need <code class="doc-mono">plugin:water:pluginuser:hackathon</code>.</span>
+    <select class="doc-select" id="kind" name="kind">
+      {%- for choice in kinds %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ fields.get("title").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="team">Organised by</label>
+    <span class="doc-hint">A team you are in. The event goes on its calendar.</span>
+    <select class="doc-select" id="team" name="team">
+      {%- for choice in teams %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="start">Starts</label>
+    <input class="doc-input" id="start" name="start" type="datetime-local" value="{{ fields.get("start").cloned().unwrap_or_default() }}" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="end">Ends</label>
+    <input class="doc-input" id="end" name="end" type="datetime-local" value="{{ fields.get("end").cloned().unwrap_or_default() }}" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="timezone">Time zone</label>
+    <span class="doc-hint">Such as Europe/London.</span>
+    <input class="doc-input" id="timezone" name="timezone" value="{{ fields.get("timezone").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="location">Where (optional)</label>
+    <input class="doc-input" id="location" name="location" value="{{ fields.get("location").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">About it (optional)</label>
+    <span class="doc-hint">Markdown. It opens the event's discussion.</span>
+    {% call parts::suggesting("textarea", "description", "description", fields.get("description").cloned().unwrap_or_default()) %}{% endcall %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="tags">Tags (optional)</label>
+    <span class="doc-hint">The discussion is tagged with the organising team; add anything else it is about.</span>
+    {% call parts::tagbox("tags", "tags", 0, picked) %}{% endcall %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="unit">For a challenge: what scores count (optional)</label>
+    <span class="doc-hint">Such as km or bugs fixed.</span>
+    <input class="doc-input" id="unit" name="unit" value="{{ fields.get("unit").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label"><input type="checkbox" name="lower_wins" value="yes"{% if lower_wins %} checked{% endif %} /> For a challenge: the lowest score leads, as for a time</label>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Make it</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

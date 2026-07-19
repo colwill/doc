@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block tab_cards %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Cards</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/water/cards/new">New card</a>
+  </div>
+  {%- endif %}
+</div>
+<p>Farewells, congratulations and the like. Everyone but the person a card is for can sign it, and they see it once it is revealed.</p>
+{%- if !for_me.is_empty() %}
+<h3>For you</h3>
+{% call parts::cards(for_me) %}{% endcall %}
+{%- endif %}
+<h3>To sign</h3>
+{%- if to_sign.is_empty() %}
+<div class="doc-empty"><p>No card is waiting to be signed.</p></div>
+{%- else %}
+{% call parts::cards(to_sign) %}{% endcall %}
+{%- endif %}
+{%- if !revealed.is_empty() %}
+<h3>Revealed</h3>
+{% call parts::cards(revealed) %}{% endcall %}
+{%- endif %}
+{% endblock %}

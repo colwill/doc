@@ -1,0 +1,15 @@
+{%- if threads.is_empty() %}
+<p class="doc-empty">Nobody has tagged you in a discussion yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for row in threads %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a><br /><span class="doc-hint">{{ row.author }}, {{ row.replies }} {% if row.replies == 1 %}reply{% else %}replies{% endif %}</span></th>
+      <td class="doc-table__cell">{{ row.last }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="{{ page }}">Every discussion you are tagged in</a></p>

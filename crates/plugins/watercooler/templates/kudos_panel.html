@@ -1,0 +1,16 @@
+{%- if given.is_empty() %}
+<p class="doc-hint">No kudos yet.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for kudos in given %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ kudos.from }}</th>
+      <td class="doc-table__cell"><div class="doc-prose">{{ kudos.html|safe }}</div></td>
+      <td class="doc-table__cell">{{ kudos.when }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="{{ page }}">All their kudos</a>{% if writes %} · <a href="{{ page }}">Give kudos</a>{% endif %}</p>

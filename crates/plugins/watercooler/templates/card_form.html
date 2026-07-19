@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block tab_cards %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>New card</h2>
+{%- if !writes %}
+<p class="doc-empty">You can see cards but not make them.</p>
+{%- else %}
+<form hx-post="/p/water/cards" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="kind">What for</label>
+    <select class="doc-select" id="kind" name="kind">
+      {%- for choice in kinds %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ fields.get("title").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="recipient">For</label>
+    <span class="doc-hint">Their login, such as bob. They won't see the card until it is revealed.</span>
+    <input class="doc-input" id="recipient" name="recipient" value="{{ fields.get("recipient").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reveal_on">Revealed on</label>
+    <input class="doc-input" id="reveal_on" name="reveal_on" type="date" value="{{ fields.get("reveal_on").cloned().unwrap_or_default() }}" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reveal_time">At</label>
+    <input class="doc-input" id="reveal_time" name="reveal_time" type="time" value="{{ fields.get("reveal_time").cloned().unwrap_or_default() }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="timezone">Time zone</label>
+    <input class="doc-input" id="timezone" name="timezone" value="{{ fields.get("timezone").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="team">Tell a team when it is revealed (optional)</label>
+    <select class="doc-select" id="team" name="team">
+      <option value="">No one</option>
+      {%- for choice in teams %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="message">Your message (optional)</label>
+    <span class="doc-hint">Markdown. You sign first; others can sign until it is revealed.</span>
+    <textarea class="doc-textarea" id="message" name="message" rows="4">{{ fields.get("message").cloned().unwrap_or_default() }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Make it</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

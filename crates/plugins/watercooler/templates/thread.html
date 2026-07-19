@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block tab_discussions %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<h2>{{ title }}</h2>
+{% call parts::badges(tags) %}{% endcall %}
+{%- for post in opening %}
+{% include "post.html" %}
+{%- endfor %}
+{%- if !replies.is_empty() %}
+<h3 class="doc-conversation__count">{{ replies.len() }} {% if replies.len() == 1 %}reply{% else %}replies{% endif %}</h3>
+{%- endif %}
+<div class="doc-conversation">
+{%- for post in replies %}
+{%- for _ in 0..post.closes %}</div>{% endfor %}
+{%- for _ in 0..post.opens %}<div class="doc-replies">{% endfor %}
+{% include "post.html" %}
+{%- endfor %}
+{%- for _ in 0..trailing %}</div>{% endfor %}
+</div>
+{%- if writes && editing.is_none() && replying.is_empty() %}
+<h3 id="reply">Reply to the discussion</h3>
+{% let answering = "" %}{% include "reply_form.html" %}
+{%- endif %}
+{% endblock %}

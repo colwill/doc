@@ -1,0 +1,53 @@
+{%- let changing = !editing_id.is_empty() && editing_id == post.id %}
+<article class="doc-post{% if post.first %} doc-post--opening{% endif %}" id="m-{{ post.id }}">
+  <p class="doc-post__meta"><strong>{{ post.author }}</strong> · {{ post.when }}{% if let Some(edited) = post.edited %} · edited {{ edited }}{% endif %}{% if let Some(answers) = post.answers %} · replying to {{ answers }}{% endif %}</p>
+  {%- if let Some(editing) = editing %}{% if changing %}
+  <form hx-post="/p/water/threads/{{ id }}/messages/{{ post.id }}" hx-target="#water" hx-swap="outerHTML">
+    {%- if let Some(title) = editing.title %}
+    <div class="doc-form-group">
+      <label class="doc-label" for="title">Title</label>
+      <input class="doc-input" id="title" name="title" value="{{ title }}" maxlength="200" required autocomplete="off" />
+    </div>
+    {%- endif %}
+    <div class="doc-form-group">
+      <label class="doc-label" for="body">{% if editing.title.is_some() %}The discussion{% else %}Your reply{% endif %}</label>
+      <span class="doc-hint">Markdown. Typing / and a name also tags a resource or a plugin.</span>
+      {% call parts::suggesting("textarea", "body", "body", editing.body) %}{% endcall %}
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="tags">{% if editing.title.is_some() %}Tags{% else %}Tagged beside your words (optional){% endif %}</label>
+      <span class="doc-hint">{% if editing.title.is_some() %}At least one resource or plugin, here or written in the text. {% endif %}The thread is tagged with everything its messages tag.</span>
+      {% call parts::tagbox("tags", "tags", 0, editing.picked.as_slice()) %}{% endcall %}
+    </div>
+    <div class="doc-button-group">
+      <button class="doc-button" type="submit">Save</button>
+      <a class="doc-button doc-button--secondary" href="/p/water/threads/{{ id }}#m-{{ post.id }}">Cancel</a>
+    </div>
+  </form>
+  {%- endif %}{% endif %}
+  {%- if !changing %}
+  <div class="doc-prose">{{ post.html|safe }}</div>
+  <div class="doc-post__actions">
+    {% include "like.html" %}
+    {%- if writes && editing_id.is_empty() %}
+    {%- if post.first %}
+    <a href="/p/water/threads/{{ id }}#reply">Reply<span class="nhsuk-u-visually-hidden"> to the discussion</span></a>
+    {%- else %}
+    <a href="/p/water/threads/{{ id }}?reply={{ post.id }}#reply">Reply<span class="nhsuk-u-visually-hidden"> to {{ post.author }}</span></a>
+    {%- endif %}
+    {%- endif %}
+    {%- if post.editable && editing_id.is_empty() %}
+    <a href="/p/water/threads/{{ id }}/messages/{{ post.id }}/edit">Edit<span class="nhsuk-u-visually-hidden"> {% if post.first %}the discussion{% else %}your reply{% endif %}</span></a>
+    {%- endif %}
+    {%- if post.deletable %}
+    <form hx-post="/p/water/threads/{{ id }}/messages/{{ post.id }}/delete" hx-target="#water" hx-swap="outerHTML" hx-confirm="{% if post.first %}Delete the whole discussion, with every reply? This cannot be undone.{% else %}Delete {{ post.author }}'s reply? Replies to it move up to what it answered. This cannot be undone.{% endif %}">
+      <button class="doc-link-button" type="submit">Delete<span class="nhsuk-u-visually-hidden"> {% if post.first %}the discussion{% else %}{{ post.author }}'s reply{% endif %}</span></button>
+    </form>
+    {%- endif %}
+  </div>
+  {%- endif %}
+  {%- if replying == post.id %}
+  <h3 id="reply" class="doc-post__reply-heading">Reply to {{ post.author }}</h3>
+  {% let answering = post.id.as_str() %}{% include "reply_form.html" %}
+  {%- endif %}
+</article>

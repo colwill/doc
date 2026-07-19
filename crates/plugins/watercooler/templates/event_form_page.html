@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block tab_events %} aria-current="page"{% endblock %}
+
+{% block main %}
+<a class="doc-trail" href="{{ self.url() }}" hidden>{{ event.title }}</a>
+{%- if form == "register" %}
+<h2>Register a team for {{ event.title }}</h2>
+<form hx-post="{{ self.url() }}/registrations" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="register-team">A team you are in</label>
+    <select class="doc-select" id="register-team" name="team">
+      {%- for choice in teams %}
+      <option value="{{ choice.value }}"{% if choice.value == self.value("team") %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Register</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/teams">Cancel</a>
+  </div>
+</form>
+{%- else if form == "submit" %}
+<h2>Submit to {{ event.title }}</h2>
+<form hx-post="{{ self.url() }}/submissions" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="submit-team">Submit for</label>
+    <select class="doc-select" id="submit-team" name="team">
+      {%- for row in registered %}
+      <option value="{{ row.team }}"{% if row.team == self.value("team") %} selected{% endif %}>{{ row.team }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="submission-title">What you made</label>
+    <input class="doc-input" id="submission-title" name="title" value="{{ self.value("title") }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="submission-description">About it (optional)</label>
+    <textarea class="doc-textarea" id="submission-description" name="description" rows="3">{{ self.value("description") }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="submission-links">Links (optional)</label>
+    <span class="doc-hint">Up to five, one on each line, such as a repository or a demo.</span>
+    <textarea class="doc-textarea" id="submission-links" name="links" rows="2">{{ self.value("links") }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Submit</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/teams">Cancel</a>
+  </div>
+</form>
+{%- else if form == "winners" %}
+<h2>Announce the winners of {{ event.title }}</h2>
+<form hx-post="{{ self.url() }}/winners" hx-target="#water" hx-swap="outerHTML">
+  {%- for place in 1..4 %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="place-{{ place }}">Place {{ place }}{% if place > 1 %} (optional){% endif %}</label>
+    <select class="doc-select" id="place-{{ place }}" name="place_{{ place }}">
+      {%- if place > 1 %}
+      <option value="">No one</option>
+      {%- endif %}
+      {%- for row in registered %}
+      <option value="{{ row.team }}">{{ row.team }}</option>
+      {%- endfor %}
+    </select>
+    <input class="doc-input" name="note_{{ place }}" placeholder="Why (optional)" autocomplete="off" />
+  </div>
+  {%- endfor %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Announce them</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/teams">Cancel</a>
+  </div>
+</form>
+{%- else %}
+<h2>Enter a score in {{ event.title }}</h2>
+<form hx-post="{{ self.url() }}/entries" hx-target="#water" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="score">Your score{% if !event.unit.is_empty() %}, in {{ event.unit }}{% endif %}</label>
+    <input class="doc-input" id="score" name="score" inputmode="decimal" value="{{ self.value("score") }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="entry-note">Note (optional)</label>
+    <input class="doc-input" id="entry-note" name="note" value="{{ self.value("note") }}" autocomplete="off" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Enter it</button>
+    <a class="doc-button doc-button--secondary" href="{{ self.url() }}/leaderboard">Cancel</a>
+  </div>
+</form>
+{%- endif %}
+
+{% endblock %}
