@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block tab_feeds %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Get a feed</h2>
+<p class="doc-hint">Its URL is secret: anyone with it sees the calendar, so make a new one if it gets out.</p>
+<form hx-post="/p/calendar/feeds" hx-target="#calendar" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="feed-calendar">A feed of</label>
+    <select class="doc-select" id="feed-calendar" name="calendar">
+      <option value="all">Everything you subscribe to, and your own calendar</option>
+      {%- for choice in choices %}
+      <option value="{{ choice.id }}"{% if choice.id.to_string() == chosen %} selected{% endif %}>{{ choice.name }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Get its URL</button>
+    <a class="doc-button doc-button--secondary" href="/p/calendar/feeds">Cancel</a>
+  </div>
+</form>
+{% endblock %}

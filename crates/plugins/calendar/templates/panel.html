@@ -1,0 +1,16 @@
+{%- if items.is_empty() %}
+<p class="doc-hint">Nothing in the next two weeks.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for (day, item) in items %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ day }}</td>
+      <td class="doc-table__cell">{{ item.time }}</td>
+      <th class="doc-table__header" scope="row"><a href="{{ item.href }}">{{ item.title }}</a></th>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="/p/calendar/c/{{ calendar.id }}">{{ calendar.name }}'s calendar</a>{% if writes %} · <a href="/p/calendar/events/new?calendar={{ calendar.id }}">New event</a>{% endif %} · <a href="/p/calendar/feeds">Its feed</a></p>

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block tab_calendars %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>All calendars</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/calendar/events/new">New event</a>
+  </div>
+  {%- endif %}
+</div>
+<p class="doc-hint">The calendars you can see: your own, and one for each team, service and organisation you can see in Resource Definitions, made the first time it is opened. Your teams&rsquo; are in your calendar from the start; subscribing adds any of the others to your calendar and your feed.</p>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Calendar</th>
+      <th class="doc-table__header" scope="col">Of</th>
+      <th class="doc-table__header" scope="col">Time zone</th>
+      <th class="doc-table__header" scope="col">Subscribed</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for calendar in calendars %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/calendar/c/{{ calendar["id"].as_str().unwrap_or_default() }}">{{ calendar["name"].as_str().unwrap_or_default() }}</a></th>
+      <td class="doc-table__cell"><code class="doc-mono">{{ calendar["resource"].as_str().unwrap_or_default() }}</code></td>
+      <td class="doc-table__cell">{{ calendar["timezone"].as_str().unwrap_or_default() }}</td>
+      <td class="doc-table__cell">
+        {%- if calendar["personal"].as_bool().unwrap_or_default() %}
+        Yours
+        {%- else %}
+        <div class="doc-cal__following">
+        {%- if calendar["by_default"].as_bool().unwrap_or_default() %}<span class="doc-hint">Your team&rsquo;s</span>{% endif %}
+        <form hx-post="/p/calendar/subscribe" hx-target="#calendar" hx-swap="outerHTML">
+          <input type="hidden" name="calendar" value="{{ calendar["id"].as_str().unwrap_or_default() }}" />
+          <input type="hidden" name="subscribed" value="{% if calendar["subscribed"].as_bool().unwrap_or_default() %}false{% else %}true{% endif %}" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">{% if calendar["subscribed"].as_bool().unwrap_or_default() %}Unsubscribe{% else %}Subscribe{% endif %}</button>
+        </form>
+        </div>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<p class="doc-hint">A calendar you do not see here opens from its resource's page, under Calendar.</p>
+{% endblock %}

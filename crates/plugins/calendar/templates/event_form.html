@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>{{ heading }}</h2>
+{%- if !writes %}
+<p class="doc-empty">You can see events but not make or change them.</p>
+{%- else %}
+<form hx-post="{{ action }}" hx-target="#calendar" hx-swap="outerHTML">
+  {%- if repeat != "rule" %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="calendar-choice">Calendar</label>
+    <select class="doc-select" id="calendar-choice" name="calendar">
+      {%- for choice in choices %}
+      <option value="{{ choice.id }}"{% if choice.selected %} selected{% endif %}>{{ choice.name }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ fields.get("title").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="start">Starts</label>
+    <span class="doc-hint">A date and time, such as 2026-10-05T09:00, or a date for all day.</span>
+    <input class="doc-input" id="start" name="start" value="{{ fields.get("start").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="end">Ends</label>
+    <input class="doc-input" id="end" name="end" value="{{ fields.get("end").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label"><input type="checkbox" name="all_day" value="yes"{% if all_day %} checked{% endif %} /> All day</label>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="away">I am away</label>
+    <span class="doc-hint">On your own calendar only. Saying so takes you off any rota turn and marks any recurring process that falls to you while you are away, so somebody can cover it.</span>
+    <select class="doc-select" id="away" name="away">
+      <option value=""{% if away.is_empty() %} selected{% endif %}>No &mdash; I am working</option>
+      <option value="holiday"{% if away == "holiday" %} selected{% endif %}>Yes &mdash; on holiday</option>
+      <option value="sick"{% if away == "sick" %} selected{% endif %}>Yes &mdash; off sick</option>
+      <option value="other"{% if away == "other" %} selected{% endif %}>Yes &mdash; something else</option>
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="timezone">Time zone</label>
+    <span class="doc-hint">Such as Europe/London. A repeating event keeps its time here through daylight saving.</span>
+    <input class="doc-input" id="timezone" name="timezone" value="{{ fields.get("timezone").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  {%- if repeat == "rule" %}
+  <input type="hidden" name="repeat" value="rule" />
+  <div class="doc-form-group">
+    <label class="doc-label" for="rrule">Repeats</label>
+    <span class="doc-hint">An iCalendar rule, such as FREQ=WEEKLY;BYDAY=MO. Empty for once.</span>
+    <input class="doc-input" id="rrule" name="rrule" value="{{ fields.get("rrule").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  {%- else %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="repeat">Repeats</label>
+    <select class="doc-select" id="repeat" name="repeat">
+      <option value="">Never</option>
+      <option value="DAILY">Every day</option>
+      <option value="WEEKLY">Every week</option>
+      <option value="MONTHLY">Every month</option>
+      <option value="YEARLY">Every year</option>
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="count">How many times (optional)</label>
+    <input class="doc-input" id="count" name="count" inputmode="numeric" autocomplete="off" />
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="reminder">Reminder, in minutes before (optional)</label>
+    <span class="doc-hint">Automations deliver reminders, such as the Event reminders template.</span>
+    <input class="doc-input" id="reminder" name="reminder" value="{{ reminder }}" inputmode="numeric" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="location">Where (optional)</label>
+    <input class="doc-input" id="location" name="location" value="{{ fields.get("location").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="link">Link (optional)</label>
+    <input class="doc-input" id="link" name="link" type="url" value="{{ fields.get("link").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">Description (optional)</label>
+    <textarea class="doc-textarea" id="description" name="description" rows="4">{{ fields.get("description").cloned().unwrap_or_default() }}</textarea>
+  </div>
+  <button class="doc-button" type="submit">Save</button>
+</form>
+{%- endif %}
+{% endblock %}

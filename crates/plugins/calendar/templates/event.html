@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block main %}
+<p class="doc-hint"><a href="{{ calendar_href }}">{{ calendar_name }}</a></p>
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  {%- if editable %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/calendar/events/{{ id }}/edit">Edit</a>
+    <form hx-post="/p/calendar/events/{{ id }}/delete" hx-target="#calendar" hx-swap="outerHTML" hx-confirm="Delete {{ title }}, every time it happens?">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete</button>
+    </form>
+  </div>
+  {%- endif %}
+</div>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">When</dt>
+    <dd class="doc-summary__value">{{ when }}</dd>
+  </div>
+  {%- if !repeats.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Repeats</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ repeats }}</code></dd>
+  </div>
+  {%- endif %}
+  {%- if !location.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Where</dt>
+    <dd class="doc-summary__value">{{ location }}</dd>
+  </div>
+  {%- endif %}
+  {%- if !link.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Link</dt>
+    <dd class="doc-summary__value"><a href="{{ link }}" rel="noopener noreferrer">{{ link }}</a></dd>
+  </div>
+  {%- endif %}
+  {%- if !attendees.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Attendees</dt>
+    <dd class="doc-summary__value">{{ attendees }}</dd>
+  </div>
+  {%- endif %}
+  {%- if !resource.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">About</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ resource }}</code></dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Made by</dt>
+    <dd class="doc-summary__value">{{ made_by }}</dd>
+  </div>
+</dl>
+{%- if !description.is_empty() %}
+<p>{{ description }}</p>
+{%- endif %}
+{%- if upcoming.len() > 1 %}
+<h3>Coming up</h3>
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for (_, start) in upcoming %}
+    <tr class="doc-table__row"><td class="doc-table__cell">{{ start }}</td></tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<h3>Will you be there?</h3>
+<form hx-post="/p/calendar/rsvp" hx-target="#calendar" hx-swap="outerHTML">
+  <input type="hidden" name="event" value="{{ id }}" />
+  {%- if upcoming.len() > 1 %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="occurrence">For</label>
+    <select class="doc-select" id="occurrence" name="occurrence">
+      <option value="">Every time</option>
+      {%- for (named, start) in upcoming %}
+      <option value="{{ named }}">{{ start }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="response">Answer</label>
+    <select class="doc-select" id="response" name="response">
+      <option value="yes">Yes</option>
+      <option value="maybe">Maybe</option>
+      <option value="no">No</option>
+    </select>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Answer</button>
+  </div>
+</form>
+{%- if !rsvps.is_empty() %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Answers</caption>
+  <tbody class="doc-table__body">
+    {%- for (who, response, occurrence) in rsvps %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ who }}</th>
+      <td class="doc-table__cell">{{ response }}</td>
+      <td class="doc-table__cell">{{ occurrence }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

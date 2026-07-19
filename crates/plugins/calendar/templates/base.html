@@ -1,0 +1,16 @@
+<div id="calendar">
+  <nav class="doc-tabs" aria-label="Calendar">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/calendar/"{% block tab_mine %}{% endblock %}>Your calendar</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/calendar/calendars"{% block tab_calendars %}{% endblock %}>All calendars</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/calendar/feeds"{% block tab_feeds %}{% endblock %}>Feeds</a></li>
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>

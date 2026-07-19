@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block tab_feeds %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Feeds</h2>
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/calendar/feeds/new">Get a feed</a>
+  </div>
+</div>
+<p class="doc-hint">Subscribe to a feed's URL in a calendar app, such as Google Calendar, Outlook or Apple Calendar. The URL is secret: anyone with it sees the calendar, so make a new one if it gets out.</p>
+{%- if feeds.is_empty() %}
+<p class="doc-empty">You have no feeds yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Of</th>
+      <th class="doc-table__header" scope="col">URL</th>
+      <th class="doc-table__header" scope="col">New URL</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for feed in feeds %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ feed["of"].as_str().unwrap_or_default() }}</th>
+      <td class="doc-table__cell"><code class="doc-mono">{{ feed["url"].as_str().unwrap_or_default() }}</code></td>
+      <td class="doc-table__cell">
+        <form hx-post="/p/calendar/feeds/{{ feed["id"].as_str().unwrap_or_default() }}/rotate" hx-target="#calendar" hx-swap="outerHTML" hx-confirm="Make a new URL? Calendar apps using the old one stop getting updates.">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Make a new URL</button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

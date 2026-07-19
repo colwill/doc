@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block tab_mine %}{% if calendar.is_none() %} aria-current="page"{% endif %}{% endblock %}
+{% block tab_calendars %}{% if calendar.is_some() %} aria-current="page"{% endif %}{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if let Some(calendar) = calendar %}
+    <form hx-post="/p/calendar/subscribe" hx-target="#calendar" hx-swap="outerHTML">
+      <input type="hidden" name="calendar" value="{{ calendar.id }}" />
+      <input type="hidden" name="back" value="calendar" />
+      <input type="hidden" name="subscribed" value="{% if subscribed %}false{% else %}true{% endif %}" />
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">{% if subscribed %}Unsubscribe{% else %}Subscribe{% endif %}</button>
+    </form>
+    {%- if writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/calendar/events/new?calendar={{ calendar.id }}">New event on it</a>
+    {%- endif %}
+    {%- else if writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/calendar/events/new">New event</a>
+    {%- endif %}
+  </div>
+</div>
+{%- if let Some(calendar) = calendar %}
+<p class="doc-hint">The calendar of <code class="doc-mono">{{ calendar.resource }}</code>. Times are in {{ zone }}.</p>
+{%- else %}
+<p class="doc-hint">Your own calendar, your teams&rsquo;, and those you subscribe to. Times are in {{ zone }}.</p>
+{%- if calendars.len() > 1 %}
+<ul class="doc-cal__key">
+  {%- for shade in calendars %}
+  <li class="doc-cal__keyitem doc-cal__tone--{{ shade.tone }}"><span class="doc-cal__swatch" aria-hidden="true"></span>{{ shade.name }}</li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- endif %}
+
+<div class="doc-cal__bar">
+  <div class="doc-cal__move">
+    <a class="doc-cal__step" href="{{ here }}?view={{ mode }}&amp;date={{ previous }}&amp;tz={{ zone|urlencode }}" aria-label="Earlier">&lsaquo;</a>
+    <a class="doc-cal__today" href="{{ here }}?view={{ mode }}&amp;date={{ today }}&amp;tz={{ zone|urlencode }}">Today</a>
+    <a class="doc-cal__step" href="{{ here }}?view={{ mode }}&amp;date={{ next }}&amp;tz={{ zone|urlencode }}" aria-label="Later">&rsaquo;</a>
+  </div>
+  <h3 class="doc-cal__heading">{{ heading }}</h3>
+  <nav class="doc-cal__views" aria-label="How to show it">
+    {%- for view in ["day", "week", "month", "agenda"] %}
+    <a class="doc-cal__view" href="{{ here }}?view={{ view }}&amp;date={{ date }}&amp;tz={{ zone|urlencode }}"{% if mode.as_str() == *view %} aria-current="page"{% endif %}>{% if *view == "agenda" %}List{% else %}{{ view }}{% endif %}</a>
+    {%- endfor %}
+  </nav>
+</div>
+
+{%- if mode == "month" %}
+<div class="doc-cal doc-cal--month">
+  <div class="doc-cal__weekdays">
+    {%- for name in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] %}
+    <span class="doc-cal__weekday">{{ name }}</span>
+    {%- endfor %}
+  </div>
+  <div class="doc-cal__weeks">
+    {%- for week in weeks %}
+    {%- for day in week %}
+    <div class="doc-cal__cell{% if !day.in_range %} doc-cal__cell--muted{% endif %}{% if day.today %} doc-cal__cell--today{% endif %}">
+      <a class="doc-cal__number" href="{{ here }}?view=day&amp;date={{ day.date }}&amp;tz={{ zone|urlencode }}">{{ day.number }}</a>
+      {%- for item in day.chips() %}
+      <a class="doc-cal__chip doc-cal__tone--{{ item.tone }}{% if item.all_day %} doc-cal__chip--all-day{% endif %}" href="{{ item.href }}" title="{{ item.time }} {{ item.title }}{% if !item.calendar.is_empty() %} · {{ item.calendar }}{% endif %}">
+        {%- if !item.all_day %}<span class="doc-cal__chip-time">{{ item.from }}</span> {% endif -%}
+        <span class="doc-cal__chip-title">{{ item.title }}</span>
+      </a>
+      {%- endfor %}
+      {%- if day.more() > 0 %}
+      <a class="doc-cal__more" href="{{ here }}?view=day&amp;date={{ day.date }}&amp;tz={{ zone|urlencode }}">{{ day.more() }} more</a>
+      {%- endif %}
+    </div>
+    {%- endfor %}
+    {%- endfor %}
+  </div>
+</div>
+
+{%- else if mode == "week" || mode == "day" %}
+<div class="doc-cal doc-cal--{{ mode }}">
+  <div class="doc-cal__head">
+    <span class="doc-cal__corner">{{ zone }}</span>
+    {%- for day in days %}
+    <a class="doc-cal__dayhead{% if day.today %} doc-cal__dayhead--today{% endif %}" href="{{ here }}?view=day&amp;date={{ day.date }}&amp;tz={{ zone|urlencode }}">
+      <span class="doc-cal__dayname">{{ day.weekday }}</span>
+      <span class="doc-cal__daynumber">{{ day.number }}</span>
+    </a>
+    {%- endfor %}
+  </div>
+  <div class="doc-cal__allday">
+    <span class="doc-cal__alldaylabel">All day</span>
+    {%- for day in days %}
+    <div class="doc-cal__alldaycell">
+      {%- for item in day.all_day() %}
+      <a class="doc-cal__chip doc-cal__chip--all-day doc-cal__tone--{{ item.tone }}" href="{{ item.href }}"{% if !item.calendar.is_empty() %} title="{{ item.title }} · {{ item.calendar }}"{% endif %}>{{ item.title }}</a>
+      {%- endfor %}
+    </div>
+    {%- endfor %}
+  </div>
+  <div class="doc-cal__body">
+    <div class="doc-cal__hours">
+      {%- for hour in hours %}
+      <span class="doc-cal__hour">{{ hour }}</span>
+      {%- endfor %}
+    </div>
+    {%- for day in days %}
+    <div class="doc-cal__column{% if day.today %} doc-cal__column--today{% endif %}">
+      {%- for item in day.timed() %}
+      <a class="doc-cal__event doc-cal__tone--{{ item.tone }} doc-cal__event--s{{ item.start }} doc-cal__event--n{{ item.span }} doc-cal__event--lane-{{ item.lane }}-{{ item.lanes }}{% if item.span <= 2 %} doc-cal__event--brief{% endif %}" href="{{ item.href }}" title="{{ item.time }} {{ item.title }}{% if !item.calendar.is_empty() %} · {{ item.calendar }}{% endif %}">
+        <span class="doc-cal__event-time">{{ item.from }}</span>
+        <span class="doc-cal__event-title">{{ item.title }}</span>
+        {%- if item.span >= 6 %}
+        {%- if !item.location.is_empty() %}<span class="doc-cal__event-where">{{ item.location }}</span>{% endif %}
+        {%- if calendar.is_none() && calendars.len() > 1 %}<span class="doc-cal__event-where">{{ item.calendar }}</span>{% endif %}
+        {%- endif %}
+      </a>
+      {%- endfor %}
+    </div>
+    {%- endfor %}
+  </div>
+</div>
+
+{%- else %}
+{%- if days.is_empty() %}
+<p class="doc-empty">Nothing in the next thirty days.</p>
+{%- endif %}
+<div class="doc-cal doc-cal--list">
+  {%- for day in days %}
+  <div class="doc-cal__listday{% if day.today %} doc-cal__listday--today{% endif %}">
+    <div class="doc-cal__listdate">
+      <span class="doc-cal__listnumber">{{ day.number }}</span>
+      <span class="doc-cal__listweekday">{{ day.weekday }}</span>
+      <span class="nhsuk-u-visually-hidden">{{ day.label }}</span>
+    </div>
+    <ul class="doc-cal__listitems">
+      {%- for item in day.items %}
+      <li class="doc-cal__listitem">
+        <span class="doc-cal__listtime">{{ item.time }}</span>
+        <a class="doc-cal__listtitle" href="{{ item.href }}">{{ item.title }}</a>
+        {%- if !item.location.is_empty() %}<span class="doc-cal__listwhere">{{ item.location }}</span>{% endif %}
+        <span class="doc-cal__listcalendar doc-cal__tone--{{ item.tone }}"><span class="doc-cal__swatch" aria-hidden="true"></span>{{ item.calendar }}</span>
+      </li>
+      {%- endfor %}
+    </ul>
+  </div>
+  {%- endfor %}
+</div>
+{%- endif %}
+{% endblock %}
