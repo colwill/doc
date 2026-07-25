@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "macros.html" as tables %}
+
+{% block main %}
+<p class="doc-hint"><a href="{{ resource_href }}"><code class="doc-mono">{{ process.resource }}</code></a></p>
+<div class="doc-heading-row">
+  <h2>{{ process.title }}</h2>
+  {%- if editable %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/process/processes/{{ process.id }}/edit">Edit</a>
+    <form hx-post="/p/process/processes/{{ process.id }}/delete" hx-target="#process" hx-swap="outerHTML" hx-confirm="Delete {{ process.title }}, with its occurrences and their calendar events?">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete</button>
+    </form>
+  </div>
+  {%- endif %}
+</div>
+{%- if !process.description.is_empty() %}
+<p>{{ process.description }}</p>
+{%- endif %}
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">When</dt>
+    <dd class="doc-summary__value">{{ schedule }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Owner</dt>
+    <dd class="doc-summary__value">{{ process.owner }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Assigned to</dt>
+    <dd class="doc-summary__value">{{ assignees }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Reminder</dt>
+    <dd class="doc-summary__value">{{ reminder }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Missed</dt>
+    <dd class="doc-summary__value">{{ grace }}</dd>
+  </div>
+</dl>
+{%- if !process.checklist.is_empty() %}
+<h3>Checklist</h3>
+<ol>
+  {%- for item in process.checklist %}
+  <li>{{ item }}</li>
+  {%- endfor %}
+</ol>
+{%- endif %}
+<h3>Occurrences</h3>
+{%- if coming.is_empty() && recent.is_empty() %}
+<div class="doc-empty"><p>No occurrences are planned yet; they are planned within a minute.</p></div>
+{%- endif %}
+{%- if !coming.is_empty() %}
+{% call tables::history("Coming up", coming) %}{% endcall %}
+{%- endif %}
+{%- if !recent.is_empty() %}
+{% call tables::history("Lately", recent) %}{% endcall %}
+{%- endif %}
+{% endblock %}

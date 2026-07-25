@@ -1,0 +1,16 @@
+{%- if processes.is_empty() %}
+<p class="doc-hint">No processes on this resource.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for row in processes %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a>{% if row.missed > 0 %} <strong class="doc-badge doc-badge--error">{{ row.missed }} missed</strong>{% endif %}</th>
+      <td class="doc-table__cell">{{ row.schedule }}</td>
+      <td class="doc-table__cell">{% if row.next_href.is_empty() %}Nothing planned{% else %}Next <a href="{{ row.next_href }}">{{ row.next }}</a> <strong class="doc-badge doc-badge--{{ row.next_badge.modifier }}">{{ row.next_badge.text }}</strong>{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p>{% if writes %}<a href="/p/process/processes/new?resource={{ resource|urlencode }}">New process</a> · {% endif %}<a href="/p/process/">Your processes</a></p>

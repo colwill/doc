@@ -1,0 +1,10 @@
+{% import "macros.html" as tables %}
+{%- if to_do.is_empty() %}
+<p class="doc-empty">Nothing of yours is due in the next two weeks, and nothing is overdue or missed.</p>
+{%- else %}
+{% call tables::due(to_do) %}{% endcall %}
+{%- if more > 0 %}
+<p class="doc-hint">And {{ more }} more.</p>
+{%- endif %}
+{%- endif %}
+<p><a href="/p/process/">Your processes</a></p>

@@ -1,0 +1,69 @@
+{% macro processes(rows) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Process</th>
+      <th class="doc-table__header" scope="col">Resource</th>
+      <th class="doc-table__header" scope="col">When</th>
+      <th class="doc-table__header" scope="col">Assigned to</th>
+      <th class="doc-table__header" scope="col">Next</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a>{% if row.missed > 0 %} <strong class="doc-badge doc-badge--error">{{ row.missed }} missed</strong>{% endif %}</th>
+      <td class="doc-table__cell"><a href="{{ row.resource_href }}"><code class="doc-mono">{{ row.resource }}</code></a></td>
+      <td class="doc-table__cell">{{ row.schedule }}</td>
+      <td class="doc-table__cell">{{ row.assignees }}</td>
+      <td class="doc-table__cell">{% if row.next_href.is_empty() %}Nothing planned{% else %}<a href="{{ row.next_href }}">{{ row.next }}</a> <strong class="doc-badge doc-badge--{{ row.next_badge.modifier }}">{{ row.next_badge.text }}</strong>{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro due(lines) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Due</th>
+      <th class="doc-table__header" scope="col">Process</th>
+      <th class="doc-table__header" scope="col">Resource</th>
+      <th class="doc-table__header" scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for line in lines %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ line.href }}">{{ line.when }}</a></td>
+      <td class="doc-table__cell">{{ line.title }}</td>
+      <td class="doc-table__cell"><a href="{{ line.resource_href }}"><code class="doc-mono">{{ line.resource }}</code></a></td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ line.badge.modifier }}">{{ line.badge.text }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro history(caption, lines) %}
+<table class="doc-table">
+  <caption class="doc-table__caption">{{ caption }}</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Due</th>
+      <th class="doc-table__header" scope="col">Status</th>
+      <th class="doc-table__header" scope="col">By</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for line in lines %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ line.href }}">{{ line.when }}</a></td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ line.badge.modifier }}">{{ line.badge.text }}</strong></td>
+      <td class="doc-table__cell">{{ line.by }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}

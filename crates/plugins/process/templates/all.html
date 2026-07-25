@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block tab_all %} aria-current="page"{% endblock %}
+{% import "macros.html" as tables %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>All processes</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/process/processes/new">New process</a>
+  </div>
+  {%- endif %}
+</div>
+{%- if processes.is_empty() %}
+<div class="doc-empty">
+  <p>There are no processes on the resources you can see.</p>
+  {%- if writes %}
+  <a class="doc-button doc-button--secondary" href="/p/process/processes/new">New process</a>
+  {%- endif %}
+</div>
+{%- else %}
+{% call tables::processes(processes) %}{% endcall %}
+{%- endif %}
+{% endblock %}

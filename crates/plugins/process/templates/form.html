@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>{{ heading }}</h2>
+{%- if !writes %}
+<p class="doc-empty">You can see processes but not make or change them.</p>
+{%- else %}
+<form hx-post="{{ action }}" hx-target="#process" hx-swap="outerHTML">
+  {%- if new %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="resource">Resource</label>
+    <span class="doc-hint">What the process is for. Start typing its name and choose it.</span>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="resource" name="resource" value="{{ fields.get("resource").cloned().unwrap_or_default() }}" required
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="resource-options"
+             hx-get="/p/resources/options?field=resource" hx-params="resource"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#resource-options"
+             hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="resource-options" role="listbox" aria-label="Matching resources" hidden></div>
+    </div>
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ fields.get("title").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="cadence">How often</label>
+    <select class="doc-select" id="cadence" name="cadence">
+      {%- for choice in cadences %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="weekday">Weekday</label>
+    <span class="doc-hint">For a weekly process.</span>
+    <select class="doc-select" id="weekday" name="weekday">
+      {%- for choice in weekdays %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="day">Day of the month</label>
+    <span class="doc-hint">For a monthly, quarterly or yearly process, 1 to 31. A shorter month uses its last day.</span>
+    <input class="doc-input" id="day" name="day" value="{{ fields.get("day").cloned().unwrap_or_default() }}" inputmode="numeric" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="month">Month</label>
+    <span class="doc-hint">For a yearly process. For a quarterly one, January, February or March means the first, second or third month of each quarter.</span>
+    <select class="doc-select" id="month" name="month">
+      {%- for choice in months %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="time">Time</label>
+    <span class="doc-hint">When it is due, such as 10:00.</span>
+    <input class="doc-input" id="time" name="time" value="{{ fields.get("time").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="timezone">Time zone</label>
+    <span class="doc-hint">Such as Europe/London. The time stays the same through daylight saving.</span>
+    <input class="doc-input" id="timezone" name="timezone" value="{{ fields.get("timezone").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="duration">Minutes on the calendar</label>
+    <input class="doc-input" id="duration" name="duration" value="{{ fields.get("duration").cloned().unwrap_or_default() }}" inputmode="numeric" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="owner">Owner</label>
+    <span class="doc-hint">A login. The owner can change the process.</span>
+    <input class="doc-input" id="owner" name="owner" value="{{ fields.get("owner").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="assignees">Assigned to</label>
+    <span class="doc-hint">Logins and teams, separated by commas, such as alice, team:payments-core. Empty for the owner.</span>
+    <input class="doc-input" id="assignees" name="assignees" value="{{ fields.get("assignees").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="checklist">Checklist</label>
+    <span class="doc-hint">One item on each line, ticked off in turn each time.</span>
+    <textarea class="doc-textarea" id="checklist" name="checklist" rows="5">{{ fields.get("checklist").cloned().unwrap_or_default() }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reminder">Reminder, in minutes before it is due (optional)</label>
+    <span class="doc-hint">Automations deliver reminders, such as the Process reminders template.</span>
+    <input class="doc-input" id="reminder" name="reminder" value="{{ fields.get("reminder").cloned().unwrap_or_default() }}" inputmode="numeric" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="grace">Missed after, in minutes</label>
+    <span class="doc-hint">How long after it is due it can still be done. 1440 is a day.</span>
+    <input class="doc-input" id="grace" name="grace" value="{{ fields.get("grace").cloned().unwrap_or_default() }}" inputmode="numeric" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">Description (optional)</label>
+    <textarea class="doc-textarea" id="description" name="description" rows="3">{{ fields.get("description").cloned().unwrap_or_default() }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block main %}
+<p class="doc-hint"><a href="{{ process_href }}">{{ process.title }}</a> · <a href="{{ resource_href }}"><code class="doc-mono">{{ process.resource }}</code></a></p>
+<h2>{{ process.title }}</h2>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Status</dt>
+    <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ badge.modifier }}">{{ badge.text }}</strong></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Due</dt>
+    <dd class="doc-summary__value">{{ when }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Missed if not done by</dt>
+    <dd class="doc-summary__value">{{ deadline }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Assigned to</dt>
+    <dd class="doc-summary__value">{{ assignees }}</dd>
+  </div>
+  {%- if !finished.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">{% if badge.text == "Skipped" %}Skipped by{% else %}Done by{% endif %}</dt>
+    <dd class="doc-summary__value">{{ finished }}</dd>
+  </div>
+  {%- endif %}
+  {%- if !note.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Note</dt>
+    <dd class="doc-summary__value">{{ note }}</dd>
+  </div>
+  {%- endif %}
+  {%- if !event_href.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Calendar</dt>
+    <dd class="doc-summary__value"><a href="{{ event_href }}">On {{ process.resource }}'s calendar</a></dd>
+  </div>
+  {%- endif %}
+</dl>
+<h3>Checklist</h3>
+{%- if ticks.is_empty() %}
+<p class="doc-hint">This process has no checklist.</p>
+{%- else %}
+<ol class="doc-timeline">
+  {%- for tick in ticks %}
+  <li class="doc-timeline__item doc-timeline__item--{% if tick.done %}done{% else %}pending{% endif %}">
+    <span class="doc-timeline__title">{{ tick.text }}</span>
+    {%- if !tick.meta.is_empty() %}
+    <span class="doc-timeline__meta">{{ tick.meta }}</span>
+    {%- endif %}
+    {%- if workable %}
+    <div class="doc-timeline__body">
+      <form hx-post="/p/process/occurrences/{{ id }}/tick" hx-target="#process" hx-swap="outerHTML">
+        <input type="hidden" name="item" value="{{ tick.number }}" />
+        <input type="hidden" name="done" value="{% if tick.done %}false{% else %}true{% endif %}" />
+        <button class="doc-button doc-button--secondary doc-button--small" type="submit">{% if tick.done %}Untick{% else %}Tick off{% endif %}</button>
+      </form>
+    </div>
+    {%- endif %}
+  </li>
+  {%- endfor %}
+</ol>
+{%- endif %}
+{%- if workable %}
+<h3>Finish it</h3>
+<form hx-post="/p/process/occurrences/{{ id }}/complete" hx-target="#process" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="note">Note (optional)</label>
+    <span class="doc-hint">Anything whoever does it next should know.</span>
+    <textarea class="doc-textarea" id="note" name="note" rows="2"></textarea>
+  </div>
+  {%- if !ticks.is_empty() %}
+  <div class="doc-form-group">
+    <label class="doc-label"><input type="checkbox" name="all" value="yes" /> Tick off whatever is left</label>
+  </div>
+  {%- endif %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Mark done</button>
+  </div>
+</form>
+<form hx-post="/p/process/occurrences/{{ id }}/skip" hx-target="#process" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="reason">Or skip it this time, saying why</label>
+    <input class="doc-input" id="reason" name="note" autocomplete="off" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button doc-button--warning" type="submit">Skip</button>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

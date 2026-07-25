@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block tab_mine %} aria-current="page"{% endblock %}
+{% import "macros.html" as tables %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Your processes</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/process/processes/new">New process</a>
+  </div>
+  {%- endif %}
+</div>
+<h3>To do</h3>
+{%- if to_do.is_empty() %}
+<div class="doc-empty"><p>Nothing of yours is due in the next two weeks, and nothing is overdue or missed.</p></div>
+{%- else %}
+{% call tables::due(to_do) %}{% endcall %}
+{%- endif %}
+<h3>Processes you own or are assigned to</h3>
+{%- if processes.is_empty() %}
+<div class="doc-empty">
+  <p>You own no processes, and none are assigned to you or your teams.</p>
+  {%- if writes %}
+  <a class="doc-button doc-button--secondary" href="/p/process/processes/new">New process</a>
+  {%- endif %}
+</div>
+{%- else %}
+{% call tables::processes(processes) %}{% endcall %}
+{%- endif %}
+{% endblock %}
