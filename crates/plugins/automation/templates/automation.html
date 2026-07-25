@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block tab_automations %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ automation.name }}{% if !automation.enabled %} <strong class="doc-badge doc-badge--unknown">Off</strong>{% endif %}</h2>
+  {%- if mine && section == "steps" %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}?node=add-condition#node">Add a condition</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="{{ self.url() }}?node=add-action#node">Add an action</a>
+    <form hx-post="/p/automation/a/{{ automation.id }}/enabled" hx-target="#automation" hx-swap="outerHTML">
+      <input type="hidden" name="enabled" value="{% if automation.enabled %}false{% else %}true{% endif %}" />
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">{% if automation.enabled %}Turn off{% else %}Turn on{% endif %}</button>
+    </form>
+    {%- if webhook.is_some() %}
+    <form hx-post="/p/automation/a/{{ automation.id }}/secret" hx-target="#automation" hx-swap="outerHTML" hx-confirm="Make a new secret? Whatever signs with the old one stops working.">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">New webhook secret</button>
+    </form>
+    {%- endif %}
+    <form hx-post="/p/automation/a/{{ automation.id }}/delete" hx-target="#automation" hx-swap="outerHTML" hx-confirm="Delete {{ automation.name }}? Its history goes with it.">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete</button>
+    </form>
+  </div>
+  {%- endif %}
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This automation">
+      <ul class="doc-contents__list">
+        {%- for (key, title, href) in self.sections() %}
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ href }}"{% if key == section %} aria-current="page"{% endif %}>{{ title }}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "steps" %}
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Resource</dt>
+    <dd class="doc-summary__value"><a href="{{ resource_href }}"><code class="doc-mono">{{ automation.resource }}</code></a></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Runs as</dt>
+    <dd class="doc-summary__value">{{ automation.owner_label }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Trigger</dt>
+    <dd class="doc-summary__value">{{ trigger }}{% if let Some(url) = webhook %}: <code class="doc-mono">{{ url }}</code>{% endif %}</dd>
+  </div>
+  {%- if let Some(template) = automation.template %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Template</dt>
+    <dd class="doc-summary__value">{{ template }}</dd>
+  </div>
+  {%- endif %}
+</dl>
+
+<h3>What it does</h3>
+{%- match graph %}
+{%- when Ok(svg) %}
+{%- if mine %}
+<p class="doc-hint">Choose a step to change it, or a dashed one to add another. Each condition must pass before the next is asked, and the actions run in turn.</p>
+{%- endif %}
+{{ svg|safe }}
+{%- when Err(problem) %}
+<p class="doc-hint">It cannot be drawn just now ({{ problem }}), so it is listed below instead.</p>
+{%- endmatch %}
+
+{%- if let Some(editor) = editor %}
+<section id="node" class="doc-card" aria-labelledby="node-heading">
+<div class="doc-card__content">
+  <h3 id="node-heading">{{ editor.heading }}</h3>
+  <form hx-post="{{ editor.save }}" hx-target="#automation" hx-swap="outerHTML">
+    {%- if editor.what == "condition" %}
+    <div class="doc-form-group">
+      <label class="doc-label" for="field">Field</label>
+      <span class="doc-hint" id="field-hint">A path into what the trigger brought, such as payload.pull_request.title. Start typing to choose from the fields it has really carried.</span>
+      <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="field" name="field" value="{{ editor.field }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="field-options" aria-describedby="field-hint"
+           hx-get="/p/automation/suggest/paths?for=field&amp;automation={{ automation.id }}"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#field-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="field-options" role="listbox" aria-label="Fields the trigger brings" hidden></div>
+  </div>
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="op">Test</label>
+      <select class="doc-select" id="op" name="op">
+        {%- for (name, text) in editor.ops %}
+        <option value="{{ name }}"{% if editor.op_is(name) %} selected{% endif %}>{{ text }}</option>
+        {%- endfor %}
+      </select>
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="value">Value</label>
+      <span class="doc-hint" id="value-hint">Text, a number, or JSON. May use {{ "{{" }}resource.name{{ "}}" }} and the like. Start typing to choose from values the field has had.</span>
+      <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="value" name="value" value="{{ editor.value }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="value-options" aria-describedby="value-hint"
+           hx-get="/p/automation/suggest/values?for=value&amp;path=field&amp;automation={{ automation.id }}"
+           hx-include="#field"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#value-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="value-options" role="listbox" aria-label="Values the field has had" hidden></div>
+  </div>
+    </div>
+    {%- else %}
+    {{ editor.fields|safe }}
+    {%- endif %}
+    <div class="doc-button-group">
+      <button class="doc-button" type="submit">{{ editor.submit }}</button>
+      <a class="doc-link-button" href="/p/automation/a/{{ automation.id }}">Cancel</a>
+    </div>
+  </form>
+  {%- if let Some(remove) = editor.remove %}
+  <form hx-post="{{ remove }}" hx-target="#automation" hx-swap="outerHTML" hx-confirm="Remove this step?">
+    <button class="doc-button doc-button--warning doc-button--small" type="submit">Remove it</button>
+  </form>
+  {%- endif %}
+</div>
+</section>
+{%- endif %}
+
+<details{% if graph.is_err() %} open{% endif %}>
+<summary>As a list</summary>
+<h4>Only if</h4>
+{%- if conditions.is_empty() %}
+<p class="doc-hint">Every trigger leads to a run.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Field</th>
+      <th class="doc-table__header" scope="col">Test</th>
+      <th class="doc-table__header" scope="col">Value</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for condition in conditions %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{% if mine %}<a href="/p/automation/a/{{ automation.id }}?node=condition-{{ loop.index0 }}#node"><code class="doc-mono">{{ condition.field }}</code></a>{% else %}<code class="doc-mono">{{ condition.field }}</code>{% endif %}</td>
+      <td class="doc-table__cell">{{ condition.op }}</td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ condition.value }}</code></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<h4>Do, in order</h4>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Action</th>
+      <th class="doc-table__header" scope="col">With</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for action in actions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{% if mine %}<a href="/p/automation/a/{{ automation.id }}?node=action-{{ loop.index0 }}#node">{{ loop.index }}. {{ action.kind }}</a>{% else %}{{ loop.index }}. {{ action.kind }}{% endif %}</th>
+      <td class="doc-table__cell"><pre class="doc-code">{{ action.shown }}</pre></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- if mine %}
+<p><a href="/p/automation/a/{{ automation.id }}?node=trigger#node">Change the trigger</a></p>
+{%- endif %}
+</details>
+
+{%- else if section == "test" %}
+<h3>Test run</h3>
+<form hx-post="/p/automation/a/{{ automation.id }}/run" hx-target="#automation" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="test-payload">Payload</label>
+    <span class="doc-hint">JSON, as the trigger would bring it; the conditions read it as payload.</span>
+    <textarea class="doc-textarea" id="test-payload" name="payload" rows="4" spellcheck="false">{}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label"><input type="checkbox" name="force" value="yes" /> Run anyway, whatever the conditions say</label>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Run it now</button>
+  </div>
+</form>
+
+{%- else %}
+<h3>Runs</h3>
+{%- if runs.is_empty() %}
+<p class="doc-empty">It has not run yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Queued</th>
+      <th class="doc-table__header" scope="col">By</th>
+      <th class="doc-table__header" scope="col">State</th>
+      <th class="doc-table__header" scope="col">Attempts</th>
+      <th class="doc-table__header" scope="col">Error</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for run in runs %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/automation/runs/{{ run.id }}">{{ run.created }}</a></th>
+      <td class="doc-table__cell">{{ run.trigger }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge {{ run.badge }}">{{ run.state }}</strong></td>
+      <td class="doc-table__cell">{{ run.attempts }}</td>
+      <td class="doc-table__cell">{{ run.error }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !triggers.is_empty() %}
+<h3>Recent triggers</h3>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Received</th>
+      <th class="doc-table__header" scope="col">From</th>
+      <th class="doc-table__header" scope="col">Outcome</th>
+      <th class="doc-table__header" scope="col">Why</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for trigger in triggers %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ trigger.received }}</td>
+      <td class="doc-table__cell">{{ trigger.kind }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge {{ trigger.badge }}">{{ trigger.state }}</strong></td>
+      <td class="doc-table__cell">{{ trigger.detail }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

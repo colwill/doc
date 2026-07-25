@@ -1,0 +1,14 @@
+{%- if found.is_empty() %}
+<p class="doc-combo__empty">{% if text.is_empty() %}No plugin has sent to a queue yet. Type the name a plugin will send to, such as <code class="doc-mono">deploys</code>.{% else %}No queue matches “{{ text }}”. A queue nothing has sent to yet can still be typed in.{% endif %}</p>
+{%- else %}
+{%- for item in found %}
+<button class="doc-combo__option" type="button" role="option" aria-selected="false" data-value="{{ item.value }}">
+  <span class="doc-combo__name">{{ item.value }}</span>
+  <span class="doc-combo__kind">{{ item.kind }}</span>
+  {%- if !item.title.is_empty() %}<span class="doc-combo__title">{{ item.title }}</span>{% endif %}
+</button>
+{%- endfor %}
+{%- if more %}
+<p class="doc-combo__empty">Type more of it to narrow it down.</p>
+{%- endif %}
+{%- endif %}

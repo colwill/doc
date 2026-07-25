@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block tab_automations %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Automations</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/automation/new{% if !resource.is_empty() %}?resource={{ resource|urlencode }}{% endif %}">New automation</a>
+  </div>
+  {%- endif %}
+</div>
+<p class="doc-hint">Each belongs to a resource and runs as the person who made it, so it can do only what they can.</p>
+<form hx-get="/p/automation/" hx-target="#automation" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="resource">Only those on</label>
+    <span class="doc-hint">Start typing a resource's name and choose it.</span>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="resource" name="resource" value="{{ resource }}"
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="filter-resource-options"
+             hx-get="/p/resources/options?field=resource" hx-params="resource"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#filter-resource-options"
+             hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="filter-resource-options" role="listbox" aria-label="Matching resources" hidden></div>
+    </div>
+  </div>
+  <button class="doc-button doc-button--secondary doc-button--small" type="submit">Show</button>
+</form>
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>No automations{% if !resource.is_empty() %} on {{ resource }}{% endif %} yet.</p>
+  {%- if writes %}
+  <p><a href="/p/automation/new{% if !resource.is_empty() %}?resource={{ resource|urlencode }}{% endif %}">Make one</a>, or start from a <a href="/p/automation/templates">template</a>.</p>
+  {%- endif %}
+</div>
+{%- else %}
+{% include "rows.html" %}
+{%- endif %}
+{% endblock %}

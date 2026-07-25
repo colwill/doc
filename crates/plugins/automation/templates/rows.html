@@ -1,0 +1,22 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Automation</th>
+      <th class="doc-table__header" scope="col">Resource</th>
+      <th class="doc-table__header" scope="col">Trigger</th>
+      <th class="doc-table__header" scope="col">Owner</th>
+      <th class="doc-table__header" scope="col">Last run</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/automation/a/{{ row.id }}">{{ row.name }}</a>{% if !row.enabled %} <strong class="doc-badge doc-badge--unknown">Off</strong>{% endif %}</th>
+      <td class="doc-table__cell"><a href="{{ row.resource_href }}"><code class="doc-mono">{{ row.resource }}</code></a></td>
+      <td class="doc-table__cell">{{ row.trigger }}</td>
+      <td class="doc-table__cell">{{ row.owner }}</td>
+      <td class="doc-table__cell">{% if let Some((state, badge, at)) = row.last %}<strong class="doc-badge {{ badge }}">{{ state }}</strong> <span class="doc-hint">{{ at }}</span>{% else %}Never{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

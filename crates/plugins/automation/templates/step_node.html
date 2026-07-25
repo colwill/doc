@@ -1,0 +1,7 @@
+<li class="doc-builder__step" data-doc-builder-step="{{ step.prefix }}">
+  <input type="hidden" name="{{ step.zone }}" value="{{ step.prefix }}" />
+  {%- if step.zone != "when" %}
+  <span class="doc-builder__handle" data-doc-builder-handle tabindex="0" role="button" aria-label="Move {{ step.title }}: up and down arrow keys" title="Drag to move it, or use the up and down arrow keys"></span>
+  {%- endif %}
+  <a class="doc-builder__node{% if step.selected %} doc-builder__node--selected{% endif %}" href="#step-{{ step.prefix }}" data-doc-builder-select="{{ step.prefix }}">{{ step.title }}</a>
+</li>

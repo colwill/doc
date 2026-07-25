@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Templates</h2>
+<p class="doc-hint">Ready-made automations for DOC's own notifications. Each listens for an event another plugin publishes, and delivers it to the team of the resource you apply it to.</p>
+<div class="doc-card-group">
+  {%- for template in templates %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ template.title }}</h3>
+    <div class="doc-card__content">
+      <p>{{ template.description }}</p>
+      <p class="doc-hint">Listens for <code class="doc-mono">{{ template.topic }}</code>. Suits {{ template.kinds.join(", ") }}.</p>
+      {%- if writes %}
+      <form hx-post="/p/automation/templates/{{ template.name }}" hx-target="#automation" hx-swap="outerHTML">
+        <div class="doc-form-group">
+          <label class="doc-label" for="resource-{{ template.name }}">Resource</label>
+          <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="resource-{{ template.name }}" name="resource" value="{{ resource }}" required
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="resource-options-{{ template.name }}"
+             hx-get="/p/resources/options?field=resource" hx-params="resource"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#resource-options-{{ template.name }}"
+             hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="resource-options-{{ template.name }}" role="listbox" aria-label="Matching resources" hidden></div>
+    </div>
+        </div>
+        <div class="doc-form-group">
+          <label class="doc-label" for="to-{{ template.name }}">Deliver to (optional)</label>
+          <span class="doc-hint">A Slack channel or email address other than the team's own.</span>
+          <input class="doc-input" id="to-{{ template.name }}" name="to" autocomplete="off" />
+        </div>
+        <button class="doc-button doc-button--secondary doc-button--small" type="submit">Use it</button>
+      </form>
+      {%- endif %}
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+{% endblock %}

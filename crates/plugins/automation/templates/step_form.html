@@ -1,0 +1,44 @@
+<section class="doc-builder__form" id="step-{{ step.prefix }}" data-doc-builder-column="{{ step.zone }}" data-doc-builder-form="{{ step.prefix }}"{% if step.selected %} data-doc-builder-selected{% endif %} aria-labelledby="step-{{ step.prefix }}-heading">
+  <h3 id="step-{{ step.prefix }}-heading">{{ step.heading }}: {{ step.title }}</h3>
+  {%- if step.zone == "if" %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="{{ step.prefix }}field">Field</label>
+    <span class="doc-hint" id="{{ step.prefix }}field-hint">A path into what the trigger brought, such as payload.pull_request.title. Start typing to choose from the fields it has really carried.</span>
+    <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ step.prefix }}field" name="{{ step.prefix }}field" value="{{ step.field }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ step.prefix }}field-options" aria-describedby="{{ step.prefix }}field-hint"
+           hx-get="/p/automation/suggest/paths?for={{ step.prefix }}field"
+           hx-include="[data-doc-builder-column=when] input, [data-doc-builder-column=when] select"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ step.prefix }}field-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ step.prefix }}field-options" role="listbox" aria-label="Fields the trigger brings" hidden></div>
+  </div>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="{{ step.prefix }}op">Test</label>
+    <select class="doc-select" id="{{ step.prefix }}op" name="{{ step.prefix }}op">
+      {%- for (name, text) in ops %}
+      <option value="{{ name }}"{% if step.op_is(name) %} selected{% endif %}>{{ text }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="{{ step.prefix }}value">Value</label>
+    <span class="doc-hint" id="{{ step.prefix }}value-hint">Text, a number, or JSON. May use {{ "{{" }}resource.name{{ "}}" }} and the like. Start typing to choose from values the field has had.</span>
+    <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ step.prefix }}value" name="{{ step.prefix }}value" value="{{ step.value }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ step.prefix }}value-options" aria-describedby="{{ step.prefix }}value-hint"
+           hx-get="/p/automation/suggest/values?for={{ step.prefix }}value&amp;path={{ step.prefix }}field"
+           hx-include="#{{ step.prefix }}field, [data-doc-builder-column=when] input, [data-doc-builder-column=when] select"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ step.prefix }}value-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ step.prefix }}value-options" role="listbox" aria-label="Values the field has had" hidden></div>
+  </div>
+  </div>
+  {%- else %}
+  {{ step.fields|safe }}
+  {%- endif %}
+  <button class="doc-button doc-button--secondary doc-button--small" type="button" data-doc-builder-remove="{{ step.prefix }}">Remove this step</button>
+</section>

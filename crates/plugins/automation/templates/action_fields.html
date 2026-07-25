@@ -1,0 +1,163 @@
+<div id="{{ prefix }}action-fields">
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}action">Action</label>
+  <select class="doc-select" id="{{ prefix }}action" name="{{ prefix }}action" hx-get="/p/automation/fields/action?prefix={{ prefix }}" hx-trigger="change" hx-target="#{{ prefix }}action-fields" hx-swap="outerHTML">
+    {%- for (value, text) in kinds %}
+    <option value="{{ value }}"{% if self.is(value) %} selected{% endif %}>{{ text }}</option>
+    {%- endfor %}
+  </select>
+</div>
+{%- if kind == "webhook" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}url">URL</label>
+  <input class="doc-input" id="{{ prefix }}url" name="{{ prefix }}url" type="url" value="{{ self.get("url") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}body">Body (optional)</label>
+  <span class="doc-hint">JSON; strings may use {{ "{{" }}payload.version{{ "}}" }} and the like. Without one, it sends what the trigger brought.</span>
+  <textarea class="doc-textarea" id="{{ prefix }}body" name="{{ prefix }}body" rows="4" spellcheck="false">{{ self.get("body") }}</textarea>
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}header_name">A header (optional)</label>
+  <input class="doc-input" id="{{ prefix }}header_name" name="{{ prefix }}header_name" value="{{ self.get("header_name") }}" placeholder="Name" autocomplete="off" />
+  <input class="doc-input" name="{{ prefix }}header_value" placeholder="{% if editing %}Value, or empty to keep it{% else %}Value{% endif %}" aria-label="The header's value" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}secret">Signing secret (optional)</label>
+  <span class="doc-hint">Signs the body as x-doc-signature, so the receiver knows it came from here.{% if editing %} Leave it empty to keep the one it has.{% endif %}</span>
+  <input class="doc-input" id="{{ prefix }}secret" name="{{ prefix }}secret" autocomplete="off" />
+</div>
+{%- else if kind == "email" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}to">To (optional)</label>
+  <span class="doc-hint">One address. Without one, it goes to the resource's team.</span>
+  <input class="doc-input" id="{{ prefix }}to" name="{{ prefix }}to" type="email" value="{{ self.get("to") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}subject">Subject</label>
+  <input class="doc-input" id="{{ prefix }}subject" name="{{ prefix }}subject" value="{{ self.get("subject") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}email-body">Body</label>
+  <textarea class="doc-textarea" id="{{ prefix }}email-body" name="{{ prefix }}body" rows="4">{{ self.get("body") }}</textarea>
+</div>
+{%- else if kind == "event" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}event-topic">Topic</label>
+  <span class="doc-hint" id="{{ prefix }}event-topic-hint">Published as plugin.automation.&lt;topic&gt;, such as deploy.noted. Start typing to reuse one that is already published.</span>
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ prefix }}event-topic" name="{{ prefix }}topic" value="{{ self.get("topic") }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ prefix }}event-topic-options" aria-describedby="{{ prefix }}event-topic-hint"
+           hx-get="/p/automation/topics?field={{ prefix }}topic&amp;under=plugin.automation" hx-params="{{ prefix }}topic"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ prefix }}event-topic-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ prefix }}event-topic-options" role="listbox" aria-label="Topics this platform publishes" hidden></div>
+  </div>
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}payload">Payload (optional)</label>
+  <span class="doc-hint">JSON. Without one, it carries what the trigger brought.</span>
+  <textarea class="doc-textarea" id="{{ prefix }}payload" name="{{ prefix }}payload" rows="4" spellcheck="false">{{ self.get("payload") }}</textarea>
+</div>
+{%- else if kind == "notify" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}notify-user">User</label>
+  <span class="doc-hint" id="{{ prefix }}notify-user-hint">Start typing their name and choose them, or use {{ "{{" }}payload.to{{ "}}" }} and the like: there is no team to fall back to, so name someone.</span>
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ prefix }}notify-user" name="{{ prefix }}user" value="{% if user_chosen.is_empty() %}{{ self.get("user") }}{% else %}{{ user_shown }}{% endif %}" autocomplete="off"
+           {%- if !user_chosen.is_empty() %} data-doc-combo-chosen="{{ user_chosen }}" data-doc-combo-shown="{{ user_shown }}"{% endif %}
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ prefix }}notify-user-options" aria-describedby="{{ prefix }}notify-user-hint"
+           hx-get="/people/options?values=id&amp;field={{ prefix }}user"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ prefix }}notify-user-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ prefix }}notify-user-options" role="listbox" aria-label="People in DOC" hidden></div>
+  </div>
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}notify-title">Title</label>
+  <input class="doc-input" id="{{ prefix }}notify-title" name="{{ prefix }}title" value="{{ self.get("title") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}notify-body">Body</label>
+  <textarea class="doc-textarea" id="{{ prefix }}notify-body" name="{{ prefix }}body" rows="3">{{ self.get("body") }}</textarea>
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}notify-url">Link (optional)</label>
+  <input class="doc-input" id="{{ prefix }}notify-url" name="{{ prefix }}url" value="{{ self.get("url") }}" autocomplete="off" />
+</div>
+{%- else if kind == "operation" %}
+{%- if operations.is_empty() %}
+<p class="doc-empty">None of the plugins you can use offer operations yet. Ask another plugin for any of its routes instead.</p>
+{%- else %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}operation">Operation</label>
+  <span class="doc-hint">What the plugins you can use offer. It is called as you, so it can do only what you can. Each value may use {{ "{{" }}payload.title{{ "}}" }}, {{ "{{" }}resource.name{{ "}}" }} and the like.</span>
+  <select class="doc-select" id="{{ prefix }}operation" name="{{ prefix }}operation" hx-get="/p/automation/fields/action?prefix={{ prefix }}&amp;action=operation" hx-trigger="change" hx-target="#{{ prefix }}action-fields" hx-swap="outerHTML">
+    {%- for (value, plugin, label) in operations %}
+    <option value="{{ value }}"{% if self.picked(value) %} selected{% endif %}>{{ plugin }} · {{ label }}</option>
+    {%- endfor %}
+  </select>
+  {%- if !about.is_empty() %}
+  <p class="doc-hint">{{ about }}</p>
+  {%- endif %}
+</div>
+{%- for param in params %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}param-{{ param.name }}">{{ param.label }}{% if !param.required %} (optional){% endif %}</label>
+  {%- if !param.hint.is_empty() %}
+  <span class="doc-hint">{{ param.hint }}</span>
+  {%- endif %}
+  <input class="doc-input" id="{{ prefix }}param-{{ param.name }}" name="{{ prefix }}param-{{ param.name }}" value="{{ self.get(param.field.as_str()) }}" autocomplete="off" />
+</div>
+{%- endfor %}
+{%- endif %}
+{%- else if kind == "request" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}plugin">Plugin</label>
+  <span class="doc-hint" id="{{ prefix }}plugin-hint">Its ID, such as kb; start typing to choose one you can use. The request is made as you, so it can do only what you can.</span>
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ prefix }}plugin" name="{{ prefix }}plugin" value="{{ self.get("plugin") }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ prefix }}plugin-options" aria-describedby="{{ prefix }}plugin-hint"
+           hx-get="/p/automation/suggest/plugins?for={{ prefix }}plugin"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ prefix }}plugin-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ prefix }}plugin-options" role="listbox" aria-label="Plugins you can use" hidden></div>
+  </div>
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}method">Method</label>
+  <select class="doc-select" id="{{ prefix }}method" name="{{ prefix }}method">
+    {%- for method in ["GET", "POST", "PUT", "PATCH", "DELETE"] %}
+    <option{% if self.get("method") == *method %} selected{% endif %}>{{ method }}</option>
+    {%- endfor %}
+  </select>
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}route">Route</label>
+  <span class="doc-hint">Under the plugin's api/, such as sources/0192…/sync.</span>
+  <input class="doc-input" id="{{ prefix }}route" name="{{ prefix }}route" value="{{ self.get("route") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}query">Query (optional)</label>
+  <input class="doc-input" id="{{ prefix }}query" name="{{ prefix }}query" value="{{ self.get("query") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}request_body">Body (optional)</label>
+  <textarea class="doc-textarea" id="{{ prefix }}request_body" name="{{ prefix }}request_body" rows="4" spellcheck="false">{{ self.get("request_body") }}</textarea>
+</div>
+{%- else %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}channel">Channel (optional)</label>
+  <span class="doc-hint">Such as #deploys. Without one, it goes to the resource's team channel.</span>
+  <input class="doc-input" id="{{ prefix }}channel" name="{{ prefix }}channel" value="{{ self.get("channel") }}" autocomplete="off" />
+</div>
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}text">Message</label>
+  <span class="doc-hint">May use {{ "{{" }}payload.title{{ "}}" }}, {{ "{{" }}resource.name{{ "}}" }} and the like.</span>
+  <textarea class="doc-textarea" id="{{ prefix }}text" name="{{ prefix }}text" rows="3">{{ self.get("text") }}</textarea>
+</div>
+{%- endif %}
+</div>

@@ -1,0 +1,55 @@
+<div id="{{ prefix }}trigger-fields">
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}trigger">Trigger</label>
+  <select class="doc-select" id="{{ prefix }}trigger" name="{{ prefix }}trigger" hx-get="/p/automation/fields/trigger?prefix={{ prefix }}" hx-trigger="change" hx-target="#{{ prefix }}trigger-fields" hx-swap="outerHTML">
+    {%- for (value, text) in kinds %}
+    <option value="{{ value }}"{% if self.is(value) %} selected{% endif %}>{{ text }}</option>
+    {%- endfor %}
+  </select>
+</div>
+{%- if kind == "cron" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}cron">Schedule</label>
+  <span class="doc-hint" id="{{ prefix }}cron-hint">Cron, five fields, in UTC, such as 0 9 * * 1 for nine every Monday. Start typing, or words such as weekday, to choose a common one.</span>
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ prefix }}cron" name="{{ prefix }}cron" value="{{ value }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ prefix }}cron-options" aria-describedby="{{ prefix }}cron-hint"
+           hx-get="/p/automation/suggest/schedules?for={{ prefix }}cron"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ prefix }}cron-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ prefix }}cron-options" role="listbox" aria-label="Common schedules" hidden></div>
+  </div>
+</div>
+{%- else if kind == "event" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}topic">Topic</label>
+  <span class="doc-hint" id="{{ prefix }}topic-hint">An Event Bus topic, such as plugin.kb.document.imported. Start typing and choose one of the topics this platform publishes; * stands for one part and a final &gt; for the rest.</span>
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ prefix }}topic" name="{{ prefix }}topic" value="{{ value }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ prefix }}topic-options" aria-describedby="{{ prefix }}topic-hint"
+           hx-get="/p/automation/topics?field={{ prefix }}topic" hx-params="{{ prefix }}topic"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ prefix }}topic-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ prefix }}topic-options" role="listbox" aria-label="Event Bus topics" hidden></div>
+  </div>
+</div>
+{%- else if kind == "queue" %}
+<div class="doc-form-group">
+  <label class="doc-label" for="{{ prefix }}queue">Queue</label>
+  <span class="doc-hint" id="{{ prefix }}queue-hint">A Service Bus queue plugins send to, as plugin.automation, discovery/queues/&lt;queue&gt;. Start typing and choose one a plugin has sent to or an automation listens on, or name a new one.</span>
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input" id="{{ prefix }}queue" name="{{ prefix }}queue" value="{{ value }}" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="{{ prefix }}queue-options" aria-describedby="{{ prefix }}queue-hint"
+           hx-get="/p/automation/queues?field={{ prefix }}queue" hx-params="{{ prefix }}queue"
+           hx-trigger="focus, input changed delay:200ms" hx-target="#{{ prefix }}queue-options"
+           hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ prefix }}queue-options" role="listbox" aria-label="Service Bus queues" hidden></div>
+  </div>
+</div>
+{%- else %}
+<p class="doc-hint">It gets its own URL and secret once it is saved. Anything that signs a POST's body with the secret, as x-doc-signature: sha256=&lt;HMAC-SHA256&gt;, triggers it. GitHub's x-hub-signature-256 works too.</p>
+{%- endif %}
+</div>

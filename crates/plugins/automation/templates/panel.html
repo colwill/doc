@@ -1,0 +1,8 @@
+{%- if rows.is_empty() %}
+<p class="doc-hint">No automations on it yet.</p>
+{%- else %}
+{% include "rows.html" %}
+{%- endif %}
+{%- if writes %}
+<p><a href="/p/automation/new?resource={{ resource|urlencode }}">New automation on it</a> · <a href="/p/automation/templates?resource={{ resource|urlencode }}">From a template</a></p>
+{%- endif %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>New automation</h2>
+{%- if !writes %}
+<p class="doc-empty">You can see automations but not make them.</p>
+{%- else %}
+<p class="doc-hint">It runs as you: whatever it does, it can do only what you can do yourself.</p>
+<form hx-post="/p/automation/new" hx-target="#automation" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    <input class="doc-input" id="name" name="name" value="{{ name }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="new-resource">Resource</label>
+    <span class="doc-hint">What it belongs to. Start typing its name and choose it.</span>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="new-resource" name="resource" value="{{ resource }}" required
+             autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="new-resource-options"
+             hx-get="/p/resources/options?field=resource" hx-params="resource"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#new-resource-options"
+             hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="new-resource-options" role="listbox" aria-label="Matching resources" hidden></div>
+    </div>
+  </div>
+
+  <h3>What it does</h3>
+  <p class="doc-hint">Drag ready-made steps onto the chain, or choose <strong>Add</strong> beside one. Each condition must pass before the next is asked, and the actions run in turn; drag a step by its handle, or use the arrow keys on it, to change the order.</p>
+  <div class="doc-builder" data-doc-builder>
+    <div class="doc-builder__palette" role="region" aria-labelledby="builder-palette-heading">
+      <h4 class="doc-builder__palette-heading" id="builder-palette-heading">Ready-made steps</h4>
+      {%- for group in palette %}
+      <h5 class="doc-builder__group">{{ group.heading }}</h5>
+      <ul class="doc-builder__items">
+        {%- for item in group.items %}
+        <li class="doc-builder__item" data-doc-builder-item="{{ group.zone }}" draggable="true"{% if !item.hint.is_empty() %} title="{{ item.hint }}"{% endif %}>
+          <span class="doc-builder__item-label">{{ item.label }}</span>
+          <button class="doc-button doc-button--secondary doc-button--small" type="button" data-doc-builder-add
+                  hx-get="{{ item.url }}" hx-target="#builder-{{ group.zone }}" hx-swap="{% if group.zone == "when" %}innerHTML{% else %}beforeend{% endif %}"
+                  aria-label="Add {{ item.label }} under {{ group.heading }}">Add</button>
+        </li>
+        {%- endfor %}
+      </ul>
+      {%- endfor %}
+    </div>
+    <div class="doc-builder__chain">
+      <section class="doc-builder__column" aria-labelledby="builder-when-heading">
+        <h4 class="doc-builder__heading" id="builder-when-heading">When</h4>
+        <ul class="doc-builder__zone" id="builder-when" data-doc-builder-zone="when" data-doc-builder-empty="Drop a trigger here">
+          {%- for step in when %}{% include "step_node.html" %}{% endfor -%}
+        </ul>
+      </section>
+      <section class="doc-builder__column" aria-labelledby="builder-if-heading">
+        <h4 class="doc-builder__heading" id="builder-if-heading">Only if</h4>
+        <ul class="doc-builder__zone" id="builder-if" data-doc-builder-zone="if" data-doc-builder-empty="Conditions, if any">
+          {%- for step in ifs %}{% include "step_node.html" %}{% endfor -%}
+        </ul>
+      </section>
+      <section class="doc-builder__column" aria-labelledby="builder-then-heading">
+        <h4 class="doc-builder__heading" id="builder-then-heading">Then</h4>
+        <ul class="doc-builder__zone" id="builder-then" data-doc-builder-zone="then" data-doc-builder-empty="Drop an action here">
+          {%- for step in thens %}{% include "step_node.html" %}{% endfor -%}
+        </ul>
+      </section>
+    </div>
+  </div>
+  <div class="doc-builder__forms" id="builder-forms">
+    {%- for step in self.steps() %}{% include "step_form.html" %}{% endfor -%}
+  </div>
+  <p class="doc-builder__live nhsuk-u-visually-hidden" aria-live="polite" data-doc-builder-live></p>
+  <button class="doc-button" type="submit">Save the automation</button>
+</form>
+{%- endif %}
+{% endblock %}

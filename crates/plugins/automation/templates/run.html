@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block tab_automations %} aria-current="page"{% endblock %}
+
+{% block main %}
+<p class="doc-hint"><a href="/p/automation/a/{{ run.automation }}">{{ automation }}</a></p>
+<h2>Run of {{ created }}</h2>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">State</dt>
+    <dd class="doc-summary__value"><strong class="doc-badge {{ badge }}">{{ run.state }}</strong>{% if run.test %} (a test run){% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Attempts</dt>
+    <dd class="doc-summary__value">{{ run.attempts }} of {{ run.max_attempts }}</dd>
+  </div>
+  {%- if !finished.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Finished</dt>
+    <dd class="doc-summary__value">{{ finished }}</dd>
+  </div>
+  {%- endif %}
+  {%- if let Some(error) = run.error %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Error</dt>
+    <dd class="doc-summary__value">{{ error }}</dd>
+  </div>
+  {%- endif %}
+  {%- if let Some(task) = run.task %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Task</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ task }}</code></dd>
+  </div>
+  {%- endif %}
+</dl>
+<h3>What triggered it</h3>
+<pre class="doc-code">{{ input }}</pre>
+<h3>Actions</h3>
+{%- if steps.is_empty() %}
+<p class="doc-empty">No action has run yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Action</th>
+      <th class="doc-table__header" scope="col">State</th>
+      <th class="doc-table__header" scope="col">Output or error</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for step in steps %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ step.number }}. {{ step.kind }}</th>
+      <td class="doc-table__cell"><strong class="doc-badge {{ step.badge }}">{{ step.state }}</strong></td>
+      <td class="doc-table__cell"><pre class="doc-code">{{ step.detail }}</pre></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}
