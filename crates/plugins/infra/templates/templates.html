@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Templates</h2>
+  {%- if manages %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/infra/templates/new">New template</a>
+  </div>
+  {%- endif %}
+</div>
+<p>What may be asked for from each vendor: the regions, sizes and lifetimes allowed, and how many each team may have at once.</p>
+{%- if offers.is_empty() %}
+<div class="doc-empty"><p>There are no templates yet.</p></div>
+{%- else %}
+{% call parts::offers(offers, manages, true, "development") %}{% endcall %}
+{%- endif %}
+{% endblock %}

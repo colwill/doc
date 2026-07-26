@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block tab_development %}{% if environment == "development" %} aria-current="page"{% endif %}{% endblock %}
+{% block tab_production %}{% if environment == "production" %} aria-current="page"{% endif %}{% endblock %}
+{% import "macros.html" as parts %}
+
+{% block main %}
+{%- if environment == "production" %}
+<h2>Production</h2>
+<p>What your teams run for the people who use it. This is here to read: DOC does not make production infrastructure, and nothing on this page changes it.</p>
+{%- if lines.is_empty() %}
+<div class="doc-empty">
+  <p>Nothing of your teams' is recorded in production yet.</p>
+  <p class="doc-hint">Production is not asked for through DOC. What runs there will appear here as it is reported.</p>
+</div>
+{%- else %}
+{% call parts::resources(lines) %}{% endcall %}
+<p class="doc-hint">To change any of it, go to the vendor or the pipeline that owns it.</p>
+{%- endif %}
+{%- else %}
+<h2>Development</h2>
+<p>Infrastructure for building and trying things: sandboxes, agent harnesses as VMs, anything your teams work against. It is asked for from approved templates and torn down when its lifetime ends.</p>
+{%- if lines.is_empty() %}
+<div class="doc-empty"><p>Your teams have nothing in development.</p></div>
+{%- else %}
+{% call parts::resources(lines) %}{% endcall %}
+{%- endif %}
+<h3>Ask for something</h3>
+{%- if offers.is_empty() %}
+<div class="doc-empty"><p>No template is open to you. An admin grants <code class="doc-mono">plugin:infra:pluginuser:selfservice</code>, or <code class="doc-mono">selfservice-&lt;vendor&gt;</code> for one vendor.</p></div>
+{%- else %}
+{% call parts::offers(offers, false, true, environment) %}{% endcall %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

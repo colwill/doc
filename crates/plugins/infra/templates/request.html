@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block tab_development %}{% if request.environment == "development" %} aria-current="page"{% endif %}{% endblock %}
+{% block tab_production %}{% if request.environment == "production" %} aria-current="page"{% endif %}{% endblock %}
+
+{% block main %}
+<p class="doc-hint">{{ line.what }} for <a href="/p/resources/r/team/{{ request.team }}">{{ request.team }}</a>{% if let Some(service) = request.service %} and <a href="/p/resources/r/service/{{ service }}">{{ service }}</a>{% endif %}</p>
+<h2>{{ request.name }}</h2>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Status</dt>
+    <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ line.badge.modifier }}">{{ line.badge.text }}</strong></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Where it runs</dt>
+    <dd class="doc-summary__value">{% if request.environment == "production" %}<strong class="doc-badge doc-badge--up">Production</strong>{% else %}<strong class="doc-badge">Development</strong>{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Region</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ request.region }}</code></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Size</dt>
+    <dd class="doc-summary__value">{{ size }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Expires</dt>
+    <dd class="doc-summary__value">{{ line.expires }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">At the vendor</dt>
+    <dd class="doc-summary__value">{% if let Some(id) = request.vendor_id %}<code class="doc-mono">{{ id }}</code>{% else %}Not yet{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">In Resource Definitions</dt>
+    <dd class="doc-summary__value"><a href="/p/resources/r/cloudresource/{{ resource_name }}"><code class="doc-mono">{{ resource_name }}</code></a></dd>
+  </div>
+</dl>
+<ol class="doc-timeline">
+  {%- for step in steps %}
+  <li class="doc-timeline__item doc-timeline__item--{{ step.state }}">
+    <span class="doc-timeline__title">{{ step.title }}</span>
+    {%- if !step.meta.is_empty() %}
+    <span class="doc-timeline__meta">{{ step.meta }}</span>
+    {%- endif %}
+  </li>
+  {%- endfor %}
+</ol>
+{%- if let Some(error) = request.error %}
+<p class="doc-error-message">{{ error }}</p>
+{%- endif %}
+<h3>What the vendor says</h3>
+<pre class="doc-code"><code>{{ detail }}</code></pre>
+{%- if owns && (request.status == "active" || request.status == "expiring" || request.status == "failed") %}
+<h3>Keep it longer, or delete it now</h3>
+{%- if request.status != "failed" %}
+<form hx-post="/p/infra/requests/{{ request.id }}/extend" hx-target="#infra" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="by">Extend by</label>
+    <span class="doc-hint">Such as 7d or 12h, up to its template's longest lifetime.</span>
+    <input class="doc-input" id="by" name="by" autocomplete="off" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button doc-button--secondary" type="submit">Extend</button>
+  </div>
+</form>
+{%- endif %}
+<form hx-post="/p/infra/requests/{{ request.id }}/delete" hx-target="#infra" hx-swap="outerHTML" hx-confirm="Delete {{ request.name }} now? This cannot be undone.">
+  <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete it now</button>
+</form>
+{%- endif %}
+{% endblock %}

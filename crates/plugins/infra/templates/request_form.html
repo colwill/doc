@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block tab_development %} aria-current="page"{% endblock %}
+
+{% block main %}
+<p class="doc-hint">{{ offer.what }}</p>
+<h2>Ask for {{ offer.title }}</h2>
+<p class="doc-hint">For development. Production infrastructure is not asked for through DOC.</p>
+{%- if !offer.description.is_empty() %}
+<p>{{ offer.description }}</p>
+{%- endif %}
+<form hx-post="/p/infra/requests" hx-target="#infra" hx-swap="outerHTML">
+  <input type="hidden" name="template" value="{{ offer.name }}" />
+  <input type="hidden" name="environment" value="development" />
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    <span class="doc-hint">3 to 30 lowercase letters, digits and hyphens. DOC adds its own suffix to make it unique.</span>
+    <input class="doc-input" id="name" name="name" value="{{ fields.get("name").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="team">Owning team</label>
+    <span class="doc-hint">A team you are in. It counts against the team's {{ offer.quota }}.</span>
+    <select class="doc-select" id="team" name="team">
+      {%- for choice in teams %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="service">Service (optional)</label>
+    <span class="doc-hint">Such as card-gateway.</span>
+    <input class="doc-input" id="service" name="service" value="{{ fields.get("service").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="region">Region</label>
+    <select class="doc-select" id="region" name="region">
+      {%- for choice in regions %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- if !sizes.is_empty() %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="size">Size</label>
+    <select class="doc-select" id="size" name="size">
+      {%- for choice in sizes %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="lifetime">Lifetime</label>
+    <span class="doc-hint">{{ offer.lifetime }}. It is deleted when this runs out, unless extended.</span>
+    <input class="doc-input" id="lifetime" name="lifetime" value="{{ fields.get("lifetime").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Request it</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,18 @@
+{%- if lines.is_empty() %}
+<p class="doc-hint">No cloud resources from DOC.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for line in lines %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ line.href }}">{{ line.name }}</a></th>
+      <td class="doc-table__cell">{{ line.what }}</td>
+      <td class="doc-table__cell">{% if line.environment == "production" %}<strong class="doc-badge doc-badge--up">Production</strong>{% else %}<strong class="doc-badge">Development</strong>{% endif %}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ line.badge.modifier }}">{{ line.badge.text }}</strong></td>
+      <td class="doc-table__cell">{{ line.expires }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="/p/infra/">Your resources</a></p>

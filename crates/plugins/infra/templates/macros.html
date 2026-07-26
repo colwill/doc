@@ -1,0 +1,56 @@
+{% macro resources(lines) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Name</th>
+      <th class="doc-table__header" scope="col">What</th>
+      <th class="doc-table__header" scope="col">Region</th>
+      <th class="doc-table__header" scope="col">Team</th>
+      <th class="doc-table__header" scope="col">Status</th>
+      <th class="doc-table__header" scope="col">Expires</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for line in lines %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ line.href }}">{{ line.name }}</a></th>
+      <td class="doc-table__cell">{{ line.what }}</td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ line.region }}</code></td>
+      <td class="doc-table__cell">{{ line.team }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ line.badge.modifier }}">{{ line.badge.text }}</strong></td>
+      <td class="doc-table__cell">{{ line.expires }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro offers(offers, manages, requesting, environment) %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Template</th>
+      <th class="doc-table__header" scope="col">What</th>
+      <th class="doc-table__header" scope="col">Regions</th>
+      <th class="doc-table__header" scope="col">Lifetime</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Per team</th>
+      <th class="doc-table__header" scope="col"></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for offer in offers %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ offer.title }}<span class="doc-hint"><code class="doc-mono">{{ offer.name }}</code>{% if !offer.description.is_empty() %} · {{ offer.description }}{% endif %}</span></th>
+      <td class="doc-table__cell">{{ offer.what }}{% if !offer.sizes.is_empty() %}<span class="doc-hint">{{ offer.sizes }}</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ offer.regions }}</td>
+      <td class="doc-table__cell">{{ offer.lifetime }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ offer.quota }}</td>
+      <td class="doc-table__cell">
+        {%- if requesting && offer.allowed %}<a class="doc-button doc-button--secondary doc-button--small" href="/p/infra/request?template={{ offer.name }}&amp;environment={{ environment }}">Request</a>{% endif %}
+        {%- if manages %}<a class="doc-button doc-button--secondary doc-button--small" href="/p/infra/templates/{{ offer.name }}/edit">Change</a>{% endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{% endmacro %}

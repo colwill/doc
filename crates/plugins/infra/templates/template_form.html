@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+
+{% block main %}
+<p class="doc-hint">{{ what }}</p>
+<h2>{{ heading }}</h2>
+<form hx-post="{{ action }}" hx-target="#infra" hx-swap="outerHTML">
+  {%- if kinds.is_empty() %}
+  <input type="hidden" name="kind" value="{{ kind }}" />
+  {%- else %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="kind">It offers</label>
+    <select class="doc-select" id="kind" name="kind" hx-get="/p/infra/templates/new" hx-trigger="change" hx-include="this" hx-target="#infra" hx-swap="outerHTML" hx-push-url="true">
+      {%- for choice in kinds %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endif %}
+  {%- if new %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    <span class="doc-hint">How requests and the CLI name it: lowercase letters, digits and hyphens.</span>
+    <input class="doc-input" id="name" name="name" value="{{ fields.get("name").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ fields.get("title").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">What it is for (optional)</label>
+    <textarea class="doc-textarea" id="description" name="description" rows="2">{{ fields.get("description").cloned().unwrap_or_default() }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <span class="doc-label">Regions it allows</span>
+    {%- for choice in regions %}
+    <label class="doc-label"><input type="checkbox" name="regions" value="{{ choice.value }}"{% if choice.selected %} checked{% endif %} /> <code class="doc-mono">{{ choice.label }}</code></label>
+    {%- endfor %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="default_region">Region unless asked otherwise (optional)</label>
+    <input class="doc-input" id="default_region" name="default_region" value="{{ fields.get("default_region").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  {%- if !size_means.is_empty() %}
+  <div class="doc-form-group">
+    <span class="doc-label">Sizes it allows ({{ size_means }})</span>
+    {%- for choice in sizes %}
+    <label class="doc-label"><input type="checkbox" name="sizes" value="{{ choice.value }}"{% if choice.selected %} checked{% endif %} /> <code class="doc-mono">{{ choice.label }}</code></label>
+    {%- endfor %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="default_size">Size unless asked otherwise (optional)</label>
+    <input class="doc-input" id="default_size" name="default_size" value="{{ fields.get("default_size").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="max_lifetime">Longest lifetime</label>
+    <span class="doc-hint">Such as 30d, 12h or 45m. Resources can be extended up to this, from when they were asked for.</span>
+    <input class="doc-input" id="max_lifetime" name="max_lifetime" value="{{ fields.get("max_lifetime").cloned().unwrap_or_default() }}" required autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="default_lifetime">Lifetime unless asked otherwise (optional)</label>
+    <input class="doc-input" id="default_lifetime" name="default_lifetime" value="{{ fields.get("default_lifetime").cloned().unwrap_or_default() }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="team_quota">How many each team may have at once</label>
+    <input class="doc-input" id="team_quota" name="team_quota" value="{{ fields.get("team_quota").cloned().unwrap_or_default() }}" inputmode="numeric" required autocomplete="off" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/infra/templates">Cancel</a>
+  </div>
+</form>
+{%- if !new %}
+<form hx-post="{{ action }}/delete" hx-target="#infra" hx-swap="outerHTML" hx-confirm="Delete this template? Only one no resource was asked for from can be.">
+  <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete it</button>
+</form>
+{%- endif %}
+{% endblock %}
