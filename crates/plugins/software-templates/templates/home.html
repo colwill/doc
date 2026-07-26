@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Templates</h2>
+  {%- if author %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/templates/new">Write a template</a>
+  </div>
+  {%- endif %}
+</div>
+<p>Everything this platform can create for you. Pick one, answer what it asks, and it makes the repository, the Catalogue entry and whatever else it is for, as you.</p>
+<form hx-get="/p/templates/" hx-target="#templates" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="templates-q">Search the templates</label>
+    <input class="doc-input" id="templates-q" name="q" type="search" value="{{ q }}" autocomplete="off"
+           hx-get="/p/templates/" hx-target="#templates" hx-swap="outerHTML"
+           hx-trigger="input changed delay:300ms, search" />
+  </div>
+</form>
+{%- if cards.is_empty() %}
+<div class="doc-empty">
+  {%- if q.is_empty() %}
+  <p>There are no templates yet.</p>
+  {%- if author %}<a class="doc-button doc-button--secondary" href="/p/templates/new">Write the first one</a>{% endif %}
+  {%- else %}
+  <p>No template matches “{{ q }}”.</p>
+  <a class="doc-button doc-button--secondary" href="/p/templates/">Show them all</a>
+  {%- endif %}
+</div>
+{%- else %}
+<div class="doc-card-group">
+  {%- for card in cards %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading"><a href="/p/templates/t/{{ card.name }}">{{ card.title }}</a></h3>
+    <div class="doc-card__content">
+      <p>{{ card.description }}</p>
+      {%- if !card.tags.is_empty() %}
+      <ul class="doc-tags">
+        {%- for tag in card.tags %}
+        <li class="doc-tags__tag">{{ tag }}</li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </div>
+    <div class="doc-card__footer"><strong class="doc-badge doc-badge--{{ card.lifecycle_badge }}">{{ card.lifecycle }}</strong> · {{ card.footer }}</div>
+  </div>
+  {%- endfor %}
+</div>
+{%- endif %}
+{% endblock %}

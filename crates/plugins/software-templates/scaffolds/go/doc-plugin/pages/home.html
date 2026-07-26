@@ -1,0 +1,47 @@
+{% raw %}{{/* The page at /p/<id>/. DOC wraps it in the platform's layout, so it is a fragment: only
+     doc-* classes, no <script>, no <style> and no style="", and html/template escapes every value.
+     Anything that changes data is an hx-post, which DOC sends with the page's CSRF token. */}}
+{{define "home.html"}}
+<div id="plugin-home">
+  <div class="doc-heading-row">
+    <h2>{{.Title}}</h2>
+    {{if .Writes}}
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="/p/{{.ID}}/items/new">Add an item</a>
+    </div>
+    {{end}}
+  </div>
+  <p class="doc-hint">{{.Greeting}}, {{.Name}}.</p>
+  {{with .Problem}}<p class="doc-error-message" role="alert">{{.}}</p>{{end}}
+  {{with .Said}}<p class="doc-hint" role="status">{{.}}</p>{{end}}
+
+  <form hx-get="/p/{{.ID}}/" hx-target="#plugin-home" hx-swap="outerHTML">
+    <div class="doc-form-group">
+      <label class="doc-label" for="plugin-search">Search</label>
+      <input class="doc-input" id="plugin-search" name="q" type="search" value="{{.Search}}" autocomplete="off">
+    </div>
+  </form>
+
+  {{if .Items}}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Item</th>
+        <th class="doc-table__header" scope="col">Added by</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {{range .Items}}
+      <tr class="doc-table__row">
+        <td class="doc-table__cell">{{.name}}</td>
+        <td class="doc-table__cell">{{.by}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{else}}
+  <p class="doc-hint">{{if .Search}}Nothing matches.{{else}}Nothing here yet.{{end}}</p>
+  {{end}}
+</div>
+{{end}}
+{% endraw %}

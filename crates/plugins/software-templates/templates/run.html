@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block tab_runs %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if live && writes %}
+    <button class="doc-button doc-button--warning doc-button--small" type="button"
+            hx-post="/p/templates/runs/{{ id }}/cancel" hx-target="#templates" hx-swap="outerHTML"
+            hx-confirm="Stop this run at its next step?">Stop it</button>
+    {%- endif %}
+    {%- if !live && writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/templates/t/{{ template }}/new">Run it again</a>
+    {%- endif %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/templates/t/{{ template }}">The template</a>
+  </div>
+</div>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">State</dt>
+    <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ badge }}">{{ state }}</strong></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">What it makes is</dt>
+    <dd class="doc-summary__value">
+      <strong class="doc-badge doc-badge--{{ lifecycle_badge }}">{{ lifecycle }}</strong>
+      <span class="doc-hint">{{ lifecycle_about }}</span>
+    </dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Asked for by</dt>
+    <dd class="doc-summary__value">{{ by }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Started</dt>
+    <dd class="doc-summary__value">{{ started }}</dd>
+  </div>
+  {%- if let Some(finished) = finished %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Finished</dt>
+    <dd class="doc-summary__value">{{ finished }}</dd>
+  </div>
+  {%- endif %}
+  {%- for answer in answers %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">{{ answer.label }}</dt>
+    <dd class="doc-summary__value">{{ answer.value }}</dd>
+  </div>
+  {%- endfor %}
+</dl>
+{%- if let Some(problem) = error %}
+<p class="doc-error-message" role="alert"><span>It stopped:</span> {{ problem }}</p>
+{%- endif %}
+{%- if !links.is_empty() || downloads %}
+<h3>What it made</h3>
+<div class="doc-button-group">
+  {%- if downloads %}
+  <a class="doc-button" href="/p/templates/runs/{{ id }}/download/zip" download>Download .zip</a>
+  <a class="doc-button doc-button--secondary" href="/p/templates/runs/{{ id }}/download/tar.gz" download>Download .tar.gz</a>
+  {%- endif %}
+  {%- for link in links %}
+  <a class="doc-button doc-button--secondary" href="{{ link.url }}">{{ link.title }}</a>
+  {%- endfor %}
+</div>
+{%- if downloads && changed %}
+<p class="doc-hint">The template has been edited since this run, so a download is made from it as it is now, with this run's answers.</p>
+{%- endif %}
+{%- endif %}
+<h3>Steps</h3>
+{% include "steps.html" %}
+<h3>Log</h3>
+{% include "log.html" %}
+{% endblock %}

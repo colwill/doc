@@ -1,0 +1,18 @@
+{% raw %}{{/* The page at /p/<id>/items/new: adding an item, on a page of its own. */}}
+{{define "new_item.html"}}
+<div id="plugin-home">
+  <h2>Add an item</h2>
+  {{with .Problem}}<p class="doc-error-message" role="alert">{{.}}</p>{{end}}
+  <form hx-post="/p/{{.ID}}/items" hx-target="#plugin-home" hx-swap="outerHTML">
+    <div class="doc-form-group">
+      <label class="doc-label" for="plugin-name">Name</label>
+      <input class="doc-input" id="plugin-name" name="name" type="text" maxlength="200" value="{{.Name}}" autocomplete="off">
+    </div>
+    <div class="doc-button-group">
+      <button class="doc-button" type="submit">Add it</button>
+      <a class="doc-button doc-button--secondary" href="/p/{{.ID}}/">Cancel</a>
+    </div>
+  </form>
+</div>
+{{end}}
+{% endraw %}

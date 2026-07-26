@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+
+{%- macro field(one) %}
+<div class="doc-form-group{% if one.error.is_some() %} doc-form-group--error{% endif %}">
+  <label class="doc-label" for="{{ one.id }}">{{ one.label }}</label>
+  {%- if let Some(hint) = one.hint %}
+  <span class="doc-hint" id="{{ one.id }}-hint">{{ hint }}</span>
+  {%- endif %}
+  {%- if let Some(problem) = one.error %}
+  <span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ problem }}</span>
+  {%- endif %}
+  {%- if one.kind == "textarea" %}
+  <textarea class="doc-textarea{% if one.error.is_some() %} doc-textarea--error{% endif %}" id="{{ one.id }}" name="{{ one.name }}" rows="4"{% if one.hint.is_some() %} aria-describedby="{{ one.id }}-hint"{% endif %}>{{ one.value }}</textarea>
+  {%- else if one.kind == "select" %}
+  <select class="doc-select{% if one.error.is_some() %} doc-select--error{% endif %}" id="{{ one.id }}" name="{{ one.name }}"{% if one.hint.is_some() %} aria-describedby="{{ one.id }}-hint"{% endif %}>
+    {%- if !one.required %}<option value=""></option>{% endif %}
+    {%- for option in one.options %}
+    <option value="{{ option.0 }}"{% if option.0 == one.value %} selected{% endif %}>{{ option.1 }}</option>
+    {%- endfor %}
+  </select>
+  {%- else if one.kind == "boolean" %}
+  <div class="doc-checkboxes__item">
+    <input class="doc-checkboxes__input" id="{{ one.id }}" name="{{ one.name }}" type="checkbox" value="on"{% if one.checked %} checked{% endif %} />
+    <label class="doc-checkboxes__label" for="{{ one.id }}">{{ one.label }}</label>
+  </div>
+  {%- else if one.kind == "resource" %}
+  <div class="doc-combo" data-doc-combo>
+    <input class="doc-input doc-combo__input{% if one.error.is_some() %} doc-input--error{% endif %}" id="{{ one.id }}"
+           name="{{ one.name }}" value="{{ one.value }}" autocomplete="off" role="combobox"
+           aria-expanded="false" aria-autocomplete="list" aria-controls="{{ one.id }}-options"
+           {%- if one.hint.is_some() %} aria-describedby="{{ one.id }}-hint"{% endif %}
+           hx-get="/p/resources/options?field={{ one.name }}{% if !one.kinds.is_empty() %}&amp;kinds={{ one.kinds }}{% endif %}"
+           hx-params="{{ one.name }}" hx-trigger="focus, input changed delay:200ms"
+           hx-target="#{{ one.id }}-options" hx-swap="innerHTML" />
+    <div class="doc-combo__list" id="{{ one.id }}-options" role="listbox" aria-label="Matching resources" hidden></div>
+  </div>
+  {%- else %}
+  <input class="doc-input{% if one.error.is_some() %} doc-input--error{% endif %}" id="{{ one.id }}" name="{{ one.name }}"
+         type="{% if one.kind == "number" %}number{% else %}text{% endif %}" value="{{ one.value }}"
+         placeholder="{{ one.placeholder }}" autocomplete="off"{% if one.hint.is_some() %} aria-describedby="{{ one.id }}-hint"{% endif %} />
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{% block main %}
+<p class="doc-step">{{ title }} · Step {{ number }} of {{ of }}</p>
+<h2>{{ page }}</h2>
+<form hx-post="/p/templates/t/{{ name }}/new" hx-target="#templates" hx-swap="outerHTML">
+  <input type="hidden" name="page" value="{{ page }}" />
+  {%- for carried in hidden %}
+  <input type="hidden" name="{{ carried.0 }}" value="{{ carried.1 }}" />
+  {%- endfor %}
+  {%- for one in fields %}
+  {% call field(one) %}{% endcall %}
+  {%- endfor %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit" name="go" value="next">Continue</button>
+    {%- if let Some(previous) = back %}
+    <button class="doc-button doc-button--secondary" type="submit" name="go" value="{{ previous }}">Back</button>
+    {%- endif %}
+    <a class="doc-button doc-button--secondary" href="/p/templates/t/{{ name }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

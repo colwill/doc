@@ -1,0 +1,63 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: {{ scaffold.plural }}.{{ scaffold.group }}
+spec:
+  group: {{ scaffold.group }}
+  names:
+    kind: {{ scaffold.kind }}
+    listKind: {{ scaffold.kind }}List
+    plural: {{ scaffold.plural }}
+    singular: {{ scaffold.kind | lower }}
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Size
+          type: integer
+          jsonPath: .spec.size
+        - name: Ready
+          type: string
+          jsonPath: .status.conditions[?(@.type=="Ready")].status
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: {{ values.description }}
+          properties:
+            spec:
+              type: object
+              required: [size]
+              properties:
+                size:
+                  type: integer
+                  minimum: 0
+                  default: 1
+                  description: How many of them to run.
+                message:
+                  type: string
+                  maxLength: 256
+                  description: What they say. DOC's default-message flag is used when it is empty.
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required: [type, status, lastTransitionTime, reason]
+                    properties:
+                      type: { type: string }
+                      status: { type: string }
+                      reason: { type: string }
+                      message: { type: string }
+                      observedGeneration: { type: integer }
+                      lastTransitionTime: { type: string, format: date-time }

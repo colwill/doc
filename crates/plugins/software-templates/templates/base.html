@@ -1,0 +1,18 @@
+<div id="templates">
+  <nav class="doc-tabs" aria-label="Software Templates">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/templates/"{% block tab_templates %}{% endblock %}>Templates</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/templates/runs"{% block tab_runs %}{% endblock %}>Runs</a></li>
+      {%- if author %}
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/templates/new"{% block tab_write %}{% endblock %}>Write a template</a></li>
+      {%- endif %}
+    </ul>
+  </nav>
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  {%- block main %}{% endblock %}
+</div>

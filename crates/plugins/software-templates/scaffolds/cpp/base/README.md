@@ -1,0 +1,76 @@
+# {{ values.name }}
+
+{{ values.description }}
+
+Created from DOC's **{{ template.title }}** template: {{ scaffold.language }}, {{ scaffold.app }}.
+It is wired to this platform before you touch it — telemetry goes to the instance's collector, and
+its feature flags and runtime configuration come from DOC.
+
+**{{ lifecycle.title }}.** {{ lifecycle.about }}
+
+That is what the Catalogue says about it, and `doc.lifecycle={{ lifecycle.name }}` is on every
+trace, metric and log it sends. When that changes, change it in the Catalogue.
+
+## Running it
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --parallel
+cp .env.example .env     # the platform's settings are already in it
+set -a && . ./.env && set +a && ./build/{{ values.name }}
+```
+
+Everything it needs is fetched by CMake on the first configure: nlohmann/json, cpr and
+opentelemetry-cpp. Only libcurl and a compiler have to be there already.
+
+## Telemetry
+
+Traces and metrics are exported to `{{ telemetry.endpoint }}` over `{{ telemetry.protocol }}`, as
+`{{ values.name }}` in `{{ telemetry.environment }}`. Nothing in the code names the collector: it is
+read from `OTEL_EXPORTER_OTLP_ENDPOINT`, so pointing this somewhere else is an environment variable
+and not a change. `src/telemetry.cpp` is where it is set up.
+
+## Feature flags and runtime configuration
+
+`src/flags.cpp` reads every flag and setting that applies to `{{ values.name }}` from
+DOC, in one call, and keeps them up to date while the service runs:
+
+```cpp
+if (flags.boolean("new-pricing", false)) {
+  // ...
+}
+const auto limit = static_cast<int>(flags.number("page-size", 50));
+```
+
+Every read names the value to fall back to, so the service keeps running on its own defaults when
+the platform cannot be reached. Flags are changed in DOC under **Platform → Feature flags**, and
+take effect within `refresh_seconds` without a deployment.
+
+Give the {{ scaffold.noun }} an account to read them with:
+
+1. In DOC, **Service accounts** → new account named `{{ values.name }}`, and issue it a token.
+2. Grant it `plugin:flags:service:ro`.
+3. Put the token in `DOC_FLAGS_TOKEN`{% if scaffold.app != 'cli' %} (the Kubernetes manifests read
+   it from the `{{ values.name }}-doc` secret){% endif %}.
+
+{% if scaffold.app == 'cli' %}## Installing it
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+cmake --install build    # or copy build/{{ values.name }} somewhere on your PATH
+```
+{% else %}## Deploying it
+
+```sh
+kubectl apply -k deploy/kubernetes
+```
+{% endif %}
+## Where things are
+
+| Path | What it is |
+|---|---|
+| `src/main.cpp` | The entry point |
+| `include/{{ scaffold.package }}`, `src` | Settings, telemetry and flags — the platform's own wiring |
+{% if scaffold.app != 'cli' %}| `deploy/kubernetes` | Deployment and kustomization |
+{% endif %}

@@ -1,0 +1,22 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Run</th>
+      <th class="doc-table__header" scope="col">State</th>
+      <th class="doc-table__header" scope="col">What it made</th>
+      <th class="doc-table__header" scope="col">Asked for by</th>
+      <th class="doc-table__header" scope="col">When</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in runs %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="/p/templates/runs/{{ row.id }}">{{ row.title }}</a></td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.state }}</strong></td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.lifecycle_badge }}">{{ row.lifecycle }}</strong></td>
+      <td class="doc-table__cell">{{ row.by }}</td>
+      <td class="doc-table__cell">{{ row.when }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

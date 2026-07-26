@@ -1,0 +1,7 @@
+apiVersion: {{ scaffold.group }}/v1alpha1
+kind: {{ scaffold.kind }}
+metadata:
+  name: {{ values.name }}-sample
+spec:
+  size: 1
+  message: "Made by hand, before anybody turned a flag on"

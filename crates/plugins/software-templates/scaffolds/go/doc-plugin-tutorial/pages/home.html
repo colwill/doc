@@ -1,0 +1,14 @@
+{% raw %}{{/* The page at /p/<id>/. DOC wraps it in the platform's layout, so it is a fragment: only
+     doc-* classes, no <script>, no <style> and no style="", and html/template escapes every value. */}}
+{{define "home.html"}}
+<div id="cheer">
+  <h2>{{.Title}}</h2>
+  <div class="doc-card">
+    <h3 class="doc-card__heading">Hello, {{.Name}}</h3>
+    <div class="doc-card__content">
+      <p>This page comes from a plugin written in Go, running beside DOC. TUTORIAL.md, in its repository, says what to do next.</p>
+    </div>
+  </div>
+</div>
+{{end}}
+{% endraw %}

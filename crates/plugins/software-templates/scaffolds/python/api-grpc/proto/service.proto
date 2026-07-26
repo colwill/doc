@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package {{ scaffold.package }}.v1;
+
+// {{ values.description }}
+service {{ scaffold.pascal }}Service {
+  // Greet answers with what this service is told to say, which DOC decides at runtime.
+  rpc Greet(GreetRequest) returns (GreetResponse);
+}
+
+message GreetRequest {
+  string who = 1;
+}
+
+message GreetResponse {
+  string message = 1;
+  string service = 2;
+  string environment = 3;
+}

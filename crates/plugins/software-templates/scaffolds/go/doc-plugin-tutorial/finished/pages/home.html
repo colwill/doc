@@ -1,0 +1,63 @@
+{% raw %}{{/* The page at /p/<id>/. DOC wraps it in the platform's layout, so it is a fragment: only
+     doc-* classes, no <script>, no <style> and no style="", and html/template escapes every value. */}}
+{{define "home.html"}}
+<div id="cheer">
+  <h2>{{.Title}}</h2>
+  <p class="doc-hint">Hello, {{.Name}}. On a cloudy morning this tells {{with .Person}}{{.}}{{else}}somebody{{end}} something cheerful, and books their team a sunshine break.</p>
+  {{with .Problem}}<p class="doc-error-message" role="alert">{{.}}</p>{{end}}
+  {{with .Said}}<p class="doc-hint" role="status">{{.}}</p>{{end}}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">The sky over {{.Place}}</h3>
+    <div class="doc-card__content">
+      {{if .Sky}}
+      <p><strong class="doc-badge doc-badge--{{if .Cloudy}}degraded{{else}}ready{{end}}">{{if .Cloudy}}Cloudy{{else}}Bright{{end}}</strong> {{.Sky}}</p>
+      {{else}}
+      <p>The weather could not be read just now.</p>
+      {{end}}
+      {{if not .Person}}<p>Choose who to cheer up on the <a href="/plugins/{{.ID}}/settings">Settings page</a>.</p>{{end}}
+    </div>
+  </div>
+  {{if .Writes}}
+  <form hx-post="/p/{{.ID}}/cheers" hx-target="#cheer" hx-swap="outerHTML">
+    <div class="doc-button-group">
+      <button class="doc-button" type="submit">Look at the sky and cheer them up</button>
+    </div>
+  </form>
+  {{end}}
+  {{template "cheers" .}}
+</div>
+{{end}}
+
+{{/* The cheers sent so far. It loads itself again whenever the plugin publishes ui.cheers. */}}
+{{define "cheers"}}
+<div id="cheers" hx-get="/p/{{.ID}}/cheers" hx-trigger="doc-plugin-ui-{{.ID}} from:body" hx-swap="outerHTML">
+  <h3>Sent so far</h3>
+  {{if .Cheers}}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Day</th>
+        <th class="doc-table__header" scope="col">To</th>
+        <th class="doc-table__header" scope="col">The sky</th>
+        <th class="doc-table__header" scope="col">What they were told</th>
+        <th class="doc-table__header" scope="col">Asked by</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {{range .Cheers}}
+      <tr class="doc-table__row">
+        <td class="doc-table__cell">{{.day}}</td>
+        <td class="doc-table__cell">{{.person}}</td>
+        <td class="doc-table__cell">{{.sky}}</td>
+        <td class="doc-table__cell">{{.message}}{{with .event}} <a href="{{.}}">The break</a>{{end}}</td>
+        <td class="doc-table__cell">{{.by}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{else}}
+  <p class="doc-hint">Nothing yet: the sky has been kind, or nobody has looked.</p>
+  {{end}}
+</div>
+{{end}}
+{% endraw %}

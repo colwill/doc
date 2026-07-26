@@ -1,0 +1,10 @@
+apiVersion: {{ scaffold.group }}/v1alpha1
+kind: {{ scaffold.kind }}
+metadata:
+  name: {{ values.name }}-sample
+spec:
+  owner: {{ values.team | name | default('platform') }}
+  size: 2
+  retention: 168h
+  settings:
+    region: eu-west-2

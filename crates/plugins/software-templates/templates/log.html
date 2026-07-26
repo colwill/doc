@@ -1,0 +1,19 @@
+<figure class="doc-terminal doc-terminal--numbered doc-terminal--wrap" id="run-log"{% if live %} hx-get="/p/templates/runs/{{ id }}/log" hx-trigger="every 2s" hx-target="this" hx-swap="outerHTML"{% endif %}>
+  <figcaption class="doc-terminal__header">
+    <span>{{ template }} · run {{ short }}</span>
+    <strong class="doc-badge doc-badge--{{ badge }}">{{ state }}</strong>
+  </figcaption>
+  <pre class="doc-terminal__body">
+    {%- if lines.is_empty() %}
+    <span class="doc-terminal__line doc-terminal__line--muted">Waiting for the run to start…</span>
+    {%- endif %}
+    {%- for line in lines %}
+    <span class="doc-terminal__line{% if line.level != "info" %} doc-terminal__line--{{ line.level }}{% endif %}">{% if line.level == "command" %}<span class="doc-terminal__prompt">$ </span>{% else %}<span class="doc-terminal__time">{{ line.at }} </span>{% endif %}{{ line.text }}</span>
+    {%- endfor %}
+  </pre>
+  {%- if more > 0 %}
+  <div class="doc-terminal__footer">
+    <a href="/api/v1/plugins/templates/api/runs/{{ id }}/log">The first {{ more }} lines are in the API</a>
+  </div>
+  {%- endif %}
+</figure>

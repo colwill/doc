@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block tab_runs %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Runs</h2>
+  <div class="doc-heading-row__actions">
+    {%- if mine %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/templates/runs">Everybody's</a>
+    {%- else %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/templates/runs?mine=1">Only mine</a>
+    {%- endif %}
+  </div>
+</div>
+{%- if runs.is_empty() %}
+<div class="doc-empty">
+  <p>Nothing has been created from a template yet.</p>
+  <a class="doc-button doc-button--secondary" href="/p/templates/">Pick a template</a>
+</div>
+{%- else %}
+{% include "run_rows.html" %}
+{%- endif %}
+{% endblock %}

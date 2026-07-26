@@ -1,0 +1,70 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: {{ scaffold.plural }}.{{ scaffold.group }}
+spec:
+  group: {{ scaffold.group }}
+  names:
+    kind: {{ scaffold.kind }}
+    listKind: {{ scaffold.kind }}List
+    plural: {{ scaffold.plural }}
+    singular: {{ scaffold.kind | lower }}
+    shortNames: ["{{ scaffold.kind | lower }}"]
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - { name: Owner, type: string, jsonPath: .spec.owner }
+        - { name: Size, type: integer, jsonPath: .spec.size }
+        - { name: Phase, type: string, jsonPath: .status.phase }
+        - { name: Age, type: date, jsonPath: .metadata.creationTimestamp }
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: {{ values.description }}
+          properties:
+            spec:
+              type: object
+              required: [owner, size]
+              properties:
+                owner:
+                  type: string
+                  pattern: "^[a-z][a-z0-9-]{1,62}$"
+                  description: The team answering for it, as DOC's Catalogue names them.
+                size:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                  default: 1
+                retention:
+                  type: string
+                  pattern: "^[0-9]+(h|m|s)$"
+                  default: "168h"
+                settings:
+                  type: object
+                  additionalProperties:
+                    type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: [Pending, Ready, Failed]
+                observedGeneration:
+                  type: integer
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required: [type, status, lastTransitionTime, reason]
+                    properties:
+                      type: { type: string }
+                      status: { type: string }
+                      reason: { type: string }
+                      message: { type: string }
+                      observedGeneration: { type: integer }
+                      lastTransitionTime: { type: string, format: date-time }

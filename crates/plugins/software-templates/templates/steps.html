@@ -1,0 +1,13 @@
+<div id="run-steps"{% if live %} hx-get="/p/templates/runs/{{ id }}/steps" hx-trigger="every 3s" hx-target="this" hx-swap="outerHTML"{% endif %}>
+  <ol class="doc-timeline">
+    {%- for step in steps %}
+    <li class="doc-timeline__item doc-timeline__item--{{ step.marker }}">
+      <span class="doc-timeline__title">{{ step.title }}</span>
+      <span class="doc-timeline__meta">{{ step.meta }}</span>
+      {%- if let Some(detail) = step.detail %}
+      <div class="doc-timeline__body"><p>{{ detail }}</p></div>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ol>
+</div>

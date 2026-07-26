@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if writes %}
+    <a class="doc-button doc-button--small" href="/p/templates/t/{{ name }}/new">Create from this</a>
+    {%- endif %}
+    {%- if author %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/templates/t/{{ name }}/edit">Edit</a>
+    <button class="doc-button doc-button--warning doc-button--small" type="button"
+            hx-delete="/p/templates/t/{{ name }}" hx-target="#templates" hx-swap="outerHTML"
+            hx-confirm="Remove {{ title }}? Runs of it are kept.">Remove</button>
+    {%- endif %}
+  </div>
+</div>
+<p>{{ description }}</p>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Creates</dt>
+    <dd class="doc-summary__value">{{ kind }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">What it creates is</dt>
+    <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ lifecycle_badge }}">{{ lifecycle }}</strong></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Looked after by</dt>
+    <dd class="doc-summary__value">{{ owner }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Files</dt>
+    <dd class="doc-summary__value">{{ origin }}</dd>
+  </div>
+</dl>
+
+<h3>What it asks for</h3>
+{%- if parameters.is_empty() %}
+<p>Nothing: it runs as it is.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Question</th>
+      <th class="doc-table__header" scope="col">Takes</th>
+      <th class="doc-table__header" scope="col">Needed</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for parameter in parameters %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ parameter.label }}{% if let Some(hint) = parameter.hint %}<br /><span class="doc-hint">{{ hint }}</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ parameter.takes }}</td>
+      <td class="doc-table__cell">{% if parameter.required %}Yes{% else %}No{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+<h3>What it does</h3>
+<ol class="doc-timeline">
+  {%- for step in steps %}
+  <li class="doc-timeline__item doc-timeline__item--pending">
+    <span class="doc-timeline__title">{{ step.title }}</span>
+    <span class="doc-timeline__meta">{{ step.action }}</span>
+    <div class="doc-timeline__body"><p>{{ step.summary }}</p></div>
+  </li>
+  {%- endfor %}
+</ol>
+
+<h3>Runs of this template</h3>
+{%- if runs.is_empty() %}
+<div class="doc-empty">
+  <p>Nothing has been created from this template yet.</p>
+  {%- if writes %}<a class="doc-button doc-button--secondary" href="/p/templates/t/{{ name }}/new">Create from this</a>{% endif %}
+</div>
+{%- else %}
+{% include "run_rows.html" %}
+{%- endif %}
+{% endblock %}

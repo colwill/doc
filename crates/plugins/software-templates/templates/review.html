@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block tab_templates %} aria-current="page"{% endblock %}
+
+{% block main %}
+<p class="doc-step">{{ title }} · Step {{ number }} of {{ of }}</p>
+<h2>Check your answers</h2>
+<form hx-post="/p/templates/t/{{ name }}/new" hx-target="#templates" hx-swap="outerHTML">
+  <input type="hidden" name="page" value="{{ page }}" />
+  {%- for carried in hidden %}
+  <input type="hidden" name="{{ carried.0 }}" value="{{ carried.1 }}" />
+  {%- endfor %}
+  <dl class="doc-summary">
+    <div class="doc-summary__row{% if lifecycle_page.is_some() %} doc-summary__row--action{% endif %}">
+      <dt class="doc-summary__key">What it will be</dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ lifecycle_badge }}">{{ lifecycle }}</strong></dd>
+      {%- if let Some(where_asked) = lifecycle_page %}
+      <dd class="doc-summary__action">
+        <button class="doc-link-button" type="submit" name="go" value="{{ where_asked }}">Change<span class="nhsuk-u-visually-hidden"> what state it is in</span></button>
+      </dd>
+      {%- endif %}
+    </div>
+    {%- for answer in answers %}
+    <div class="doc-summary__row doc-summary__row--action">
+      <dt class="doc-summary__key">{{ answer.label }}</dt>
+      <dd class="doc-summary__value">{{ answer.value }}</dd>
+      <dd class="doc-summary__action">
+        <button class="doc-link-button" type="submit" name="go" value="{{ answer.page }}">Change<span class="nhsuk-u-visually-hidden"> {{ answer.label }}</span></button>
+      </dd>
+    </div>
+    {%- endfor %}
+  </dl>
+
+  <h3>What it will do</h3>
+  <ol class="doc-timeline">
+    {%- for step in steps %}
+    <li class="doc-timeline__item doc-timeline__item--pending">
+      <span class="doc-timeline__title">{{ step.title }}</span>
+      <span class="doc-timeline__meta">{{ step.action }}</span>
+      <div class="doc-timeline__body"><p>{{ step.summary }}</p></div>
+    </li>
+    {%- endfor %}
+  </ol>
+
+  <h3>The files it will write</h3>
+  {%- if let Some(problem) = preview_problem %}
+  <p class="doc-hint">The files could not be rendered here: {{ problem }}</p>
+  {%- else if directories.is_empty() && loose.is_empty() %}
+  <p class="doc-hint">This template writes no files.</p>
+  {%- else %}
+  <div class="doc-tree">
+    <ul class="doc-tree__list">
+      {%- for folder in directories %}
+      <li class="doc-tree__item">
+        <details class="doc-tree__directory" open>
+          <summary class="doc-tree__row">
+            <span class="doc-tree__name">{{ folder.name }}</span>
+            <span class="doc-tree__meta">{{ folder.count }}</span>
+          </summary>
+          <ul class="doc-tree__list">
+            {%- for file in folder.files %}
+            <li class="doc-tree__item">
+              <details class="doc-tree__file">
+                <summary class="doc-tree__row">
+                  <span class="doc-tree__name">{{ file.name }}</span>
+                  <span class="doc-tree__meta">{{ file.size }}</span>
+                </summary>
+                <div class="doc-tree__body">
+                  <pre class="doc-code" data-doc-filename="{{ file.path }}"><code>{{ file.body }}</code></pre>
+                </div>
+              </details>
+            </li>
+            {%- endfor %}
+          </ul>
+        </details>
+      </li>
+      {%- endfor %}
+      {%- for file in loose %}
+      <li class="doc-tree__item">
+        <details class="doc-tree__file">
+          <summary class="doc-tree__row">
+            <span class="doc-tree__name">{{ file.name }}</span>
+            <span class="doc-tree__meta">{{ file.size }}</span>
+          </summary>
+          <div class="doc-tree__body">
+            <pre class="doc-code" data-doc-filename="{{ file.path }}"><code>{{ file.body }}</code></pre>
+          </div>
+        </details>
+      </li>
+      {%- endfor %}
+    </ul>
+    <p class="doc-tree__footer">{{ total }}, as they will be committed.</p>
+  </div>
+  {%- endif %}
+
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit" name="go" value="launch">Create it</button>
+    {%- if let Some(previous) = back %}
+    <button class="doc-button doc-button--secondary" type="submit" name="go" value="{{ previous }}">Back</button>
+    {%- endif %}
+    <a class="doc-button doc-button--secondary" href="/p/templates/t/{{ name }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

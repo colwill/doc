@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block tab_write %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>{% if editing %}Edit {{ title }}{% else %}Write a template{% endif %}</h2>
+<p>A template is a YAML document: what it is called, what it asks for, the files it writes and the steps it takes. <a href="/p/templates/">The templates</a> already here are ordinary ones, so the quickest way to a new one is to edit a copy of the closest.</p>
+<form hx-post="{% if editing %}/p/templates/t/{{ name }}/edit{% else %}/p/templates/new{% endif %}" hx-target="#templates" hx-swap="outerHTML">
+  <div class="doc-form-group{% if error.is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="definition">The template</label>
+    <span class="doc-hint" id="definition-hint">YAML, or JSON if you would rather. It is checked in full before it is saved.</span>
+    {%- if let Some(problem) = error %}
+    <span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ problem }}</span>
+    {%- endif %}
+    <textarea class="doc-textarea{% if error.is_some() %} doc-textarea--error{% endif %}" id="definition" name="definition" rows="24" aria-describedby="definition-hint" spellcheck="false">{{ definition }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save it</button>
+    <a class="doc-button doc-button--secondary" href="{% if editing %}/p/templates/t/{{ name }}{% else %}/p/templates/{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
