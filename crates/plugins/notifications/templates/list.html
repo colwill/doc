@@ -1,0 +1,21 @@
+<div id="notifications">
+  <h1>{% if archived %}Archived{% else %}Inbox{% endif %}</h1>
+  <nav class="doc-tabs" aria-label="Notifications">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/notifications/"{% if !archived %} aria-current="page"{% endif %}>Inbox</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="/p/notifications/archived"{% if archived %} aria-current="page"{% endif %}>Archived</a></li>
+    </ul>
+  </nav>
+  {%- if let Some(error) = error %}
+  <p class="doc-error-message" role="alert">{{ error }}</p>
+  {%- endif %}
+  {%- if rows.is_empty() %}
+  <div class="doc-empty">
+    <p>{% if archived %}Nothing archived.{% else %}You're all caught up.{% endif %}</p>
+  </div>
+  {%- else %}
+  <ul class="doc-notification-rows">
+    {%- include "rows.html" %}
+  </ul>
+  {%- endif %}
+</div>

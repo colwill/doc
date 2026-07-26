@@ -1,0 +1,11 @@
+{%- if rows.is_empty() %}
+<p class="doc-empty">Nothing is waiting for you: you're all caught up.</p>
+{%- else %}
+<p><strong>{{ waiting }}</strong> waiting for you{% if waiting > rows.len() %}, the newest first{% endif %}.</p>
+<ul class="nhsuk-list">
+  {%- for row in rows %}
+  <li><a href="{{ row.href }}">{{ row.title }}</a><br /><span class="doc-hint">{{ row.from }}, {{ row.when }}</span></li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+<p><a href="/p/notifications/">Open your inbox</a></p>

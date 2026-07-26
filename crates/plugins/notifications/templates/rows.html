@@ -1,0 +1,10 @@
+{%- for row in rows %}
+{{ row|safe }}
+{%- endfor %}
+{%- if let Some(cursor) = more %}
+<li class="doc-notification-row doc-notification-row--more">
+  <button class="doc-button doc-button--secondary doc-button--small" type="button"
+          hx-get="/p/notifications/rows?archived={{ archived }}&amp;after={{ cursor }}"
+          hx-target="closest .doc-notification-row--more" hx-swap="outerHTML">Load more</button>
+</li>
+{%- endif %}

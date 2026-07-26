@@ -1,0 +1,10 @@
+{%- if rows.is_empty() %}
+<p class="doc-notifications__empty">You're all caught up.</p>
+{%- else %}
+<ul class="doc-bell-rows">
+  {%- for row in rows %}
+  {{ row|safe }}
+  {%- endfor %}
+</ul>
+{%- endif %}
+<a class="doc-menu__link doc-menu__link--all" href="/p/notifications/">View all</a>

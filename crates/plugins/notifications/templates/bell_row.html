@@ -1,0 +1,11 @@
+<li class="doc-bell-row" id="bell-{{ id }}">
+  {%- if !source.is_empty() %}
+  <span class="doc-bell-row__source" title="Sent by {{ source }}">{{ source }}</span>
+  {%- endif %}
+  <a class="doc-bell-row__title" href="/p/notifications/?show={{ id }}#notification-{{ id }}"{% if !text.is_empty() %} title="{{ text }}"{% endif %}>{{ title }}</a>
+  <span class="doc-bell-row__when" title="{{ when }} UTC">{{ short }}</span>
+  {%- if writes %}
+  <button class="doc-bell-row__read" type="button" aria-label="Mark “{{ title }}” as read" title="Mark as read"
+          hx-post="/p/notifications/items/{{ id }}/read?from=bell" hx-target="closest .doc-notifications__panel" hx-swap="innerHTML"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6L20.1 8.4 18.7 7z"></path></svg></button>
+  {%- endif %}
+</li>

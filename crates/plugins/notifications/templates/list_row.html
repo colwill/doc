@@ -1,0 +1,31 @@
+<li class="doc-notification-row{% if unread %} doc-notification-row--unread{% endif %}{% if shown %} doc-notification-row--shown{% endif %}" id="notification-{{ id }}"{% if shown %} tabindex="-1" aria-current="true"{% endif %}>
+  <div class="doc-notification-row__body">
+    {%- if !source.is_empty() %}
+    <span class="doc-bell-row__source" title="Sent by {{ source }}">{{ source }}</span>
+    {%- endif %}
+    {%- if url.is_empty() %}
+    <span class="doc-notification-row__title">{{ title }}</span>
+    {%- else %}
+    <a class="doc-notification-row__title" href="{{ url }}">{{ title }}</a>
+    {%- endif %}
+    {%- if !text.is_empty() %}
+    <p class="doc-notification-row__text">{{ text }}</p>
+    {%- endif %}
+    <span class="doc-notification-row__when">{{ when }}</span>
+  </div>
+  {%- if writes %}
+  <div class="doc-notification-row__actions">
+    {%- if unread %}
+    <button class="doc-button doc-button--secondary doc-button--small" type="button"
+            hx-post="/p/notifications/items/{{ id }}/read" hx-target="closest .doc-notification-row" hx-swap="outerHTML">Mark as read</button>
+    {%- endif %}
+    {%- if !archived %}
+    <button class="doc-button doc-button--secondary doc-button--small" type="button"
+            hx-post="/p/notifications/items/{{ id }}/archive" hx-target="closest .doc-notification-row" hx-swap="outerHTML">Archive</button>
+    {%- endif %}
+    <button class="doc-button doc-button--warning doc-button--small" type="button"
+            hx-post="/p/notifications/items/{{ id }}/delete" hx-target="closest .doc-notification-row" hx-swap="outerHTML"
+            hx-confirm="Delete this notification for good?">Delete</button>
+  </div>
+  {%- endif %}
+</li>
