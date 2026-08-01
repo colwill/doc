@@ -1,0 +1,34 @@
+<div id="flags-panel">
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>No flags apply to {{ service }} yet.</p>
+  {%- if writes %}<a class="doc-button doc-button--secondary" href="/p/flags/new?role=flag&amp;service={{ service }}">Give it one</a>{% endif %}
+</div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Key</th>
+      <th class="doc-table__header" scope="col">Applies to</th>
+      <th class="doc-table__header" scope="col">Value</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="/p/flags/e/{{ row.id }}"><code class="doc-mono">{{ row.key }}</code></a>{% if !row.enabled %} <strong class="doc-badge doc-badge--unknown">Not served</strong>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.scope }}</td>
+      <td class="doc-table__cell">
+        {%- if row.boolean %}
+        <strong class="doc-badge doc-badge--{% if row.on %}ready{% else %}unknown{% endif %}">{% if row.on %}On{% else %}Off{% endif %}</strong>
+        {%- else %}
+        <code class="doc-mono">{{ row.value }}</code>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<p class="doc-hint"><a href="/p/flags/?service={{ service }}">All of {{ service }}'s flags</a></p>
+{%- endif %}
+</div>

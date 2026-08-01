@@ -1,0 +1,30 @@
+<div id="provider-fields">
+  <p class="doc-hint">{{ fields.about }}</p>
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-url">Where it is</label>
+    <span class="doc-hint" id="provider-url-hint">Its base URL.</span>
+    <input class="doc-input" id="provider-url" name="url" value="{{ fields.url }}" autocomplete="off" placeholder="{{ fields.placeholder }}" aria-describedby="provider-url-hint" />
+  </div>
+  {%- for slot in fields.slots %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-credential-{{ loop.index }}">{{ slot.label }}{% if !slot.required %} (optional){% endif %}</label>
+    <span class="doc-hint" id="provider-credential-{{ loop.index }}-hint">{{ slot.hint }}</span>
+    <select class="doc-select" id="provider-credential-{{ loop.index }}" name="credential" aria-describedby="provider-credential-{{ loop.index }}-hint">
+      <option value="">{% if slot.required %}Choose a credential{% else %}None{% endif %}</option>
+      {%- for named in fields.held %}
+      <option value="{{ named }}">{{ named }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endfor %}
+  {%- if let Some(configs) = fields.configs %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-configs">Configurations to read (optional)</label>
+    <span class="doc-hint" id="provider-configs-hint">Their names, separated by commas. Each one's YAML is served as configuration under its name.</span>
+    <input class="doc-input" id="provider-configs" name="configs" value="{{ configs }}" autocomplete="off" placeholder="database, payments" aria-describedby="provider-configs-hint" />
+  </div>
+  {%- endif %}
+  {%- if !fields.slots.is_empty() %}
+  <p class="doc-hint">Credentials are added under <a href="/plugins/flags/settings">Provider credentials</a> on this plugin's Settings page.</p>
+  {%- endif %}
+</div>

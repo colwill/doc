@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block tab_providers %} aria-current="page"{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Providers</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/flags/providers/new">Read another provider</a>
+  </div>
+  {%- endif %}
+</div>
+<p>Where flags and runtime configuration are read from besides DOC. Each one is read for the services it names, cached for as long as it says, and merged with what DOC holds — on whichever side you say wins. A provider that cannot be reached never takes a flag away: DOC's own value is still served, and the problem is shown here.</p>
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>DOC is the only store; nothing else is read.</p>
+</div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Provider</th>
+      <th class="doc-table__header" scope="col">Reads</th>
+      <th class="doc-table__header" scope="col">For</th>
+      <th class="doc-table__header" scope="col">State</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Actions</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><strong>{{ row.name }}</strong><br /><span class="doc-hint">{{ row.kind }}</span></td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ row.url }}</code><br /><span class="doc-hint">{{ row.precedence }}, every {{ row.refresh }}s</span></td>
+      <td class="doc-table__cell">{{ row.applies }}</td>
+      <td class="doc-table__cell">
+        {%- if let Some(problem) = row.problem %}
+        <strong class="doc-badge doc-badge--error">Refused</strong><br /><span class="doc-hint">{{ problem }}</span>
+        {%- else if row.enabled %}
+        <strong class="doc-badge doc-badge--ready">Read</strong>{% if let Some(at) = row.checked %}<br /><span class="doc-hint">{{ at }}</span>{% endif %}
+        {%- else %}
+        <strong class="doc-badge doc-badge--unknown">Turned off</strong>
+        {%- endif %}
+      </td>
+      {%- if writes %}
+      <td class="doc-table__cell">
+        <button class="doc-button doc-button--secondary doc-button--small" type="button"
+                hx-post="/p/flags/providers/{{ row.id }}/check" hx-target="#flags" hx-swap="outerHTML">Read it now</button>
+        <button class="doc-button doc-button--warning doc-button--small" type="button"
+                hx-delete="/p/flags/providers/{{ row.id }}" hx-target="#flags" hx-swap="outerHTML"
+                hx-confirm="Stop reading {{ row.name }}?">Remove</button>
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- if !suggestions.is_empty() %}
+<h3>Sent but not served yet</h3>
+<p class="doc-hint">A provider sent these beside what DOC knows to read. Each could be a flag or a setting: say which, and DOC serves it as that from then on.</p>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Field</th>
+      <th class="doc-table__header" scope="col">Sent by</th>
+      <th class="doc-table__header" scope="col">What it held</th>
+      {%- if writes %}<th class="doc-table__header" scope="col">Include it as</th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for suggestion in suggestions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ suggestion.field }}</code></th>
+      <td class="doc-table__cell">{{ suggestion.provider }}</td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ suggestion.held }}</code></td>
+      {%- if writes %}
+      <td class="doc-table__cell">
+        <div class="doc-inline-form">
+          {%- for (taken, label, style) in [("flag", "A flag", "secondary"), ("config", "A setting", "secondary"), ("ignored", "Ignore it", "warning")] %}
+          <form hx-post="/p/flags/providers/{{ suggestion.id }}/adopt" hx-target="#flags" hx-swap="outerHTML">
+            <input type="hidden" name="field" value="{{ suggestion.field }}" />
+            <input type="hidden" name="as" value="{{ taken }}" />
+            <button class="doc-button doc-button--{{ style }} doc-button--small" type="submit">{{ label }}<span class="nhsuk-u-visually-hidden">: {{ suggestion.field }}</span></button>
+          </form>
+          {%- endfor %}
+        </div>
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !adoptions.is_empty() %}
+<h3>Taken in from providers</h3>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Field</th>
+      <th class="doc-table__header" scope="col">Sent by</th>
+      <th class="doc-table__header" scope="col">Served as</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Actions</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for adoption in adoptions %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><code class="doc-mono">{{ adoption.field }}</code></th>
+      <td class="doc-table__cell">{{ adoption.provider }}</td>
+      <td class="doc-table__cell">{{ adoption.taken }}</td>
+      {%- if writes %}
+      <td class="doc-table__cell">
+        <form hx-post="/p/flags/providers/{{ adoption.id }}/adopt" hx-target="#flags" hx-swap="outerHTML">
+          <input type="hidden" name="field" value="{{ adoption.field }}" />
+          <input type="hidden" name="as" value="forget" />
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Forget<span class="nhsuk-u-visually-hidden"> what {{ adoption.field }} is</span></button>
+        </form>
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+{% endblock %}

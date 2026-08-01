@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block tab_flags %}{% if role == "flag" %} aria-current="page"{% endif %}{% endblock %}
+{% block tab_config %}{% if role == "config" %} aria-current="page"{% endif %}{% endblock %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ heading }}</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/flags/new?role={{ role }}">{{ add }}</a>
+  </div>
+  {%- endif %}
+</div>
+<p>{{ lede }}</p>
+<form hx-get="{{ base_url }}" hx-target="#flags" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="flags-service">Narrow it to one service</label>
+    <span class="doc-hint" id="flags-service-hint">Its name in the Catalogue. Everything that applies to it is shown, including what applies to every service.</span>
+    <select class="doc-select" id="flags-service" name="service" aria-describedby="flags-service-hint"
+            hx-get="{{ base_url }}" hx-target="#flags" hx-swap="outerHTML" hx-trigger="change">
+      <option value=""{% if service.is_empty() %} selected{% endif %}>Everything</option>
+      {%- for one in services %}
+      <option value="{{ one }}"{% if one.as_str() == service.as_str() %} selected{% endif %}>{{ one }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+</form>
+{% include "entries.html" %}
+<h3>How a service reads them</h3>
+<p>A service asks with a token, naming itself and the environment it runs in. Over HTTP it is given everything that applies to it in one call. With OpenFeature it asks for one at a time through the SDK's OFREP provider, the targeting key naming the service, and anything not set for it comes back as the default its code passed.</p>
+<div class="doc-tabset">
+  <div class="doc-tabs">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#flags-read-http">HTTP</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#flags-read-go">Go</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#flags-read-rust">Rust</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="#flags-read-typescript">TypeScript</a></li>
+    </ul>
+  </div>
+  <div class="doc-tabset__panel" id="flags-read-http">
+    <h4 class="doc-tabset__title">HTTP</h4>
+    <pre class="doc-code" data-doc-language="shell"><code>curl -H "Authorization: Bearer $DOC_TOKEN" \
+  "{{ platform_url }}/api/v1/plugins/flags/api/evaluate?service=payments-api&amp;environment=production"</code></pre>
+    <p class="doc-hint">The answer carries an ETag, so polling it costs a <code class="doc-mono">304</code>.</p>
+  </div>
+  <div class="doc-tabset__panel" id="flags-read-go">
+    <h4 class="doc-tabset__title">Go</h4>
+    <pre class="doc-code" data-doc-language="shell"><code>go get github.com/open-feature/go-sdk github.com/open-feature/go-sdk-contrib/providers/ofrep</code></pre>
+    <pre class="doc-code" data-doc-language="go"><code>import (
+	"context"
+	"os"
+
+	"github.com/open-feature/go-sdk-contrib/providers/ofrep"
+	"github.com/open-feature/go-sdk/openfeature"
+)
+
+provider := ofrep.NewProvider(
+	"{{ platform_url }}/api/v1/plugins/flags/api",
+	ofrep.WithBearerToken(os.Getenv("DOC_TOKEN")),
+)
+if err := openfeature.SetProviderAndWait(provider); err != nil {
+	return err
+}
+openfeature.SetEvaluationContext(openfeature.NewEvaluationContext("payments-api", map[string]any{
+	"environment": "production",
+}))
+client := openfeature.NewDefaultClient()
+
+{% if role == "flag" %}newCheckout := client.Boolean(context.Background(), "new-checkout", false, openfeature.EvaluationContext{}){% else %}logLevel := client.String(context.Background(), "log-level", "info", openfeature.EvaluationContext{}){% endif %}</code></pre>
+  </div>
+  <div class="doc-tabset__panel" id="flags-read-rust">
+    <h4 class="doc-tabset__title">Rust</h4>
+    <pre class="doc-code" data-doc-language="shell"><code>cargo add open-feature open-feature-ofrep reqwest</code></pre>
+    <pre class="doc-code" data-doc-language="rust"><code>use open_feature::{EvaluationContext, OpenFeature};
+use open_feature_ofrep::{OfrepOptions, OfrepProvider};
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
+
+let mut headers = HeaderMap::new();
+let bearer = format!("Bearer {}", std::env::var("DOC_TOKEN")?);
+headers.insert(AUTHORIZATION, HeaderValue::from_str(&amp;bearer)?);
+let provider = OfrepProvider::new(OfrepOptions {
+    base_url: "{{ platform_url }}/api/v1/plugins/flags/api".to_string(),
+    headers,
+    ..Default::default()
+})
+.await?;
+
+let client = {
+    let mut api = OpenFeature::singleton_mut().await;
+    api.set_provider(provider).await;
+    api.set_evaluation_context(
+        EvaluationContext::default()
+            .with_targeting_key("payments-api")
+            .with_custom_field("environment", "production"),
+    )
+    .await;
+    api.create_client()
+};
+
+{% if role == "flag" %}let new_checkout = client.get_bool_value("new-checkout", None, None).await.unwrap_or(false);{% else %}let log_level = client.get_string_value("log-level", None, None).await.unwrap_or_else(|_| "info".into());{% endif %}</code></pre>
+  </div>
+  <div class="doc-tabset__panel" id="flags-read-typescript">
+    <h4 class="doc-tabset__title">TypeScript</h4>
+    <pre class="doc-code" data-doc-language="shell"><code>npm install @openfeature/server-sdk @openfeature/ofrep-provider</code></pre>
+    <pre class="doc-code" data-doc-language="typescript"><code>import { OpenFeature } from '@openfeature/server-sdk';
+import { OFREPProvider } from '@openfeature/ofrep-provider';
+
+await OpenFeature.setProviderAndWait(
+  new OFREPProvider({
+    baseUrl: '{{ platform_url }}/api/v1/plugins/flags/api',
+    headers: [['Authorization', `Bearer ${process.env.DOC_TOKEN}`]],
+  }),
+);
+OpenFeature.setContext({ targetingKey: 'payments-api', environment: 'production' });
+const client = OpenFeature.getClient();
+
+{% if role == "flag" %}const newCheckout = await client.getBooleanValue('new-checkout', false);{% else %}const logLevel = await client.getStringValue('log-level', 'info');{% endif %}</code></pre>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block tab_flags %}{% if role == "flag" %} aria-current="page"{% endif %}{% endblock %}
+{% block tab_config %}{% if role == "config" %} aria-current="page"{% endif %}{% endblock %}
+
+{%- macro problem_for(name) %}
+{%- if let Some(message) = problem(name) %}
+<span class="doc-error-message"><span class="nhsuk-u-visually-hidden">Error:</span> {{ message }}</span>
+{%- endif %}
+{%- endmacro %}
+
+{% block main %}
+<h2>{{ heading }}</h2>
+<form hx-post="{{ action }}" hx-target="#flags" hx-swap="outerHTML">
+  <input type="hidden" name="role" value="{{ role }}" />
+  <div class="doc-form-group{% if problem("key").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="flag-key">Key</label>
+    <span class="doc-hint" id="flag-key-hint">What the service asks for: letters, digits, dashes, underscores and dots.</span>
+    {% call problem_for("key") %}{% endcall %}
+    <input class="doc-input{% if problem("key").is_some() %} doc-input--error{% endif %}" id="flag-key" name="key"
+           value="{{ key }}" autocomplete="off" aria-describedby="flag-key-hint"{% if editing %} readonly{% endif %} />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="flag-description">What it is for</label>
+    <input class="doc-input" id="flag-description" name="description" value="{{ description }}" autocomplete="off" />
+  </div>
+  <div class="doc-form-group{% if problem("service").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="flag-service">Service</label>
+    <span class="doc-hint" id="flag-service-hint">The service in the Catalogue it is for. Leave it empty for every service.</span>
+    {% call problem_for("service") %}{% endcall %}
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input{% if problem("service").is_some() %} doc-input--error{% endif %}" id="flag-service"
+             name="service" value="{{ service }}" autocomplete="off" role="combobox" aria-expanded="false"
+             aria-autocomplete="list" aria-controls="flag-service-options" aria-describedby="flag-service-hint"
+             hx-get="/p/resources/options?field=service&amp;kinds=Service&amp;values=name" hx-params="service"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#flag-service-options" hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="flag-service-options" role="listbox" aria-label="Matching services" hidden></div>
+    </div>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="flag-environment">Environment</label>
+    <span class="doc-hint" id="flag-environment-hint">Such as production or staging. Leave it empty for every environment.</span>
+    <input class="doc-input" id="flag-environment" name="environment" value="{{ environment }}" autocomplete="off" aria-describedby="flag-environment-hint" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="flag-kind">What it holds</label>
+    <select class="doc-select" id="flag-kind" name="kind"{% if editing %} disabled{% endif %}>
+      {%- for one in kinds %}
+      <option value="{{ one.0 }}"{% if one.0 == kind %} selected{% endif %}>{{ one.1 }}</option>
+      {%- endfor %}
+    </select>
+    {%- if editing %}<input type="hidden" name="kind" value="{{ kind }}" />{% endif %}
+  </div>
+  <div class="doc-form-group{% if problem("value").is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="flag-value">Value</label>
+    <span class="doc-hint" id="flag-value-hint">{{ value_hint }}</span>
+    {% call problem_for("value") %}{% endcall %}
+    {%- if kind == "json" %}
+    <textarea class="doc-textarea{% if problem("value").is_some() %} doc-textarea--error{% endif %}" id="flag-value" name="value" rows="6" spellcheck="false" aria-describedby="flag-value-hint">{{ value }}</textarea>
+    {%- else if kind == "boolean" %}
+    <select class="doc-select" id="flag-value" name="value" aria-describedby="flag-value-hint">
+      <option value="true"{% if value == "true" %} selected{% endif %}>On</option>
+      <option value="false"{% if value != "true" %} selected{% endif %}>Off</option>
+    </select>
+    {%- else %}
+    <input class="doc-input{% if problem("value").is_some() %} doc-input--error{% endif %}" id="flag-value" name="value" value="{{ value }}" autocomplete="off" aria-describedby="flag-value-hint" />
+    {%- endif %}
+  </div>
+  <div class="doc-form-group">
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="flag-enabled" name="enabled" type="checkbox" value="on"{% if enabled %} checked{% endif %} />
+      <label class="doc-checkboxes__label" for="flag-enabled">Serve it</label>
+      <span class="doc-checkboxes__hint">Turn this off to stop serving it at all, so every service falls back to its own default.</span>
+    </div>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save it</button>
+    <a class="doc-button doc-button--secondary" href="{{ back }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

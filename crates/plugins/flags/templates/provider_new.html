@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block tab_providers %} aria-current="page"{% endblock %}
+
+{% block main %}
+<h2>Read another provider</h2>
+<p class="doc-hint">It is read for the services it names and merged with what DOC holds, on whichever side you say wins.</p>
+<form hx-post="/p/flags/providers" hx-target="#flags" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-name">Name</label>
+    <input class="doc-input" id="provider-name" name="name" value="{{ self.value("name") }}" autocomplete="off" placeholder="production-flags" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-kind">What it is</label>
+    <select class="doc-select" id="provider-kind" name="kind"
+            hx-get="/p/flags/providers/fields" hx-trigger="change" hx-target="#provider-fields" hx-swap="outerHTML">
+      {%- for one in kinds %}
+      <option value="{{ one.0 }}"{% if one.0 == fields.kind %} selected{% endif %}>{{ one.1 }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {% include "provider_fields.html" %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-services">Only for these services</label>
+    <span class="doc-hint" id="provider-services-hint">Separated by commas. Leave it empty to read it for every service.</span>
+    <input class="doc-input" id="provider-services" name="services" value="{{ self.value("services") }}" autocomplete="off" aria-describedby="provider-services-hint" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-environment">Only in this environment</label>
+    <input class="doc-input" id="provider-environment" name="environment" value="{{ self.value("environment") }}" autocomplete="off" placeholder="production" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-precedence">When both hold a flag</label>
+    <select class="doc-select" id="provider-precedence" name="precedence">
+      <option value="doc">DOC wins — the provider fills in what DOC does not hold</option>
+      <option value="upstream"{% if self.value("precedence") == "upstream" %} selected{% endif %}>The provider wins — DOC is where a value is overridden</option>
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="provider-refresh">Read it again every</label>
+    <span class="doc-hint" id="provider-refresh-hint">Seconds. Between reads DOC serves what it last saw.</span>
+    <input class="doc-input" id="provider-refresh" name="refresh_seconds" type="number" value="{% if self.value("refresh_seconds").is_empty() %}60{% else %}{{ self.value("refresh_seconds") }}{% endif %}" min="5" max="3600" aria-describedby="provider-refresh-hint" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Read it</button>
+    <a class="doc-button doc-button--secondary" href="/p/flags/providers">Cancel</a>
+  </div>
+</form>
+{% endblock %}

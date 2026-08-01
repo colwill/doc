@@ -1,0 +1,59 @@
+<div id="flag-rows" hx-trigger="doc-plugin-ui-flags from:body" hx-get="{{ refresh_url }}" hx-target="this" hx-swap="outerHTML">
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>{{ empty }}</p>
+  {%- if writes %}
+  <a class="doc-button doc-button--secondary" href="/p/flags/new?role={{ role }}">{{ add }}</a>
+  {%- endif %}
+</div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Key</th>
+      <th class="doc-table__header" scope="col">Applies to</th>
+      <th class="doc-table__header" scope="col">Value</th>
+      <th class="doc-table__header" scope="col">Changed</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Actions</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">
+        <code class="doc-mono">{{ row.key }}</code>
+        {%- if !row.description.is_empty() %}<br /><span class="doc-hint">{{ row.description }}</span>{% endif %}
+        {%- if !row.enabled %}<br /><strong class="doc-badge doc-badge--unknown">Not served</strong>{% endif %}
+        {%- if let Some(from) = row.from %}<br /><span class="doc-hint">From {{ from }}</span>{% endif %}
+      </td>
+      <td class="doc-table__cell">{{ row.scope }}</td>
+      <td class="doc-table__cell">
+        {%- if row.boolean %}
+        <strong class="doc-badge doc-badge--{% if row.on %}ready{% else %}unknown{% endif %}">{% if row.on %}On{% else %}Off{% endif %}</strong>
+        {%- else %}
+        <code class="doc-mono">{{ row.value }}</code> <span class="doc-hint">{{ row.kind }}</span>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">{{ row.changed }}</td>
+      {%- if writes %}
+      <td class="doc-table__cell">
+        {%- if let Some(from) = row.from %}
+        <a class="doc-button doc-button--secondary doc-button--small" href="/p/flags/providers">Providers<span class="nhsuk-u-visually-hidden">: {{ row.key }} is changed in {{ from }}</span></a>
+        {%- else %}
+        {%- if row.boolean %}
+        <button class="doc-button doc-button--secondary doc-button--small" type="button"
+                hx-post="/p/flags/e/{{ row.id }}/toggle" hx-target="#flags" hx-swap="outerHTML">{% if row.on %}Turn off{% else %}Turn on{% endif %}</button>
+        {%- endif %}
+        <a class="doc-button doc-button--secondary doc-button--small" href="/p/flags/e/{{ row.id }}">Edit</a>
+        <button class="doc-button doc-button--warning doc-button--small" type="button"
+                hx-delete="/p/flags/e/{{ row.id }}" hx-target="#flags" hx-swap="outerHTML"
+                hx-confirm="Remove {{ row.key }}? A service reading it falls back to its own default.">Remove</button>
+        {%- endif %}
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+</div>
