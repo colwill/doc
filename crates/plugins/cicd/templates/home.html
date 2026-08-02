@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(onboarding) = onboarding %}
+{% include "onboarding.html" %}
+{%- else %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>{{ about }} {{ frame.counting() }}{% if let Some(href) = frame.catalogue() %} <a href="{{ href }}">See it in the Catalogue</a>.{% endif %}</p>
+{% include "period.html" %}
+{% include "tiles.html" %}
+{%- if !stages.is_empty() %}
+<h3>By stage</h3>
+{%- let rows = stages %}
+{%- let row_kind = "Stage" %}
+{% include "rows.html" %}
+{%- endif %}
+<div class="doc-card-group doc-card-group--wide">
+  {%- for chart in charts %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ chart.title }}</h3>
+    <div class="doc-card__content">
+      <canvas class="doc-chart" data-chart="{{ chart.config }}" role="img" aria-label="{{ chart.described }}"></canvas>
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+<p class="doc-hint">A workflow is integration, delivery or testing by its name, as the Settings page says. A default branch is broken from a workflow's first failed run on it to its next run that passes. <a href="{{ frame.broken() }}">Every time one broke</a>.</p>
+{%- if !worst.is_empty() %}
+<h3>Workflows failing most</h3>
+{%- let rows = worst %}
+{% include "listed.html" %}
+{%- if more_workflows %}
+<p class="doc-hint"><a href="{{ frame.workflows() }}">Every workflow</a></p>
+{%- endif %}
+{%- endif %}
+{%- if !rows.is_empty() || rows_problem.is_some() %}
+<h3>By service</h3>
+{%- if let Some(problem) = rows_problem %}
+<p class="doc-error-message">{{ problem }}</p>
+{%- else %}
+{% include "rows.html" %}
+{%- endif %}
+{%- endif %}
+{%- if !unconnected.is_empty() %}
+<p class="doc-hint">No repository is connected in the Catalogue to {{ unconnected.join(", ") }}, so nothing is measured for {% if unconnected.len() == 1 %}it{% else %}them{% endif %}.</p>
+{%- endif %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

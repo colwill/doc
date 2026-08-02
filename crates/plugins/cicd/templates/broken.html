@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>{{ about }} A workflow is broken on a default branch from its first failed run there to its next run that passes.</p>
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty"><p>No workflow failed on a default branch in this period.</p></div>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Still broken first, then the newest</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Broke</th>
+      <th class="doc-table__header" scope="col">Workflow</th>
+      <th class="doc-table__header" scope="col">Stage</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Failed runs</th>
+      <th class="doc-table__header" scope="col">Fixed</th>
+      <th class="doc-table__header" scope="col">Broken for</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{% if let Some(url) = row.broke_url %}<a href="{{ url }}">{{ row.broke }}</a>{% else %}{{ row.broke }}{% endif %}</td>
+      <td class="doc-table__cell">{{ row.workflow }}<span class="doc-hint"> {{ row.repository }}</span></td>
+      <td class="doc-table__cell">{{ row.stage }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.failed_runs }}</td>
+      <td class="doc-table__cell">
+        {%- if let Some(fixed) = row.fixed %}
+        {% if let Some(url) = row.fixed_url %}<a href="{{ url }}">{{ fixed }}</a>{% else %}{{ fixed }}{% endif %}
+        {%- else %}
+        <strong class="doc-badge doc-badge--error">Still broken</strong>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">{{ row.took }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,8 @@
+<div>
+  {%- if let Some(message) = message %}
+  <p class="doc-hint">{{ message }}</p>
+  {%- else %}
+  {% include "tiles.html" %}
+  {%- endif %}
+  <p class="doc-hint"><a href="{{ more }}">Trends, workflows and runs</a></p>
+</div>

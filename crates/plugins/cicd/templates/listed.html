@@ -1,0 +1,27 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Workflow</th>
+      <th class="doc-table__header" scope="col">Stage</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Runs</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Failed</th>
+      <th class="doc-table__header" scope="col">Success rate</th>
+      <th class="doc-table__header" scope="col">Duration</th>
+      <th class="doc-table__header" scope="col">Time to recover</th>
+      <th class="doc-table__header" scope="col">Passed on a re-run</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ row.workflow }}<span class="doc-hint"> {{ row.repository }}</span>{% if row.broken %} <strong class="doc-badge doc-badge--error">Broken now</strong>{% endif %}</th>
+      <td class="doc-table__cell"><abbr title="{{ row.stage.word() }}">{{ row.stage.short() }}</abbr></td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.runs }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.failed }}</td>
+      {%- for cell in row.cells %}
+      <td class="doc-table__cell">{{ cell.value }}{% if let Some(band) = cell.band %} <strong class="doc-badge doc-badge--{{ band.badge() }}">{{ band.word() }}</strong>{% endif %}</td>
+      {%- endfor %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

@@ -1,0 +1,23 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">{{ row_kind }}</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Runs</th>
+      <th class="doc-table__header" scope="col">Success rate</th>
+      <th class="doc-table__header" scope="col">Duration</th>
+      <th class="doc-table__header" scope="col">Time to recover</th>
+      <th class="doc-table__header" scope="col">Passed on a re-run</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{% if let Some(href) = row.href %}<a href="{{ href }}">{{ row.title }}</a>{% else %}{{ row.title }}{% endif %}</th>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.runs }}</td>
+      {%- for cell in row.cells %}
+      <td class="doc-table__cell">{{ cell.value }}{% if let Some(band) = cell.band %} <strong class="doc-badge doc-badge--{{ band.badge() }}">{{ band.word() }}</strong>{% endif %}</td>
+      {%- endfor %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

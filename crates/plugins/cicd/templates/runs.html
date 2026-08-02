@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>{{ about }} {{ frame.counting() }}</p>
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>{% if frame.failed_only() %}No run failed in this period.{% else %}No runs in this period.{% endif %}</p>
+</div>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">{% if total > rows.len() %}The newest {{ rows.len() }}{% else %}Newest first{% endif %}</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Finished</th>
+      <th class="doc-table__header" scope="col">Workflow</th>
+      <th class="doc-table__header" scope="col">Branch</th>
+      <th class="doc-table__header" scope="col">Ended</th>
+      <th class="doc-table__header" scope="col">Took</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ row.at }}</td>
+      <td class="doc-table__cell">{% if let Some(url) = row.url %}<a href="{{ url }}">{{ row.workflow }}</a>{% else %}{{ row.workflow }}{% endif %}<span class="doc-hint"> {{ row.repository }}</span></td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ row.branch }}</code></td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.conclusion }}</strong>{% if row.rerun %} <strong class="doc-badge doc-badge--degraded">On a re-run</strong>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.took }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+<form method="get" action="{{ frame.action() }}">
+  {%- if !frame.scope_name().is_empty() %}
+  <input type="hidden" name="{{ frame.scope_kind() }}" value="{{ frame.scope_name() }}" />
+  {%- endif %}
+  {%- if frame.failed_only() %}
+  <input type="hidden" name="failed" value="1" />
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="cicd-days">Over the last</label>
+    <select class="doc-select" id="cicd-days" name="days">
+      {%- for period in frame.periods %}
+      <option value="{{ period.days }}"{% if period.chosen %} selected{% endif %}>{{ period.said }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button doc-button--secondary doc-button--small" type="submit">Show</button>
+  </div>
+</form>

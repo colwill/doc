@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>{{ about }} {{ frame.counting() }}</p>
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty"><p>No workflow ran in this period.</p></div>
+{%- else %}
+{%- if total > rows.len() %}
+<p class="doc-hint">The {{ rows.len() }} of {{ total }} workflows failing most.</p>
+{%- endif %}
+{% include "listed.html" %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

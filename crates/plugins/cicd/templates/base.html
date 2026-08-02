@@ -1,0 +1,13 @@
+<div id="cicd">
+  <nav class="doc-tabs" aria-label="CI/CD/CT metrics">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.overview() }}"{% if frame.tab == "overview" %} aria-current="page"{% endif %}>Overview</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.workflows() }}"{% if frame.tab == "workflows" %} aria-current="page"{% endif %}>Workflows</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.runs() }}"{% if frame.tab == "runs" %} aria-current="page"{% endif %}>Runs</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.failed() }}"{% if frame.tab == "failed" %} aria-current="page"{% endif %}>Failed runs</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.broken() }}"{% if frame.tab == "broken" %} aria-current="page"{% endif %}>Broken branches</a></li>
+    </ul>
+  </nav>
+  <h2>{{ frame.heading }}</h2>
+  {%- block main %}{% endblock %}
+</div>
