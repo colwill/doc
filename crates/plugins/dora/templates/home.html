@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(onboarding) = onboarding %}
+{% include "onboarding.html" %}
+{%- else %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>{{ about }}{% if let Some(href) = frame.catalogue() %} <a href="{{ href }}">See it in the Catalogue</a>.{% endif %}</p>
+{% include "period.html" %}
+{% include "tiles.html" %}
+<div class="doc-card-group doc-card-group--wide">
+  {%- for chart in charts %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ chart.title }}</h3>
+    <div class="doc-card__content">
+      <canvas class="doc-chart" data-chart="{{ chart.config }}" role="img" aria-label="{{ chart.described }}"></canvas>
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+<p class="doc-hint">{{ signals }} <a href="{{ frame.failures() }}">Every failure, and what said so</a>.</p>
+{%- if !counted.is_empty() %}
+<h3>Counted</h3>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Counter</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">In the period</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for (counter, total) in counted %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><code class="doc-mono">{{ counter }}</code></td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ total }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !rows.is_empty() || rows_problem.is_some() %}
+<h3>By service</h3>
+{%- if let Some(problem) = rows_problem %}
+<p class="doc-error-message">{{ problem }}</p>
+{%- else %}
+{% include "rows.html" %}
+{%- endif %}
+{%- endif %}
+{%- if !unconnected.is_empty() %}
+<p class="doc-hint">No repository is connected in the Catalogue to {{ unconnected.join(", ") }}, so nothing is measured for {% if unconnected.len() == 1 %}it{% else %}them{% endif %}.</p>
+{%- endif %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

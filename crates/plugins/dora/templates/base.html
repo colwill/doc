@@ -1,0 +1,14 @@
+<div id="dora">
+  <nav class="doc-tabs" aria-label="DORA metrics">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.overview() }}"{% if frame.tab == "overview" %} aria-current="page"{% endif %}>Overview</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.deployments() }}"{% if frame.tab == "deployments" %} aria-current="page"{% endif %}>Deployments</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.failures() }}"{% if frame.tab == "failures" %} aria-current="page"{% endif %}>Failures</a></li>
+      {%- if frame.compare %}
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.teams() }}"{% if frame.tab == "teams" %} aria-current="page"{% endif %}>Teams</a></li>
+      {%- endif %}
+    </ul>
+  </nav>
+  <h2>{{ frame.heading }}</h2>
+  {%- block main %}{% endblock %}
+</div>

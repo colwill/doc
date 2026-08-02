@@ -1,0 +1,33 @@
+<div class="doc-card">
+  {%- if onboarding.on %}
+  <h3 class="doc-card__heading">No deployments yet</h3>
+  <div class="doc-card__content">
+    <p>DORA metrics are on, and waiting for the first delivery data to be read.</p>
+  {%- else %}
+  <h3 class="doc-card__heading">DORA metrics are off</h3>
+  <div class="doc-card__content">
+    <p>Once they are on, DOC measures how often each service deploys to production, how long a change takes to get there, how often a deployment causes a failure and how long it takes to recover: for every service, team and organisation in the Catalogue, from the delivery data GitHub already holds. Never for a person.</p>
+    {%- if onboarding.admin %}
+    <p><a href="/plugins">Enable DORA on the Plugins page</a>. Where GitHub already signs people in, that one button turns on its delivery data too.</p>
+    {%- else %}
+    <p>Somebody who administers the platform turns them on from the Plugins page.</p>
+    {%- endif %}
+  {%- endif %}
+    {%- if onboarding.sources.is_empty() %}
+    <p>None of the plugins DORA reads delivery data from is running here.</p>
+    {%- else %}
+    <dl class="doc-summary">
+      {%- for source in onboarding.sources %}
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">{{ source.id }}</dt>
+        <dd class="doc-summary__value">
+          <strong class="doc-badge doc-badge--{% if source.ready %}ready{% else %}unknown{% endif %}">{% if source.ready %}Reading{% else %}Not reading{% endif %}</strong>
+          {{ source.said }}
+          {%- if onboarding.admin %} <a href="/plugins/{{ source.id }}/settings">Its settings</a>{% endif %}
+        </dd>
+      </div>
+      {%- endfor %}
+    </dl>
+    {%- endif %}
+  </div>
+</div>

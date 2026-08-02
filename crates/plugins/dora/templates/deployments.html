@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>{{ about }}</p>
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>{% if frame.failures_only() %}No deployment caused a failure in this period.{% else %}No deployments to production in this period.{% endif %}</p>
+</div>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">{% if total > rows.len() %}The newest {{ rows.len() }} of {{ total }}{% else %}Newest first{% endif %}</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Deployed</th>
+      <th class="doc-table__header" scope="col">Repository</th>
+      <th class="doc-table__header" scope="col">Commit</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Changes</th>
+      <th class="doc-table__header" scope="col">Lead time, median</th>
+      <th class="doc-table__header" scope="col">Caused a failure</th>
+      <th class="doc-table__header" scope="col">Recovered in</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ row.at }}<span class="doc-hint"> {{ row.environment }}</span></td>
+      <td class="doc-table__cell">{{ row.repository }}</td>
+      <td class="doc-table__cell">{% if let Some(url) = row.url %}<a href="{{ url }}"><code class="doc-mono">{{ row.sha }}</code></a>{% else %}<code class="doc-mono">{{ row.sha }}</code>{% endif %}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.commits }}</td>
+      <td class="doc-table__cell">{{ row.lead }}</td>
+      <td class="doc-table__cell">
+        {%- if row.failed %}
+        <strong class="doc-badge doc-badge--error">{% if let Some(url) = row.failure_url %}<a href="{{ url }}">{{ row.failure }}</a>{% else %}{{ row.failure }}{% endif %}</strong>
+        {%- else %}
+        <strong class="doc-badge doc-badge--ready">No</strong>
+        {%- endif %}
+      </td>
+      <td class="doc-table__cell">{{ row.recovery }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+{% endblock %}

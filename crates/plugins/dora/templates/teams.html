@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="nhsuk-warning-callout">
+  <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>For improving, not ranking</span></h3>
+  <p>DORA's own guidance is that these measures are for a team to see how it is improving. Putting teams side by side invites them to be ranked, and ranked numbers are soon gamed. Teams that ship different things deploy differently for good reasons.</p>
+</div>
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty"><p>No team has a service or repository connected in the Catalogue yet.</p></div>
+{%- else %}
+{% include "rows.html" %}
+{%- endif %}
+{%- if !unconnected.is_empty() %}
+<p class="doc-hint">No repository is connected in the Catalogue to {{ unconnected.join(", ") }}.</p>
+{%- endif %}
+{%- endif %}
+{% endblock %}
