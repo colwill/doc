@@ -1,0 +1,10 @@
+<div class="doc-card-group doc-card-group--wide">
+  {%- for chart in charts %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">{{ chart.title }}</h3>
+    <div class="doc-card__content">
+      <canvas class="doc-chart" data-chart="{{ chart.config }}" role="img" aria-label="{{ chart.described }}"></canvas>
+    </div>
+  </div>
+  {%- endfor %}
+</div>

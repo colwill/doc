@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- endif %}
+{%- if saved %}
+<p class="doc-hint"><strong class="doc-badge doc-badge--ready">Saved</strong> <a href="{{ frame.services() }}">Back to {{ name }}</a></p>
+{%- endif %}
+{%- if !checks_on %}
+<p class="doc-hint">Service reliability is turned off, so nothing is checked until it is turned on from this plugin's Features tab.</p>
+{%- endif %}
+<form hx-post="{{ frame.edit().unwrap_or_default() }}" hx-target="#reliability" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="reliability-url">Health URL</label>
+    <div class="doc-hint" id="reliability-url-hint">Checked every minute: anything below 400 is up. Empty to only count outages somebody reports.</div>
+    <input class="doc-input" id="reliability-url" name="url" type="url" value="{{ url }}" aria-describedby="reliability-url-hint" placeholder="https://{{ name }}.example.com/health" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reliability-sla">Availability objective, percent</label>
+    <input class="doc-input doc-input--width-10" id="reliability-sla" name="sla" value="{{ sla }}" placeholder="{{ default_sla() }}" inputmode="decimal" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reliability-mttr">Mean time to recover, at most</label>
+    <input class="doc-input doc-input--width-10" id="reliability-mttr" name="mttr" value="{{ mttr }}" placeholder="{{ default_time(defaults.mttr) }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reliability-rto">Recovery time objective</label>
+    <input class="doc-input doc-input--width-10" id="reliability-rto" name="rto" value="{{ rto }}" placeholder="{{ default_time(defaults.rto) }}" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reliability-rpo">Recovery point objective</label>
+    <div class="doc-hint" id="reliability-rpo-hint">Times are written as 30m, 4h or 1d. Empty keeps the default shown.</div>
+    <input class="doc-input doc-input--width-10" id="reliability-rpo" name="rpo" value="{{ rpo }}" placeholder="{{ default_time(defaults.rpo) }}" aria-describedby="reliability-rpo-hint" />
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <button class="doc-button doc-button--secondary" type="submit" name="stop" value="1">Stop watching</button>
+  </div>
+</form>
+{% endblock %}

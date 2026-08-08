@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>Judged by its own objectives where it has them, and by the defaults on the Settings page for the rest.{% if let Some(href) = frame.catalogue() %} <a href="{{ href }}">See it in the Catalogue</a>.{% endif %}</p>
+{% include "period.html" %}
+{% include "tiles.html" %}
+<h3>How it is watched</h3>
+<dl class="doc-summary">
+  {%- for said in watching %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">{{ said.key }}</dt>
+    <dd class="doc-summary__value">{{ said.value }}</dd>
+  </div>
+  {%- endfor %}
+</dl>
+{%- if frame.writes %}
+{%- if let Some(edit) = frame.edit() %}
+<p><a href="{{ edit }}">Change how it is watched</a></p>
+{%- endif %}
+{%- endif %}
+{% include "charts.html" %}
+<h3>Outages</h3>
+{%- if outages.is_empty() %}
+<p class="doc-hint">No outages in this period.</p>
+{%- else %}
+{%- let rows = outages %}
+{% include "listed.html" %}
+<p class="doc-hint"><a href="{{ frame.outages() }}">Every outage</a></p>
+{%- endif %}
+<h3>Backups and restores</h3>
+{%- if backups.is_empty() %}
+<p class="doc-hint">None recorded in this period. The job that takes them records each one with the <code class="doc-mono">reliability.backup</code> operation, or <code class="doc-mono">POST api/backups</code>.</p>
+{%- else %}
+{%- let rows = backups %}
+{% include "listed.html" %}
+<p class="doc-hint"><a href="{{ frame.backups() }}">Every backup and restore</a></p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

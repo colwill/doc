@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(onboarding) = onboarding %}
+<div class="doc-card">
+  <h3 class="doc-card__heading">Service reliability is off</h3>
+  <div class="doc-card__content">
+    <p>Once it is on, DOC checks each service's health URL every minute and takes the outages, backups and restores automations report, to judge each service's availability, time to recover, recovery time and recovery point against its objectives. <a href="{{ frame.platform() }}">DOC's own reliability</a> is judged from its status history either way.</p>
+    {%- if onboarding.admin %}
+    <p>Turn it on from this plugin's <a href="/plugins/reliability/features">Features tab</a>.</p>
+    {%- else %}
+    <p>Somebody who administers the platform turns it on from the Plugins page.</p>
+    {%- endif %}
+  </div>
+</div>
+{%- endif %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>Each service is judged by its own objectives, or by the defaults on the Settings page.{% if let Some(href) = frame.catalogue() %} <a href="{{ href }}">See it in the Catalogue</a>.{% endif %}</p>
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty"><p>No service is watched yet. Open a service here, or from its page in the Catalogue, to give it a health URL; or have an automation report its outages and backups.</p></div>
+{%- else %}
+{% include "tiles.html" %}
+{% include "charts.html" %}
+{%- let row_kind = "Service" %}
+{% include "rows.html" %}
+{%- endif %}
+{%- if !unwatched.is_empty() %}
+<p class="doc-hint">Not watched yet: {{ unwatched.join(", ") }}. Nothing checks {% if unwatched.len() == 1 %}it{% else %}them{% endif %} and nothing has been reported.</p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

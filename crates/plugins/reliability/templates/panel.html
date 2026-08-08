@@ -1,0 +1,16 @@
+<div>
+  {%- if let Some(message) = message %}
+  {%- if let Some(edit) = edit %}
+  <div class="doc-empty">
+    <p>{{ message }}</p>
+    <a class="doc-button doc-button--secondary" href="{{ edit }}">Give it a health URL</a>
+  </div>
+  {%- else %}
+  <p class="doc-hint">{{ message }}</p>
+  {%- endif %}
+  <p class="doc-hint"><a href="{{ more }}">Outages, backups and objectives</a></p>
+  {%- else %}
+  {% include "tiles.html" %}
+  <p class="doc-hint"><a href="{{ more }}">Outages, backups and objectives</a>{% if let Some(edit) = edit %} · <a href="{{ edit }}">Change how it is watched</a>{% endif %}</p>
+  {%- endif %}
+</div>

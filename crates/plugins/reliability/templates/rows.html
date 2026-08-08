@@ -1,0 +1,23 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">{{ row_kind }}</th>
+      <th class="doc-table__header" scope="col">Now</th>
+      <th class="doc-table__header" scope="col">Availability</th>
+      <th class="doc-table__header" scope="col">Mean time to recover</th>
+      <th class="doc-table__header" scope="col">Recovery time</th>
+      <th class="doc-table__header" scope="col">Recovery point</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{% if let Some(href) = row.href %}<a href="{{ href }}">{{ row.title }}</a>{% else %}{{ row.title }}{% endif %}</th>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.now.1 }}">{{ row.now.0 }}</strong></td>
+      {%- for cell in row.cells %}
+      <td class="doc-table__cell">{{ cell.value }}{% if let Some(verdict) = cell.verdict %} <strong class="doc-badge doc-badge--{{ verdict.badge() }}">{{ verdict.word() }}</strong>{% endif %}</td>
+      {%- endfor %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

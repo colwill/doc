@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if off %}
+<div class="doc-card">
+  <h3 class="doc-card__heading">DOC's reliability is off</h3>
+  <div class="doc-card__content">
+    <p>It is turned on from this plugin's <a href="/plugins/reliability/features">Features tab</a>, and reads the 30 days of status history DOC already keeps.</p>
+  </div>
+</div>
+{%- endif %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>What DOC promises the teams that use it, from the checks its status probes make every minute. DOC is up while its database, buses, backend and frontend all are; its recovery point is measured from the backups of its database recorded here.</p>
+{% include "period.html" %}
+{% include "tiles.html" %}
+{% include "charts.html" %}
+<h3>Its parts</h3>
+{%- let rows = parts %}
+{%- let row_kind = "Part" %}
+{% include "rows.html" %}
+{%- if !plugins.is_empty() %}
+<h3>Its plugins</h3>
+{%- let rows = plugins %}
+{%- let row_kind = "Plugin" %}
+{% include "rows.html" %}
+<p class="doc-hint">Each plugin is down while it is in error or has left the registry. Plugins keep their data in DOC's database, so its recovery point is theirs.</p>
+{%- endif %}
+<h3>Outages</h3>
+{%- if outages.is_empty() %}
+<p class="doc-hint">No outages in this period.</p>
+{%- else %}
+{%- let rows = outages %}
+{% include "listed.html" %}
+<p class="doc-hint"><a href="{{ frame.outages() }}">Every outage</a></p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

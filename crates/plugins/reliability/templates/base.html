@@ -1,0 +1,12 @@
+<div id="reliability">
+  <nav class="doc-tabs" aria-label="Reliability">
+    <ul class="doc-tabs__list">
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.services() }}"{% if frame.tab == "services" || frame.tab == "edit" %} aria-current="page"{% endif %}>Services</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.platform() }}"{% if frame.tab == "doc" %} aria-current="page"{% endif %}>DOC</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.outages() }}"{% if frame.tab == "outages" %} aria-current="page"{% endif %}>Outages</a></li>
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ frame.backups() }}"{% if frame.tab == "backups" %} aria-current="page"{% endif %}>Backups and restores</a></li>
+    </ul>
+  </nav>
+  <h2>{{ frame.heading }}</h2>
+  {%- block main %}{% endblock %}
+</div>

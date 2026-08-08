@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+{% include "period.html" %}
+{%- if rows.is_empty() %}
+<div class="doc-empty"><p>{{ empty }}</p></div>
+{%- else %}
+{%- if total > rows.len() %}
+<p class="doc-hint">The newest {{ rows.len() }} of {{ total }}.</p>
+{%- endif %}
+{% include "listed.html" %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">When</th>
+      <th class="doc-table__header" scope="col">What</th>
+      <th class="doc-table__header" scope="col">Duration</th>
+      <th class="doc-table__header" scope="col">Now</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ row.when }}</td>
+      <td class="doc-table__cell">{{ row.what }}<span class="doc-hint"> {{ row.about }}{% if !row.detail.is_empty() %}: {{ row.detail }}{% endif %}</span></td>
+      <td class="doc-table__cell">{{ row.took }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.state }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

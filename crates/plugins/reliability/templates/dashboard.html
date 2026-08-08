@@ -1,0 +1,17 @@
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message">{{ problem }}</p>
+{%- else if rows.is_empty() %}
+<p class="doc-empty">Nothing you can see is down.</p>
+{%- else %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ row.what }}<br /><span class="doc-hint">Since {{ row.when }}, {{ row.about|lower }}</span></th>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.took }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="/p/reliability/outages">All outages</a></p>
