@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p>Every release of {{ label }}{% if let Some(link) = link %}, from <a href="{{ link }}">endoflife.date</a>{% endif %}{% if !read.is_empty() %}, read {{ read }}{% endif %}.</p>
+{%- if dropped %}
+<p class="doc-hint">endoflife.date no longer lists {{ label }}. DOC keeps what it said when it last did, so what runs it is still judged.</p>
+{%- endif %}
+{%- if let Some(problem) = read_problem %}
+<p class="doc-error-message">It could not be read again, so this is what was read before: {{ problem }}</p>
+{%- endif %}
+{%- if let Some(svg) = timeline %}
+<div class="doc-card">
+  <div class="doc-card__content">
+    {{ svg|safe }}
+    <p class="doc-hint">Green is active support and blue security fixes only; dark grey is extended support after the end of life, and light grey what has passed.</p>
+  </div>
+</div>
+{%- endif %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Release</th>
+      <th class="doc-table__header" scope="col">Released</th>
+      <th class="doc-table__header" scope="col">Active support until</th>
+      <th class="doc-table__header" scope="col">End of life</th>
+      <th class="doc-table__header" scope="col">Extended support until</th>
+      <th class="doc-table__header" scope="col">Latest</th>
+      <th class="doc-table__header" scope="col">Where it stands</th>
+      <th class="doc-table__header" scope="col">Run by</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ row.name }}</th>
+      <td class="doc-table__cell">{{ row.released }}</td>
+      <td class="doc-table__cell">{{ row.support }}</td>
+      <td class="doc-table__cell">{{ row.eol }}</td>
+      <td class="doc-table__cell">{{ row.extended }}</td>
+      <td class="doc-table__cell">{{ row.latest }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.status.badge() }}">{{ row.status.word() }}</strong></td>
+      <td class="doc-table__cell">{% for (title, href) in row.used_by %}{% if !loop.first %}, {% endif %}<a href="{{ href }}">{{ title }}</a>{% endfor %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else if rows.is_empty() %}
+<div class="doc-empty"><p>What the services here run is not known yet: the <a href="{{ frame.overview() }}">Overview</a> says how it is worked out.</p></div>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Every product in use, the worst first</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Product</th>
+      <th class="doc-table__header" scope="col">Releases in use</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Services</th>
+      <th class="doc-table__header" scope="col">Worst</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.label }}</a></th>
+      <td class="doc-table__cell">{{ row.releases }}{% if let Some(problem) = row.problem %} <span class="doc-error-message">{{ problem }}</span>{% endif %}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.services }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.worst.badge() }}">{{ row.worst.word() }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,18 @@
+<div>
+  {%- if let Some(message) = message %}
+  <p class="doc-hint">{{ message }}</p>
+  {%- else %}
+  {% include "tiles.html" %}
+  {%- if !rows.is_empty() %}
+  <dl class="doc-summary">
+    {%- for row in rows %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key"><a href="{{ row.href() }}">{{ row.named() }}</a>{% if !single %}<span class="doc-hint"> {{ row.title }}</span>{% endif %}</dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ row.status.badge() }}">{{ row.status.word() }}</strong> {{ row.why }}{% if row.discovered() %}<span class="doc-hint"> Said by {{ row.said_where() }}</span>{% endif %}</dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- endif %}
+  {%- endif %}
+  <p class="doc-hint"><a href="{{ more }}">Every product and release</a></p>
+</div>

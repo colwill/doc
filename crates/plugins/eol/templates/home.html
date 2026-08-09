@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else if let Some(on) = onboarding %}
+<div class="doc-card">
+  <h3 class="doc-card__heading">{% if !found_nothing.is_empty() %}Nothing found in {% if frame.single() %}its repositories{% else %}the services' repositories{% endif %} is tracked by endoflife.date{% else if frame.single() %}What this service runs is not known yet{% else %}What the services run is not known yet{% endif %}</h3>
+  <div class="doc-card__content">
+    <p>End of life works out what a service runs from the repositories connected to it in the Catalogue. When Repository Insights scans one with ccc, the packages in its lockfiles &mdash; React, Angular, Django, .NET and whatever else <a href="https://endoflife.date">endoflife.date</a> tracks &mdash; are matched to their releases, and each is shown here with where it stands.</p>
+    {%- if !found_nothing.is_empty() %}
+    <p>{% if found_nothing.len() == 1 %}The repository connected{% else %}Each repository connected{% endif %} was read, and nothing in {% if found_nothing.len() == 1 %}it{% else %}them{% endif %} is a product endoflife.date tracks: libraries such as Rust crates are not, and packages only used to build or test are left out.</p>
+    <ul>
+      {%- for said in found_nothing %}
+      <li>{{ said }}</li>
+      {%- endfor %}
+    </ul>
+    {%- else %}
+    {%- match scanned %}
+    {%- when None %}
+    <p>Repository Insights is not running, so no repository has been scanned: turn it on from <a href="/plugins/insights">its page under Admin &rarr; Plugins</a>.</p>
+    {%- when Some(0) %}
+    <p>Repository Insights has not scanned a repository yet. It scans one each time a pull request is merged into its main branch, or when somebody asks for it on <a href="/p/insights/">Repository insights</a>.</p>
+    {%- when Some(count) %}
+    <p>Repository Insights has scanned {{ count }} {% if *count == 1 %}repository{% else %}repositories{% endif %}, and none is connected to {% if frame.single() %}this service{% else %}a service{% endif %} yet. {% if let Some(href) = frame.catalogue() %}<a href="{{ href }}">Connect it to its repository in the Catalogue</a>{% else %}Connect each service to its repository in the Catalogue{% endif %}, and what the repository uses shows here a few minutes later.</p>
+    {%- endmatch %}
+    {%- endif %}
+    {%- if !reading %}
+    <p>ccc lists packages, not the runtimes and images a repository names in its Dockerfiles, <code>go.mod</code> or <code>.nvmrc</code>. To read those too, turn <strong>Runtimes from repository files</strong> on under the <a href="/plugins/eol/features">Features tab</a>.</p>
+    {%- endif %}
+    <p>Anything no repository shows, such as the language it is written in or the database it uses, can be named in its metadata in the Catalogue, as Backstage's end-of-life plugin reads it:</p>
+    <pre class="doc-code"><code>kind: Service
+name: ledger
+metadata:
+  endoflife.date/products: nodejs@20,postgresql@16,ubuntu@22.04</code></pre>
+    <p>Use endoflife.date's name for each product, and the version after <code>@</code>: <code>20.11.1</code> is matched to Node.js 20. A product of your own can point <code>endoflife.date/url-location</code> at a JSON file of its releases, from a host the Settings page lists.</p>
+    {%- if !on %}
+    <p>End-of-life data is off on the <a href="/plugins/eol/features">Features tab</a>, so nothing is read from endoflife.date until it is on.</p>
+    {%- endif %}
+    <p>To see how these pages look first, turn End of life on under <strong>Provide faux data to</strong> on <a href="/plugins/faux-data/settings">faux-data's Settings page</a>.</p>
+  </div>
+</div>
+{%- else %}
+<p>{{ about }}{% if let Some(href) = frame.catalogue() %} <a href="{{ href }}">See it in the Catalogue</a>.{% endif %}</p>
+{% include "tiles.html" %}
+{%- if let Some(svg) = timeline %}
+<div class="doc-card">
+  <h3 class="doc-card__heading">Timeline</h3>
+  <div class="doc-card__content">
+    {{ svg|safe }}
+    <p class="doc-hint">Green is active support and blue security fixes only; dark grey is extended support after the end of life, light grey what has passed, and red a release still run past its end of life. A release is ending soon within the time the Settings page gives.</p>
+  </div>
+</div>
+{%- endif %}
+{%- if frame.single() %}
+<table class="doc-table">
+  <caption class="doc-table__caption">What it runs, worst first</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Product</th>
+      <th class="doc-table__header" scope="col">Runs</th>
+      <th class="doc-table__header" scope="col">Said by</th>
+      <th class="doc-table__header" scope="col">Latest of its release</th>
+      <th class="doc-table__header" scope="col">Newest release</th>
+      <th class="doc-table__header" scope="col">Where it stands</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for run in runs %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ run.href() }}">{{ run.label }}</a></th>
+      <td class="doc-table__cell">{% if let Some(version) = run.version %}{{ version }}{% else %}No version named{% endif %}</td>
+      <td class="doc-table__cell">{% if run.discovered() %}{% for said in run.from %}{% if !loop.first %}<br />{% endif %}<code class="doc-mono">{{ said }}</code>{% endfor %}{% else %}Its metadata{% endif %}</td>
+      <td class="doc-table__cell">{% if let Some(release) = run.release %}{% if let Some(latest) = release.latest %}{{ latest }}{% else %}–{% endif %}{% else %}–{% endif %}</td>
+      <td class="doc-table__cell">{% if let Some(newest) = run.newest %}{{ newest }}{% else %}This one{% endif %}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ run.status.badge() }}">{{ run.status.word() }}</strong> {{ run.why }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- for problem in problems %}
+<p class="doc-error-message">{{ problem }}</p>
+{%- endfor %}
+<p class="doc-hint">{% if repositories.is_empty() %}No repository connected to it has been scanned by Repository Insights yet, so what it runs is only what its <code>endoflife.date/products</code> metadata in the Catalogue names{% else %}What it runs is read from {% if repositories.len() == 1 %}the repository{% else %}the repositories{% endif %} connected to it, {% for repository in repositories %}{% if !loop.first %}{% if loop.last %} and {% else %}, {% endif %}{% endif %}<code class="doc-mono">{{ repository }}</code>{% endfor %}, and from its <code>endoflife.date/products</code> metadata in the Catalogue{% endif %}{% if let Some(href) = frame.catalogue() %}, which is <a href="{{ href }}">changed there</a>{% endif %}.</p>
+{%- else %}
+{%- if !in_use.is_empty() %}
+<h3>Releases in use</h3>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Release</th>
+      <th class="doc-table__header" scope="col">Where it stands</th>
+      <th class="doc-table__header" scope="col">Active support until</th>
+      <th class="doc-table__header" scope="col">End of life</th>
+      <th class="doc-table__header" scope="col">Run by</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in in_use %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.named }}</a></th>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.status.badge() }}">{{ row.status.word() }}</strong>{% if row.status.key() == "unknown" %} {{ row.why }}{% endif %}</td>
+      <td class="doc-table__cell">{{ row.support }}</td>
+      <td class="doc-table__cell">{{ row.eol }}</td>
+      <td class="doc-table__cell">{% for (title, href) in row.services %}{% if !loop.first %}, {% endif %}<a href="{{ href }}">{{ title }}</a>{% endfor %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !services.is_empty() %}
+<h3>By service</h3>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Service</th>
+      <th class="doc-table__header" scope="col">Worst</th>
+      <th class="doc-table__header" scope="col">Runs</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for service in services %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ service.href }}">{{ service.title }}</a></th>
+      <td class="doc-table__cell">{% if let Some(worst) = service.worst %}<strong class="doc-badge doc-badge--{{ worst.badge() }}">{{ worst.word() }}</strong>{% else %}–{% endif %}</td>
+      <td class="doc-table__cell">{% for (named, status) in service.runs %}{% if !loop.first %}, {% endif %}{{ named }}{% if status.concerning() %} ({{ status.word()|lower }}){% endif %}{% endfor %}{% for problem in service.problems %} <span class="doc-error-message">{{ problem }}</span>{% endfor %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !found_nothing.is_empty() %}
+<p class="doc-hint">Nothing endoflife.date tracks was found in {% if found_nothing.len() == 1 %}the repository{% else %}the repositories{% endif %} of the other services:</p>
+<ul class="doc-hint">
+  {%- for said in found_nothing %}
+  <li>{{ said }}</li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- if !unnamed.is_empty() %}
+<p class="doc-hint">What {{ unnamed.join(", ") }} {% if unnamed.len() == 1 %}runs{% else %}run{% endif %} is not known yet: connect {% if unnamed.len() == 1 %}it to its repository{% else %}each to its repository{% endif %} in the Catalogue, and what that uses shows here once Repository Insights has scanned it, or name what {% if unnamed.len() == 1 %}it runs{% else %}they run{% endif %} in <code>endoflife.date/products</code> metadata.</p>
+{%- endif %}
+{%- endif %}
+{%- endif %}
+{% endblock %}

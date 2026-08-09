@@ -1,0 +1,29 @@
+[package]
+name = "doc-eol"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+askama.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
+flate2.workspace = true
+futures.workspace = true
+hex.workspace = true
+reqwest.workspace = true
+rustls.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tar.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url.workspace = true
+
+doc-plugin-sdk = { workspace = true, features = ["reqwest"] }

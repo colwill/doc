@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block main %}
+<p>{{ lede }}</p>
+{%- if let Some(unread) = unread %}
+<p class="doc-error-message" role="alert">{{ unread }}</p>
+{%- endif %}
+<form action="{{ frame.all() }}" method="get" hx-get="{{ frame.all() }}" hx-trigger="change, input delay:300ms from:#eol-q" hx-select="#eol-every" hx-target="#eol-every" hx-swap="outerHTML" hx-push-url="true">
+  <div class="doc-form-group">
+    <label class="doc-label" for="eol-q">Search</label>
+    <span class="doc-hint" id="eol-q-hint">By name, such as node, postgres or k8s.</span>
+    <input class="doc-input" id="eol-q" name="q" type="search" value="{{ q }}" autocomplete="off" aria-describedby="eol-q-hint" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="eol-kind">Kind</label>
+    <select class="doc-select" id="eol-kind" name="kind">
+      <option value="">Any kind</option>
+      {%- for choice in kinds %}
+      <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <noscript><button class="doc-button doc-button--secondary" type="submit">Show</button></noscript>
+</form>
+<div id="eol-every">
+{%- if !shown.is_empty() %}
+<p class="doc-hint" role="status">{{ shown }}</p>
+{%- endif %}
+{%- if !rows.is_empty() %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Every product, by name</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Product</th>
+      <th class="doc-table__header" scope="col">Kind</th>
+      <th class="doc-table__header" scope="col">Newest release</th>
+      <th class="doc-table__header" scope="col">Released</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Releases not yet at end of life</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.label }}</a>{% if row.dropped %} <strong class="doc-badge doc-badge--unknown">No longer listed</strong>{% endif %}</th>
+      <td class="doc-table__cell">{{ row.kind }}</td>
+      <td class="doc-table__cell">{{ row.newest }}</td>
+      <td class="doc-table__cell">{{ row.released }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.before_eol }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+</div>
+<h3>Reading it from your own tools</h3>
+<p>DOC serves its copy in endoflife.date's own format, so a script, pipeline or tool that reads endoflife.date's API can read it from DOC instead. Give it <code class="doc-mono">{{ platform_url }}/api/v1/plugins/eol</code> where it asks for endoflife.date's address, and a DOC token that can read End of life.</p>
+<pre class="doc-code" data-doc-language="shell"><code>curl -H "Authorization: Bearer $DOC_TOKEN" \
+  "{{ platform_url }}/api/v1/plugins/eol/api/v1/products/nodejs"</code></pre>
+<p class="doc-hint">It answers <code class="doc-mono">api/v1/products</code>, <code class="doc-mono">api/v1/products/full</code>, <code class="doc-mono">api/v1/products/&lt;product&gt;</code> and <code class="doc-mono">api/v1/products/&lt;product&gt;/releases/&lt;release&gt;</code> (or <code class="doc-mono">latest</code>). Each answer carries an ETag, so asking again for what has not changed costs a <code class="doc-mono">304</code>.</p>
+{% endblock %}

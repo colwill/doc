@@ -1,0 +1,12 @@
+<div class="doc-stat-group">
+  {%- for tile in tiles %}
+  <div class="doc-stat">
+    <span class="doc-stat__label">{{ tile.label }}</span>
+    <span class="doc-stat__value">{{ tile.value }}</span>
+    {%- if let Some(badge) = tile.badge %}
+    <span class="doc-stat__note"><strong class="doc-badge doc-badge--{{ badge }}">{{ tile.label }}</strong></span>
+    {%- endif %}
+    <span class="doc-stat__note">{{ tile.note }}</span>
+  </div>
+  {%- endfor %}
+</div>
