@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else if rows.is_empty() %}
+<div class="doc-empty"><p>Nothing was released in the last {{ days }} days.</p></div>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Released in the last {{ days }} days, newest first</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Release</th>
+      <th class="doc-table__header" scope="col">Services</th>
+      <th class="doc-table__header" scope="col">Released</th>
+      <th class="doc-table__header" scope="col">Issues</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a><span class="doc-hint"> {{ row.project }}</span></th>
+      <td class="doc-table__cell">{% for (title, href) in row.services %}{% if !loop.first %}, {% endif %}<a href="{{ href }}">{{ title }}</a>{% endfor %}</td>
+      <td class="doc-table__cell">{{ row.due }}</td>
+      <td class="doc-table__cell">{{ row.progress }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

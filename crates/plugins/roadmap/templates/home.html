@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else if let Some(onboarding) = onboarding %}
+<div class="doc-card">
+  {%- if onboarding.on %}
+  <h3 class="doc-card__heading">No releases yet</h3>
+  <div class="doc-card__content">
+    <p>The roadmap is on, and waiting for releases to be read from Jira.</p>
+  {%- else %}
+  <h3 class="doc-card__heading">The delivery roadmap is off</h3>
+  <div class="doc-card__content">
+    <p>Once it is on, DOC shows every release planned in Jira for each service, team and organisation — when it is due, how far along it is — and asks the other plugins whether the services in it are ready: their pipelines, their reliability, whether what they run will still be supported, and how their deployments go.</p>
+    {%- if onboarding.admin %}
+    <p><a href="/plugins">Enable the delivery roadmap on the Plugins page</a>. Where Jira is configured, that one button turns on its release data too.</p>
+    {%- else %}
+    <p>Somebody who administers the platform turns it on from the Plugins page.</p>
+    {%- endif %}
+  {%- endif %}
+    <p>Give each service its Jira project from the <strong>Roadmap</strong> section of its page in <a href="/p/resources/">the Catalogue</a>, choosing from the projects Jira has. To give several services their projects at once, choose them under <strong>Projects tracked</strong> on <a href="/plugins/roadmap/settings">the roadmap's Settings page</a>. To see how the roadmap looks first, turn the Delivery roadmap on under <strong>Provide faux data to</strong> on <a href="/plugins/faux-data/settings">faux-data's Settings page</a>.</p>
+    {%- if onboarding.sources.is_empty() %}
+    <p>None of the plugins releases are read from is running here.</p>
+    {%- else %}
+    <dl class="doc-summary">
+      {%- for source in onboarding.sources %}
+      <div class="doc-summary__row">
+        <dt class="doc-summary__key">{{ source.id }}</dt>
+        <dd class="doc-summary__value">
+          <strong class="doc-badge doc-badge--{% if source.ready %}ready{% else %}unknown{% endif %}">{% if source.ready %}Reading{% else %}Not reading{% endif %}</strong>
+          {{ source.said }}
+          {%- if onboarding.admin %} <a href="/plugins/{{ source.id }}/settings">Its settings</a>{% endif %}
+        </dd>
+      </div>
+      {%- endfor %}
+    </dl>
+    {%- endif %}
+  </div>
+</div>
+{%- else %}
+<p>{{ about }}{% if !rows.is_empty() %}{% if let Some(link) = given %} <a href="{{ link.href }}">{{ link.said }}</a>.{% endif %}{% endif %}{% if let Some(href) = frame.catalogue() %} <a href="{{ href }}">See it in the Catalogue</a>.{% endif %}</p>
+{% include "tiles.html" %}
+{%- if let Some(svg) = timeline %}
+<div class="doc-card">
+  <h3 class="doc-card__heading">Coming up</h3>
+  <div class="doc-card__content">
+    {{ svg|safe }}
+    <p class="doc-hint">Green is on track, yellow at risk, red overdue and blue not started yet; the diamond is the release date.</p>
+  </div>
+</div>
+{%- endif %}
+{%- if rows.is_empty() %}
+<div class="doc-empty">
+  <p>No release is coming up{% if frame.scope.name().is_some() %} for {{ frame.scope.label() }}{% endif %}.</p>
+  {%- if let Some(link) = given %}
+  <a class="doc-button doc-button--secondary" href="{{ link.href }}">{{ link.said }}</a>
+  {%- endif %}
+</div>
+{%- else %}
+{% include "rows.html" %}
+<p class="doc-hint">A release is at risk when the share of its issues done trails the share of its time gone by more than the Settings page allows. Readiness is each plugin's word on the release's services, the worst of them shown: hover over it, or open the release, for what each said.</p>
+{%- endif %}
+{%- for problem in problems %}
+<p class="doc-hint">{{ problem }}.</p>
+{%- endfor %}
+{%- if !unmapped.is_empty() %}
+<p class="doc-hint">No service is given {{ unmapped.join(", ") }}, from its Roadmap section in the Catalogue or under <strong>Projects tracked</strong> on <a href="/plugins/roadmap/settings">the Settings page</a>, so {% if unmapped.len() == 1 %}its releases are{% else %}their releases are{% endif %} for no service and nobody is asked whether they are ready.</p>
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+<div>
+  {%- if let Some(message) = message %}
+  {%- if let Some(choose) = choose %}
+  <div class="doc-empty">
+    <p>{{ message }}</p>
+    <a class="doc-button doc-button--secondary" href="{{ choose }}">Choose its Jira project</a>
+  </div>
+  {%- else %}
+  <p class="doc-hint">{{ message }}</p>
+  {%- endif %}
+  {%- else %}
+  <ul class="doc-results doc-results--plain">
+    {%- for row in rows %}
+    <li class="doc-results__item"><a href="{{ row.href }}">{{ row.title }}</a> <span class="doc-hint">due {{ row.due }}, {{ row.progress|lower }}</span> <strong class="doc-badge doc-badge--{{ row.status.badge() }}" title="{{ row.why }}">{{ row.status.word() }}</strong>{% if let Some(ready) = row.ready %} <strong class="doc-badge doc-badge--{{ ready.badge() }}">{% if ready.word() == "Ready" %}Services ready{% else %}Services: {{ ready.word()|lower }}{% endif %}</strong>{% endif %}</li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+  <p class="doc-hint"><a href="{{ more }}">The whole roadmap</a>{% if let Some(change) = change %} · <a href="{{ change }}">Change its Jira project</a>{% endif %}</p>
+</div>

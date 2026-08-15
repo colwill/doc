@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- endif %}
+{%- if saved %}
+<p class="doc-hint"><strong class="doc-badge doc-badge--ready">Saved</strong> <a href="{{ back }}">Back to {{ name }}</a> · <a href="{{ frame.overview() }}">Its roadmap</a></p>
+{%- endif %}
+{%- if choices.len() == 1 %}
+<div class="doc-empty">
+  <p>No Jira projects have been read yet, so there are none to choose from. Once Jira is connected, its projects are read every hour.</p>
+  {%- if admin %}
+  {%- for source in sources %}
+  <a class="doc-button doc-button--secondary" href="/plugins/{{ source }}/settings">{{ source }}'s settings</a>
+  {%- endfor %}
+  {%- endif %}
+</div>
+{%- else if !choices.is_empty() %}
+<form hx-post="{{ frame.project().unwrap_or_default() }}" hx-target="#roadmap" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="roadmap-project">Jira project</label>
+    <div class="doc-hint" id="roadmap-project-hint">The releases planned in it show on {{ name }}'s roadmap.{% if !several.is_empty() %} It is given {{ several.join(" and ") }} now; choosing one here replaces them.{% endif %}</div>
+    <select class="doc-select" id="roadmap-project" name="project" aria-describedby="roadmap-project-hint">
+      {%- for choice in choices %}
+      <option value="{{ choice.key }}"{% if choice.chosen %} selected{% endif %}>{{ choice.said }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <details class="nhsuk-details"{% if !component.is_empty() || !label.is_empty() %} open{% endif %}>
+    <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">Other services share this project</span></summary>
+    <div class="nhsuk-details__text">
+      <p class="doc-hint">Then only the releases with one of {{ name }}'s issues in them are its: those in its component, or with its label.</p>
+      <div class="doc-form-group">
+        <label class="doc-label" for="roadmap-component">Its component in Jira</label>
+        <input class="doc-input doc-input--width-20" id="roadmap-component" name="component" value="{{ component }}" autocomplete="off" />
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="roadmap-label">Its label in Jira</label>
+        <input class="doc-input doc-input--width-20" id="roadmap-label" name="label" value="{{ label }}" autocomplete="off" />
+      </div>
+    </div>
+  </details>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="{{ back }}">Cancel</a>
+  </div>
+</form>
+{%- endif %}
+{% endblock %}

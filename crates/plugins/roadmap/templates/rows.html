@@ -1,0 +1,33 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Release</th>
+      <th class="doc-table__header" scope="col">Services</th>
+      <th class="doc-table__header" scope="col">Due</th>
+      <th class="doc-table__header" scope="col">Progress</th>
+      <th class="doc-table__header" scope="col">Where it stands</th>
+      {%- for (title, faux) in titles %}
+      <th class="doc-table__header" scope="col">{{ title }}{% if faux %} <span class="doc-hint">faux data</span>{% endif %}</th>
+      {%- endfor %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rows %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.title }}</a><span class="doc-hint"> {{ row.project }}</span></th>
+      <td class="doc-table__cell">{% if row.services.is_empty() %}<span class="doc-hint">None named</span>{% endif %}{% for (title, href) in row.services %}{% if !loop.first %}, {% endif %}<a href="{{ href }}">{{ title }}</a>{% endfor %}</td>
+      <td class="doc-table__cell">{{ row.due }}</td>
+      <td class="doc-table__cell">{{ row.progress }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.status.badge() }}" title="{{ row.why }}">{{ row.status.word() }}</strong></td>
+      {%- if row.cells.is_empty() %}
+      {%- for _ in titles %}
+      <td class="doc-table__cell">–</td>
+      {%- endfor %}
+      {%- endif %}
+      {%- for cell in row.cells %}
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ cell.state.badge() }}" title="{{ cell.said }}">{{ cell.state.word() }}</strong></td>
+      {%- endfor %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

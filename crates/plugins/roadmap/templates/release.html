@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if let Some(problem) = problem %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- else %}
+<p><strong class="doc-badge doc-badge--{{ status.badge() }}">{{ status.word() }}</strong> {{ why }}.</p>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Project</dt>
+    <dd class="doc-summary__value">{% if let Some(url) = project_url %}<a href="{{ url }}">{{ project }}</a>{% else %}{{ project }}{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Starts</dt>
+    <dd class="doc-summary__value">{{ start }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">{% if released %}Released{% else %}Due{% endif %}</dt>
+    <dd class="doc-summary__value">{{ due }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Issues</dt>
+    <dd class="doc-summary__value">{{ progress.done }} done, {{ progress.in_progress }} in progress, {{ progress.to_do }} to do</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Services</dt>
+    <dd class="doc-summary__value">{% if services.is_empty() %}None: no service is given this project, from its Roadmap section in the Catalogue or on the Settings page{% endif %}{% for (title, href) in services %}{% if !loop.first %}, {% endif %}<a href="{{ href }}">{{ title }}</a>{% endfor %}</dd>
+  </div>
+  {%- if let Some(description) = description %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Description</dt>
+    <dd class="doc-summary__value">{{ description }}</dd>
+  </div>
+  {%- endif %}
+</dl>
+{%- if let Some(url) = jira_url %}
+<p><a href="{{ url }}">Open it in Jira</a></p>
+{%- endif %}
+{%- if !released %}
+<h3>Are its services ready?</h3>
+{%- if columns.is_empty() %}
+<p class="doc-hint">No plugin that can say is running{% if services.is_empty() %}, and it is for no service{% endif %}.</p>
+{%- else %}
+<div class="doc-card-group doc-card-group--wide">
+  {%- for column in columns %}
+  <div class="doc-card">
+    <h4 class="doc-card__heading">{{ column.title }} <strong class="doc-badge doc-badge--{{ column.state.badge() }}">{{ column.state.word() }}</strong>{% if column.faux %} <span class="doc-hint">faux data</span>{% endif %}</h4>
+    <div class="doc-card__content">
+      {%- if let Some(problem) = column.problem %}
+      <p class="doc-hint">{{ problem }}.</p>
+      {%- else if column.services.is_empty() %}
+      <p class="doc-hint">It said nothing of these services.</p>
+      {%- else %}
+      <ul class="doc-results doc-results--plain">
+        {%- for (title, signal) in column.services %}
+        <li class="doc-results__item"><strong class="doc-badge doc-badge--{{ signal.state.badge() }}">{{ signal.state.word() }}</strong> {% if let Some(href) = signal.href %}<a href="{{ href }}">{{ title }}</a>{% else %}{{ title }}{% endif %}: {{ signal.summary }}</li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+{%- endif %}
+{%- endif %}
+<h3>Issues</h3>
+{%- if issues.is_empty() %}
+<div class="doc-empty"><p>No issue has this release as its fix version.</p></div>
+{%- else %}
+<table class="doc-table">
+  <caption class="doc-table__caption">In progress first, then to do, then done</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Issue</th>
+      <th class="doc-table__header" scope="col">Summary</th>
+      <th class="doc-table__header" scope="col">Type</th>
+      <th class="doc-table__header" scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for issue in issues %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{% if let Some(url) = issue.url %}<a href="{{ url }}">{{ issue.key }}</a>{% else %}{{ issue.key }}{% endif %}</td>
+      <td class="doc-table__cell">{{ issue.summary }}</td>
+      <td class="doc-table__cell">{{ issue.kind }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ issue.badge }}">{{ issue.status }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- if more_issues > 0 %}
+<p class="doc-hint">And {{ more_issues }} more, which the API lists.</p>
+{%- endif %}
+{%- endif %}
+{%- endif %}
+{% endblock %}
