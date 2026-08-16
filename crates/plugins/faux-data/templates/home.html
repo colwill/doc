@@ -1,0 +1,47 @@
+<div id="faux-data">
+  <h2>Faux data</h2>
+  <p>Made up in one place for every plugin toggled on below, as GitHub, Jira, endoflife.date, health checks and reports would give it, and worked out by each plugin with the same code as live data. Nothing is stored and nothing is announced, and every page showing it says so at the top.{% if settings %} <a href="/plugins/faux-data/settings">Change what it is provided to, and the estate, on the Settings page</a>.{% endif %}</p>
+  <h3>Provided to</h3>
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Plugin</th>
+        <th class="doc-table__header" scope="col">Faux data</th>
+        <th class="doc-table__header" scope="col">What it is given</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for consumer in consumers %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row">{% if consumer.running %}<a href="/p/{{ consumer.id }}/">{{ consumer.title }}</a>{% else %}{{ consumer.title }}{% endif %}<span class="doc-hint"> {{ consumer.id }}{% if !consumer.running %}, not running{% endif %}</span></th>
+        <td class="doc-table__cell">{% if consumer.on %}<strong class="doc-badge doc-badge--degraded">On</strong>{% else %}<strong class="doc-badge doc-badge--unknown">Off</strong>{% endif %}</td>
+        <td class="doc-table__cell">{{ consumer.gives }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  <h3>The estate</h3>
+  <p>{{ about }} Each service tells the same story in every plugin, as its profile says, with stand-ins that cannot be taken for real ones.</p>
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Service</th>
+        <th class="doc-table__header" scope="col">Profile</th>
+        <th class="doc-table__header" scope="col">Repository</th>
+        <th class="doc-table__header" scope="col">Jira project</th>
+        <th class="doc-table__header" scope="col">Runs</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for service in services %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row">{{ service.title }}<span class="doc-hint"> {{ service.name }}</span></th>
+        <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ service.profile.badge() }}">{{ service.profile.word() }}</strong></td>
+        <td class="doc-table__cell"><code>{{ service.repository }}</code></td>
+        <td class="doc-table__cell"><code>{{ service.project }}</code></td>
+        <td class="doc-table__cell">{{ service.runs }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
