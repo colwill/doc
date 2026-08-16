@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- if editing.is_some() %}
+<h2>Change a record</h2>
+{%- else %}
+<h2>Add a record</h2>
+{%- endif %}
+{%- if !writes %}
+<div class="doc-empty"><p>You can see DOC's records but not change them.</p></div>
+{%- else if zones.is_empty() %}
+<div class="doc-empty"><p>DOC answers for no domains yet, so there is nowhere to put a record. Name one under <strong>Domains DOC answers for</strong> on {% if settings %}<a href="/plugins/dns/settings">the Settings page</a>{% else %}this plugin's Settings page, which an administrator can change{% endif %}.</p></div>
+{%- else %}
+<form {% if let Some(id) = editing %}hx-post="/p/dns/records/{{ id }}"{% else %}hx-post="/p/dns/records"{% endif %} hx-target="#dns" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="host">Name</label>
+    <span class="doc-hint">The part before the domain, such as api or _sip._tcp. Leave it empty, or write @, for the domain itself, and write * for a wildcard that answers for any name without records of its own.</span>
+    <input class="doc-input doc-mono" id="host" name="host" value="{{ host }}" maxlength="253" autocomplete="off" spellcheck="false" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="zone">Domain</label>
+    <select class="doc-select" id="zone" name="zone">
+      {%- for choice in zones %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="type">Type</label>
+    <select class="doc-select" id="type" name="type">
+      {%- for choice in kinds %}
+      <option value="{{ choice.value }}"{% if choice.selected %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="value">Value</label>
+    <div class="doc-hint">
+      <ul>
+        {%- for (kind, shape) in shapes %}
+        <li><strong>{{ kind }}</strong>: {{ shape }}</li>
+        {%- endfor %}
+      </ul>
+    </div>
+    <input class="doc-input doc-mono" id="value" name="value" value="{{ value }}" required maxlength="4000" autocomplete="off" spellcheck="false" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="ttl">TTL (optional)</label>
+    <span class="doc-hint">How many seconds resolvers may keep the answer, up to {{ max_ttl }}. Leave it empty for the plugin's setting.</span>
+    <input class="doc-input" id="ttl" name="ttl" value="{{ ttl }}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="note">Note (optional)</label>
+    <span class="doc-hint">What it is for, for whoever changes it next.</span>
+    <input class="doc-input" id="note" name="note" value="{{ note }}" maxlength="500" autocomplete="off" />
+  </div>
+  <div class="doc-button-group">
+    {%- if editing.is_some() %}
+    <button class="doc-button" type="submit">Save</button>
+    {%- else %}
+    <button class="doc-button" type="submit">Add it</button>
+    {%- endif %}
+    <a class="doc-button doc-button--secondary" href="/p/dns/">Cancel</a>
+  </div>
+</form>
+{%- if let Some(id) = editing %}
+<form hx-post="/p/dns/records/{{ id }}/delete" hx-target="#dns" hx-swap="outerHTML" hx-confirm="Remove this record? Resolvers stop getting it once what they kept runs out.">
+  <button class="doc-button doc-button--warning" type="submit">Remove this record</button>
+</form>
+{%- endif %}
+{%- endif %}
+{% endblock %}

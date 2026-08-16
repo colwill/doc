@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>DNS</h2>
+  {%- if writes && !domains.is_empty() %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/dns/records/new">Add a record</a>
+  </div>
+  {%- endif %}
+</div>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Server</dt>
+    <dd class="doc-summary__value"><span class="doc-badge doc-badge--{{ state }}">{{ headline }}</span> {{ detail }}{% if settings && state == "unknown" %} <a href="/plugins/dns/features">Features</a>{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Questions</dt>
+    <dd class="doc-summary__value">{{ counts }}</dd>
+  </div>
+  {%- if let Some(url) = doh %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">DNS over HTTPS</dt>
+    <dd class="doc-summary__value">
+      <code class="doc-mono">{{ url }}</code>
+      <span class="doc-hint">Point a resolver here, as RFC 8484 describes: <code class="doc-mono">?dns=</code> with GET, or the question as <code class="doc-mono">application/dns-message</code> with POST. It answers for whoever may read this plugin, so the client sends a DOC token.</span>
+      {%- if let Some(open) = doh_public %}
+      <span class="doc-hint">For clients that cannot sign in, such as a browser: <code class="doc-mono">{{ open }}</code>. That one answers only for the domains DOC owns and never forwards, so it cannot be used as an open resolver.</span>
+      {%- else %}
+      <span class="doc-hint">A client that cannot sign in, such as a browser, is not served: a deployment that wants one allows <code class="doc-mono">dns = ["public-routes"]</code> in the platform's configuration and sets <code class="doc-mono">DOC_DNS_PUBLIC_RESOLVER</code> where this plugin runs. That resolver answers only for DOC's own domains.</span>
+      {%- endif %}
+    </dd>
+  </div>
+  {%- endif %}
+  {%- if let Some(domain) = plugin_domain %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">A name for each plugin</dt>
+    <dd class="doc-summary__value">
+      {%- if plugin_names.is_empty() %}
+      <span class="doc-hint">Under <code class="doc-mono">{{ domain }}</code>, once there is somewhere for them to point: name the addresses DOC is served at on the Settings page.</span>
+      {%- else %}
+      <ul class="doc-kinds">
+        {%- for name in plugin_names %}
+        <li class="doc-kind doc-kind--plugin"><a href="https://{{ name }}/">{{ name }}</a></li>
+        {%- endfor %}
+      </ul>
+      <span class="doc-hint">Each points at <code class="doc-mono">{{ plugin_addresses }}</code> and opens that plugin's page. They are worked out from the plugins the platform is running, not kept as records: a record written by hand for one of these names is used instead of it.</span>
+      {%- endif %}
+    </dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Other names go to</dt>
+    <dd class="doc-summary__value"><span class="doc-mono">{{ upstreams }}</span></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Forwarded only for</dt>
+    <dd class="doc-summary__value"><span class="doc-mono">{{ forward_for }}</span></dd>
+  </div>
+</dl>
+{%- if settings %}
+<p class="doc-hint">The address, domains, name servers and forwarding are on <a href="/plugins/dns/settings">this plugin's Settings page</a>.</p>
+{%- endif %}
+
+{%- if domains.is_empty() %}
+<div class="doc-empty">
+  <p>DOC answers for no domains yet. Name the domains it owns under <strong>Domains DOC answers for</strong> on {% if settings %}<a href="/plugins/dns/settings">the Settings page</a>{% else %}this plugin's Settings page, which an administrator can change{% endif %}, then add their records here.</p>
+</div>
+{%- endif %}
+
+{%- for domain in domains %}
+<div class="doc-heading-row">
+  <h3 class="doc-mono">{{ domain.name }}</h3>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/dns/records/new?zone={{ domain.name|urlencode }}">Add a record here</a>
+  </div>
+  {%- endif %}
+</div>
+{%- if domain.rows.is_empty() %}
+<p class="doc-hint">No records yet: every name here is answered as not existing until it has one.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Name</th>
+      <th class="doc-table__header" scope="col">Type</th>
+      <th class="doc-table__header" scope="col">Value</th>
+      <th class="doc-table__header" scope="col">TTL</th>
+      <th class="doc-table__header" scope="col">Note</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Change</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in domain.rows %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell doc-mono">{{ row.host }}</td>
+      <td class="doc-table__cell">{{ row.kind }}</td>
+      <td class="doc-table__cell doc-mono"{% if row.value != row.shown %} title="{{ row.value }}"{% endif %}>{{ row.shown }}</td>
+      <td class="doc-table__cell">{{ row.ttl }}</td>
+      <td class="doc-table__cell">{{ row.note }}</td>
+      {%- if writes %}<td class="doc-table__cell"><a href="/p/dns/records/{{ row.id }}">Change<span class="nhsuk-u-visually-hidden"> {{ row.host }} {{ row.kind }}</span></a></td>{% endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endfor %}
+
+{%- if !unserved.is_empty() %}
+<h3>Not answered</h3>
+<p class="doc-hint">These records are in no domain DOC answers for, since theirs was taken off the Settings page. They are kept, and answered with again if it comes back.</p>
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Name</th>
+      <th class="doc-table__header" scope="col">Type</th>
+      <th class="doc-table__header" scope="col">Value</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Remove</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in unserved %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell doc-mono">{{ row.host }}</td>
+      <td class="doc-table__cell">{{ row.kind }}</td>
+      <td class="doc-table__cell doc-mono"{% if row.value != row.shown %} title="{{ row.value }}"{% endif %}>{{ row.shown }}</td>
+      {%- if writes %}<td class="doc-table__cell">
+        <form hx-post="/p/dns/records/{{ row.id }}/delete" hx-target="#dns" hx-swap="outerHTML" hx-confirm="Remove {{ row.host }} {{ row.kind }}?">
+          <button class="doc-link-button" type="submit">Remove<span class="nhsuk-u-visually-hidden"> {{ row.host }} {{ row.kind }}</span></button>
+        </form>
+      </td>{% endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}
