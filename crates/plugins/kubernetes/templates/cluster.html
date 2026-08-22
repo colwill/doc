@@ -1,0 +1,53 @@
+<div id="kubernetes">
+  <a class="doc-trail" href="/p/kubernetes/" hidden>Kubernetes</a>
+  <h2>{{ cluster.name }}</h2>
+  <dl class="doc-summary">
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Read</dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ cluster.badge }}">{{ cluster.state }}</strong> {{ cluster.read }}{% if let Some(problem) = cluster.problem %}: {{ problem }}{% endif %}</dd>
+    </div>
+    <div class="doc-summary__row"><dt class="doc-summary__key">Environment</dt><dd class="doc-summary__value">{{ cluster.environment }}</dd></div>
+    <div class="doc-summary__row"><dt class="doc-summary__key">Version</dt><dd class="doc-summary__value">{{ cluster.version }}</dd></div>
+    <div class="doc-summary__row"><dt class="doc-summary__key">Nodes ready</dt><dd class="doc-summary__value">{{ cluster.nodes }}</dd></div>
+    <div class="doc-summary__row"><dt class="doc-summary__key">Pods</dt><dd class="doc-summary__value">{{ cluster.pods }}, {{ cluster.restarts }} restarts</dd></div>
+    <div class="doc-summary__row"><dt class="doc-summary__key">CPU</dt><dd class="doc-summary__value">{{ cluster.cpu }}</dd></div>
+    <div class="doc-summary__row"><dt class="doc-summary__key">Memory</dt><dd class="doc-summary__value">{{ cluster.memory }}</dd></div>
+  </dl>
+  <h3>Namespaces</h3>
+  {%- if namespaces.is_empty() %}
+  <p class="doc-hint">None, apart from those the settings leave out.</p>
+  {%- else %}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Namespace</th>
+        <th class="doc-table__header" scope="col">Environment</th>
+        <th class="doc-table__header doc-table__header--numeric" scope="col">Deployments</th>
+        <th class="doc-table__header" scope="col">Pods</th>
+        <th class="doc-table__header doc-table__header--numeric" scope="col">Restarts</th>
+        <th class="doc-table__header" scope="col">CPU</th>
+        <th class="doc-table__header" scope="col">Memory</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for row in namespaces %}
+      <tr class="doc-table__row">
+        <td class="doc-table__cell">{{ row.name }}</td>
+        <td class="doc-table__cell">{{ row.environment }}{% if row.production %} <span class="doc-hint">production</span>{% endif %}</td>
+        <td class="doc-table__cell doc-table__cell--numeric">{{ row.workloads }}</td>
+        <td class="doc-table__cell">{{ row.pods }}</td>
+        <td class="doc-table__cell doc-table__cell--numeric">{{ row.restarts }}</td>
+        <td class="doc-table__cell">{{ row.cpu }}</td>
+        <td class="doc-table__cell">{{ row.memory }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+  <h3>Deployments</h3>
+  {%- if workloads.is_empty() %}
+  <p class="doc-hint">None.</p>
+  {%- else %}
+  {% include "workloads.html" %}
+  {%- endif %}
+</div>

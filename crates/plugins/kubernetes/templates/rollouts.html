@@ -1,0 +1,26 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Started</th>
+      <th class="doc-table__header" scope="col">Deployment</th>
+      <th class="doc-table__header" scope="col">Environment</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Revision</th>
+      <th class="doc-table__header" scope="col">Outcome</th>
+      <th class="doc-table__header" scope="col">Took</th>
+      <th class="doc-table__header" scope="col">Commit</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rollouts %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ row.when }}</td>
+      <td class="doc-table__cell"><a href="{{ row.href }}">{{ row.workload }}</a>{% if let Some(service) = row.service %}<br /><span class="doc-hint">{{ service }}{% if let Some(repository) = row.repository %} · {{ repository }}{% endif %}</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.environment }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.revision }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.state }}</strong>{% if row.rollback %} <span class="doc-hint">rollback</span>{% endif %}{% if row.backfilled %} <span class="doc-hint">found done</span>{% endif %}{% if let Some(reason) = row.reason %}<br /><span class="doc-hint">{{ reason }}</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.took }}</td>
+      <td class="doc-table__cell doc-mono">{{ row.commit }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

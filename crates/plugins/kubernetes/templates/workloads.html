@@ -1,0 +1,30 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Deployment</th>
+      <th class="doc-table__header" scope="col">Environment</th>
+      <th class="doc-table__header" scope="col">Service</th>
+      <th class="doc-table__header" scope="col">Pods available</th>
+      <th class="doc-table__header" scope="col">State</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Restarts</th>
+      <th class="doc-table__header" scope="col">CPU</th>
+      <th class="doc-table__header" scope="col">Memory</th>
+      <th class="doc-table__header" scope="col">Last rolled out</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in workloads %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ row.href }}">{{ row.namespace }}/{{ row.name }}</a></td>
+      <td class="doc-table__cell">{{ row.environment }}</td>
+      <td class="doc-table__cell">{% if let Some(service) = row.service %}<a href="/p/resources/r/service/{{ service }}">{{ service }}</a>{% else %}<span class="doc-hint">None</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.replicas }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.state }}</strong></td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ row.restarts }}</td>
+      <td class="doc-table__cell">{{ row.cpu }}</td>
+      <td class="doc-table__cell">{{ row.memory }}</td>
+      <td class="doc-table__cell">{{ row.rolled }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

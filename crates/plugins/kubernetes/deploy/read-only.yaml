@@ -1,0 +1,52 @@
+# A read-only service account for DOC's kubernetes plugin. It can list what the plugin shows and
+# nothing else: no changes, no secrets, no logs, no exec. Apply it with
+#   kubectl apply -f read-only.yaml
+# then make a kubeconfig from its token as the Kubernetes page in DOC shows.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: doc-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: doc-reader
+  namespace: doc-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: doc-read-only
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "nodes", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: doc-read-only
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: doc-read-only
+subjects:
+  - kind: ServiceAccount
+    name: doc-reader
+    namespace: doc-system
+---
+# A token that does not expire, for DOC to keep. Delete this Secret to take DOC's access away.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: doc-reader-token
+  namespace: doc-system
+  annotations:
+    kubernetes.io/service-account.name: doc-reader
+type: kubernetes.io/service-account-token

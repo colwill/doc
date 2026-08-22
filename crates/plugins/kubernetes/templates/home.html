@@ -1,0 +1,116 @@
+<div id="kubernetes">
+  {%- if let Some(notice) = flash.notice %}
+  <div class="doc-card"><div class="doc-card__content"><p>{{ notice }}</p></div></div>
+  {%- endif %}
+  {%- if let Some(error) = flash.error %}
+  <p class="doc-error-message" role="alert"><span>That was refused:</span> {{ error }}</p>
+  {%- endif %}
+  <div class="doc-heading-row">
+    <h2>Kubernetes</h2>
+    {%- if writes && !clusters.is_empty() %}
+    <div class="doc-heading-row__actions">
+      <form hx-post="/p/kubernetes/read" hx-target="#kubernetes" hx-swap="outerHTML">
+        <button class="doc-button doc-button--secondary doc-button--small" type="submit">Read every cluster now</button>
+      </form>
+    </div>
+    {%- endif %}
+  </div>
+
+  {%- if clusters.is_empty() %}
+  <div class="doc-empty">
+    <p>No cluster is connected yet. Make a read-only service account in each cluster with the manifest below, and add its kubeconfig under <strong>Clusters</strong> on {% if admin %}<a href="/plugins/kubernetes/settings">the Settings page</a>{% else %}this plugin's Settings page, which an administrator can change{% endif %}, then give it an environment.</p>
+  </div>
+  {%- else %}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Cluster</th>
+        <th class="doc-table__header" scope="col">Environment</th>
+        <th class="doc-table__header" scope="col">Nodes ready</th>
+        <th class="doc-table__header doc-table__header--numeric" scope="col">Namespaces</th>
+        <th class="doc-table__header doc-table__header--numeric" scope="col">Deployments</th>
+        <th class="doc-table__header" scope="col">Pods</th>
+        <th class="doc-table__header doc-table__header--numeric" scope="col">Restarts</th>
+        <th class="doc-table__header" scope="col">CPU</th>
+        <th class="doc-table__header" scope="col">Memory</th>
+        <th class="doc-table__header" scope="col">Read</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for row in clusters %}
+      <tr class="doc-table__row">
+        <td class="doc-table__cell"><a href="{{ row.href }}">{{ row.name }}</a>{% if !row.version.is_empty() %}<br /><span class="doc-hint">{{ row.version }}</span>{% endif %}</td>
+        <td class="doc-table__cell">{{ row.environment }}</td>
+        <td class="doc-table__cell">{{ row.nodes }}</td>
+        <td class="doc-table__cell doc-table__cell--numeric">{{ row.namespaces }}</td>
+        <td class="doc-table__cell doc-table__cell--numeric">{{ row.workloads }}</td>
+        <td class="doc-table__cell">{{ row.pods }}</td>
+        <td class="doc-table__cell doc-table__cell--numeric">{{ row.restarts }}</td>
+        <td class="doc-table__cell">{{ row.cpu }}</td>
+        <td class="doc-table__cell">{{ row.memory }}</td>
+        <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.state }}</strong> {{ row.read }}{% if let Some(problem) = row.problem %}<br /><span class="doc-hint">{{ problem }}</span>{% endif %}{% if row.insecure %}<br /><span class="doc-hint">Its certificate is not checked, as its kubeconfig asks.</span>{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+
+  <h3>Outages</h3>
+  {%- if outages.is_empty() %}
+  <p class="doc-hint">None seen. A production deployment of a service with none of its pods available is an outage, and counts against the service in Reliability.</p>
+  {%- else %}
+  {% include "outages.html" %}
+  {%- endif %}
+
+  <h3>Recent rollouts</h3>
+  {%- if rollouts.is_empty() %}
+  <p class="doc-hint">None seen yet.</p>
+  {%- else %}
+  {% include "rollouts.html" %}
+  <p class="doc-hint">A finished rollout in a production environment is a deployment for DORA metrics, and every finished rollout is a delivery run for CI/CD/CT, once its service's repository is known.</p>
+  {%- endif %}
+
+  <h3>Services and repositories</h3>
+  <p>A deployment's service is its <code class="doc-mono">{{ service_key }}</code> annotation, else its <code class="doc-mono">app.kubernetes.io/name</code> label. Its repository is its <code class="doc-mono">{{ repository_key }}</code> annotation, else its service's repository in the Catalogue. The commit it runs is its <code class="doc-mono">{{ commit_key }}</code> annotation, else an <code class="doc-mono">app.kubernetes.io/version</code> label or image tag that is a commit SHA.</p>
+  {%- if let Some(by) = catalogue.by %}
+  <p>The Catalogue is read as <strong>{{ by }}</strong>{% if let Some(read) = catalogue.read %}, last {{ read }}, with {{ catalogue.services }} services{% else %}; it has not been read yet{% endif %}.</p>
+  {%- else %}
+  <p class="doc-hint">{% if catalogue.read.is_some() %}The Catalogue is no longer read; the repositories read last are kept.{% else %}The Catalogue has not been read, so only deployments with a repository annotation have one.{% endif %} The Catalogue answers only as a person, so somebody who can read it lets DOC read it as them.</p>
+  {%- endif %}
+  {%- if let Some(problem) = catalogue.problem %}
+  <p class="doc-error-message" role="alert">{{ problem }}</p>
+  {%- endif %}
+  {%- if writes %}
+  <div class="doc-button-group">
+    <form hx-post="/p/kubernetes/catalogue" hx-target="#kubernetes" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary" type="submit">{% if catalogue.by.is_some() %}Read it as me instead{% else %}Let DOC read the Catalogue as me{% endif %}</button>
+    </form>
+    {%- if catalogue.by.is_some() %}
+    <form hx-post="/p/kubernetes/catalogue/stop" hx-target="#kubernetes" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary" type="submit">Stop reading it</button>
+    </form>
+    {%- endif %}
+  </div>
+  {%- endif %}
+
+  <details class="nhsuk-details"{% if clusters.is_empty() %} open{% endif %}>
+    <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">Connecting a cluster</span></summary>
+    <div class="nhsuk-details__text">
+      <p>DOC reads a cluster as a service account that can list namespaces, nodes, pods, deployments and replica sets, and nothing more: the Settings page refuses one that could change anything or read secrets. Apply this to the cluster:</p>
+      <pre class="doc-code"><code>{{ manifest }}</code></pre>
+      <p>Then make a kubeconfig from its token, with <code class="doc-mono">kubectl</code> pointed at the same cluster:</p>
+      <pre class="doc-code"><code>SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+CA=$(kubectl -n doc-system get secret doc-reader-token -o jsonpath='{.data.ca\.crt}')
+TOKEN=$(kubectl -n doc-system get secret doc-reader-token -o jsonpath='{.data.token}' | base64 -d)
+cat &lt;&lt;EOF
+apiVersion: v1
+kind: Config
+clusters: [{name: cluster, cluster: {server: "$SERVER", certificate-authority-data: "$CA"}}]
+users: [{name: doc-reader, user: {token: "$TOKEN"}}]
+contexts: [{name: doc, context: {cluster: cluster, user: doc-reader}}]
+current-context: doc
+EOF</code></pre>
+      <p>Add what it prints under <strong>Clusters</strong> on {% if admin %}<a href="/plugins/kubernetes/settings">the Settings page</a>{% else %}this plugin's Settings page{% endif %}, named as you like, such as prod-eu, and give it an environment under <strong>Environments</strong>. The server must be reachable from wherever this plugin runs.</p>
+    </div>
+  </details>
+</div>

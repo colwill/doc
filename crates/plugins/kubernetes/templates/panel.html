@@ -1,0 +1,18 @@
+<div>
+  {%- if workloads.is_empty() %}
+  <p class="doc-hint">No deployment in a connected cluster says it is {{ service }}. Give one a <code class="doc-mono">rundoc.sh/service: {{ service }}</code> annotation or an <code class="doc-mono">app.kubernetes.io/name: {{ service }}</code> label.</p>
+  {%- else %}
+  <dl class="doc-summary">
+    {%- for row in workloads %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key"><a href="{{ row.href }}">{{ row.cluster }}/{{ row.namespace }}/{{ row.name }}</a><span class="doc-hint"> {{ row.environment }}</span></dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ row.badge }}">{{ row.state }}</strong> {{ row.replicas }} pods available, last rolled out {{ row.rolled }}</dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- endif %}
+  {%- if !rollouts.is_empty() %}
+  <p class="doc-hint">Last rollout: {% for row in rollouts.iter().take(1) %}{{ row.workload }} revision {{ row.revision }}, {{ row.state|lower }}, {{ row.when }}{% endfor %}.</p>
+  {%- endif %}
+  <p class="doc-hint"><a href="/p/kubernetes/">Every cluster</a></p>
+</div>

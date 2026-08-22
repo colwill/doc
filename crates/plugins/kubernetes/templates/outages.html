@@ -1,0 +1,24 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Service</th>
+      <th class="doc-table__header" scope="col">Deployment</th>
+      <th class="doc-table__header" scope="col">Environment</th>
+      <th class="doc-table__header" scope="col">Down from</th>
+      <th class="doc-table__header" scope="col">Until</th>
+      <th class="doc-table__header" scope="col">For</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in outages %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="/p/resources/r/service/{{ row.service }}">{{ row.service }}</a></td>
+      <td class="doc-table__cell"><a href="{{ row.href }}">{{ row.workload }}</a>{% if !row.detail.is_empty() %}<br /><span class="doc-hint">{{ row.detail }}</span>{% endif %}</td>
+      <td class="doc-table__cell">{{ row.environment }}</td>
+      <td class="doc-table__cell">{{ row.started }}</td>
+      <td class="doc-table__cell">{{ row.ended }}</td>
+      <td class="doc-table__cell">{{ row.lasted }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

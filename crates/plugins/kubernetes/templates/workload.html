@@ -1,0 +1,30 @@
+<div id="kubernetes">
+  <a class="doc-trail" href="/p/kubernetes/" hidden>Kubernetes</a>
+  <a class="doc-trail" href="{{ cluster_href }}" hidden>{{ cluster }}</a>
+  <h2>{{ title }}</h2>
+  <dl class="doc-summary">
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">State</dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ badge }}">{{ state }}</strong>{% if let Some(message) = message %} {{ message }}{% endif %}</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Service</dt>
+      <dd class="doc-summary__value">{% if let Some(service) = service %}<a href="/p/resources/r/service/{{ service }}">{{ service }}</a>{% else %}None: give it a rundoc.sh/service annotation or an app.kubernetes.io/name label{% endif %}</dd>
+    </div>
+    {%- for detail in details %}
+    <div class="doc-summary__row"><dt class="doc-summary__key">{{ detail.key }}</dt><dd class="doc-summary__value">{{ detail.value }}</dd></div>
+    {%- endfor %}
+  </dl>
+  <h3>Rollouts</h3>
+  {%- if rollouts.is_empty() %}
+  <p class="doc-hint">None seen.</p>
+  {%- else %}
+  {% include "rollouts.html" %}
+  {%- endif %}
+  <h3>Outages</h3>
+  {%- if outages.is_empty() %}
+  <p class="doc-hint">None seen.</p>
+  {%- else %}
+  {% include "outages.html" %}
+  {%- endif %}
+</div>
