@@ -1,0 +1,20 @@
+{%- if mine.is_empty() && rotas.is_empty() %}
+<p class="doc-empty">You are on no rota, and your teams have none.</p>
+{%- endif %}
+{%- if !mine.is_empty() %}
+<h4 class="nhsuk-heading-xs">Your next shifts</h4>
+<ul class="nhsuk-list">
+  {%- for shift in mine %}
+  <li>{% if shift.now %}<strong class="doc-badge doc-badge--ready">Now</strong> {% endif %}{{ shift.when }} to {{ shift.until }}, <a href="/p/rota/rotas/{{ shift.rota }}">{{ shift.rota_title }}</a></li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- if !rotas.is_empty() %}
+<h4 class="nhsuk-heading-xs">On call now in your teams</h4>
+<ul class="nhsuk-list">
+  {%- for rota in rotas %}
+  <li><a href="/p/rota/rotas/{{ rota.id }}">{{ rota.title }}</a>: {% if rota.on_now.is_empty() %}nobody{% else %}{{ rota.on_now }}{% endif %}{% if rota.gaps > 0 %} <strong class="doc-badge doc-badge--error">{{ rota.gaps }} without cover</strong>{% endif %}</li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+<p><a href="/p/rota/">All rotas</a></p>

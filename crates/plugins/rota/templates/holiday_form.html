@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block tab_holidays %} aria-current="page"{% endblock %}
+{% block main %}
+  <a class="doc-trail" href="/p/rota/holidays" hidden>Holidays</a>
+  <h2>Record a holiday</h2>
+  <p class="doc-hint">A shift that falls to someone away becomes a gap for their lead to fill.</p>
+  <form hx-post="/p/rota/holidays" hx-target="#rota" hx-swap="outerHTML">
+    <div class="doc-form-group">
+      <label class="doc-label" for="holiday-user">Who is away</label>
+      <select class="doc-select" id="holiday-user" name="user">
+        {%- for person in people %}<option value="{{ person.login }}"{% if person.login == user %} selected{% endif %}>{{ person.label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="holiday-from">First day away</label>
+      <input class="doc-input" id="holiday-from" name="starts_on" type="date" value="{{ starts_on }}" required />
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="holiday-to">Last day away</label>
+      <input class="doc-input" id="holiday-to" name="ends_on" type="date" value="{{ ends_on }}" required />
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="holiday-note">Note</label>
+      <input class="doc-input" id="holiday-note" name="note" type="text" maxlength="200" value="{{ note }}" />
+    </div>
+    <div class="doc-button-group">
+      <button class="doc-button" type="submit">Record the holiday</button>
+      <a class="doc-button doc-button--secondary" href="/p/rota/holidays">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

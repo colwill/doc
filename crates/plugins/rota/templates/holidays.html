@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block tab_holidays %} aria-current="page"{% endblock %}
+{% block main %}
+  <div class="doc-heading-row">
+    <h2>Holidays</h2>
+    {%- if records %}
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="/p/rota/holidays/new">Record a holiday</a>
+    </div>
+    {%- endif %}
+  </div>
+  <p class="doc-hint">Yours, and those of the people in the teams you lead. A lead records them; a shift that falls to someone away becomes a gap for their lead to fill.</p>
+
+  {%- if holidays.is_empty() %}
+  <p class="doc-hint">None to come.</p>
+  {%- else %}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Who</th>
+        <th class="doc-table__header" scope="col">From</th>
+        <th class="doc-table__header" scope="col">To</th>
+        <th class="doc-table__header" scope="col">Note</th>
+        <th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Action</span></th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for holiday in holidays %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row">{{ holiday.user }}</th>
+        <td class="doc-table__cell">{{ holiday.from }}</td>
+        <td class="doc-table__cell">{{ holiday.to }}</td>
+        <td class="doc-table__cell">{{ holiday.note }}{% if holiday.from_calendar %} <span class="doc-badge doc-badge--unknown">From their calendar</span>{% endif %}</td>
+        <td class="doc-table__cell">
+          {%- if holiday.from_calendar %}
+          <span class="doc-hint">Cancelled on their calendar</span>
+          {%- else if holiday.removable %}
+          <form hx-post="/p/rota/holidays/{{ holiday.id }}/delete" hx-target="#rota" hx-swap="outerHTML">
+            <button class="doc-button doc-button--warning doc-button--small" type="submit">Remove<span class="nhsuk-u-visually-hidden"> {{ holiday.user }}'s holiday</span></button>
+          </form>
+          {%- endif %}
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+{% endblock %}

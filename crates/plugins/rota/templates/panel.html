@@ -1,0 +1,15 @@
+<div>
+  {%- if rotas.is_empty() %}
+  <p class="doc-hint">{{ team }} has no rota.{% if arranges %} <a href="/p/rota/rotas/new?team={{ team }}">Make one</a>.{% endif %}</p>
+  {%- else %}
+  <dl class="doc-summary">
+    {%- for row in rotas %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key"><a href="/p/rota/rotas/{{ row.id }}">{{ row.title }}</a><span class="doc-hint"> {{ row.cadence }}</span></dt>
+      <dd class="doc-summary__value">On now: {{ row.on_now }}{% if row.gaps > 0 %} <strong class="doc-badge doc-badge--down">{{ row.gaps }} gap{% if row.gaps != 1 %}s{% endif %} coming</strong>{% endif %}</dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- if arranges %}<p class="doc-hint"><a href="/p/rota/rotas/new?team={{ team }}">Make another rota</a></p>{% endif %}
+  {%- endif %}
+</div>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block tab_rotas %} aria-current="page"{% endblock %}
+{% block main %}
+  <a class="doc-trail" href="/p/rota/" hidden>Rotas</a>
+  <div class="doc-heading-row">
+    <h2>{{ rota.title }}</h2>
+    {%- if arranges %}
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="/p/rota/rotas/{{ rota.id }}/edit">Change</a>
+    </div>
+    {%- endif %}
+  </div>
+  {%- if !rota.description.is_empty() %}<p>{{ rota.description }}</p>{% endif %}
+  <dl class="doc-summary">
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Team</dt>
+      <dd class="doc-summary__value"><a href="/p/resources/r/team/{{ rota.team }}">{{ team_title }}</a>{% if let Some(lead) = lead %}, led by {{ lead }}{% else %}, which has no lead to tell of gaps{% endif %}</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Runs</dt>
+      <dd class="doc-summary__value">{{ cadence }}, from {{ rota.starts_on }}, handing over at {{ rota.handover }} ({{ rota.timezone }})</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Through</dt>
+      <dd class="doc-summary__value">{% if members.is_empty() %}Nobody: choose its people{% else %}{% for login in members %}{{ login }}{% if !loop.last %}, then {% endif %}{% endfor %}{% endif %}</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Calendars</dt>
+      <dd class="doc-summary__value">{% if rota.calendar %}Every shift is on the team's calendar, and on the calendar of whoever is on it{% else %}Kept off calendars{% endif %}</dd>
+    </div>
+  </dl>
+
+  <h3>Shifts to come</h3>
+  {%- if shifts.is_empty() %}
+  <p class="doc-hint">None: it has nobody to run through yet.</p>
+  {%- else %}
+  {%- let rows = shifts.as_slice() %}
+  {%- let with_rota = false %}
+  {% include "shifts.html" %}
+  {%- if arranges %}
+  <p class="doc-hint">A shift that falls to someone on holiday is a gap until you pick cover. Anyone picked stays picked, even when the rota changes.</p>
+  {%- endif %}
+  {%- endif %}
+
+  {%- if arranges %}
+  <h3>Delete this rota</h3>
+  <form hx-post="/p/rota/rotas/{{ rota.id }}/delete" hx-target="#rota" hx-swap="outerHTML" hx-confirm="Delete {{ rota.title }}? Its shifts to come go off every calendar.">
+    <button class="doc-button doc-button--warning" type="submit">Delete {{ rota.title }}</button>
+  </form>
+  {%- endif %}
+{% endblock %}

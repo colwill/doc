@@ -1,0 +1,22 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Rota</th>
+      <th class="doc-table__header" scope="col">Team</th>
+      <th class="doc-table__header" scope="col">Runs</th>
+      <th class="doc-table__header" scope="col">On now</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Gaps coming</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in rotas %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="/p/rota/rotas/{{ row.id }}">{{ row.title }}</a></th>
+      <td class="doc-table__cell"><a href="/p/resources/r/team/{{ row.team }}">{{ row.team_title }}</a></td>
+      <td class="doc-table__cell">{{ row.cadence }}</td>
+      <td class="doc-table__cell">{{ row.on_now }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{% if row.gaps > 0 %}<strong class="doc-badge doc-badge--down">{{ row.gaps }}</strong>{% else %}0{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

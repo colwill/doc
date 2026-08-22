@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block tab_rotas %} aria-current="page"{% endblock %}
+{% block main %}
+  <a class="doc-trail" href="/p/rota/" hidden>Rotas</a>
+  <h2>{% if id.is_some() %}Change {{ title }}{% else %}A rota for {{ team_title }}{% endif %}</h2>
+  <form hx-post="/p/rota/rotas{% if let Some(id) = id %}/{{ id }}{% endif %}" hx-target="#rota" hx-swap="outerHTML">
+    {%- if teams.is_empty() %}
+    <input type="hidden" name="team" value="{{ team }}" />
+    {%- else %}
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-team">For the team</label>
+      <select class="doc-select" id="rota-team" name="team" hx-get="/p/rota/rotas/new" hx-trigger="change" hx-include="this" hx-target="#rota" hx-swap="outerHTML" hx-push-url="true">
+        {%- for choice in teams %}
+        <option value="{{ choice.name }}"{% if choice.name == team %} selected{% endif %}>{{ choice.title }}</option>
+        {%- endfor %}
+      </select>
+    </div>
+    {%- endif %}
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-title">Title</label>
+      <span class="doc-hint" id="rota-title-hint">Such as On call or Release captain.</span>
+      <input class="doc-input" id="rota-title" name="title" type="text" maxlength="100" value="{{ title }}" aria-describedby="rota-title-hint" required />
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-description">What it is for</label>
+      <textarea class="doc-textarea" id="rota-description" name="description" rows="2" maxlength="1000">{{ description }}</textarea>
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-cadence">Each shift lasts</label>
+      <select class="doc-select" id="rota-cadence" name="cadence">
+        {%- for (name, shown) in cadences %}
+        <option value="{{ name }}"{% if cadence == *name %} selected{% endif %}>{% if *name == "daily" %}A day{% else if *name == "weekly" %}A week{% else if *name == "monthly" %}A month{% else %}A quarter{% endif %} ({{ shown|lower }})</option>
+        {%- endfor %}
+      </select>
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-starts">The first shift starts on</label>
+      <input class="doc-input" id="rota-starts" name="starts_on" type="date" value="{{ starts_on }}" required />
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-handover">Shifts hand over at</label>
+      <input class="doc-input" id="rota-handover" name="handover" type="time" value="{{ handover }}" required />
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-timezone">In the time zone</label>
+      <input class="doc-input" id="rota-timezone" name="timezone" type="text" value="{{ timezone }}" required />
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="rota-members">Who it runs through, in order</label>
+      <span class="doc-hint" id="rota-members-hint">One login on each line. Each takes a shift in turn, then it starts again from the top.</span>
+      <textarea class="doc-textarea doc-mono" id="rota-members" name="members" rows="8" aria-describedby="rota-members-hint">{{ members }}</textarea>
+    </div>
+    {%- if !people.is_empty() %}
+    <details class="nhsuk-details">
+      <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">Who is in {{ team_title }}</span></summary>
+      <div class="nhsuk-details__text">
+        <ul class="nhsuk-list">
+          {%- for person in people %}<li><code class="doc-mono">{{ person.login }}</code> {{ person.label }}{% if !person.position.is_empty() %}, <span class="doc-hint">{{ person.position }}</span>{% endif %}</li>{% endfor %}
+        </ul>
+      </div>
+    </details>
+    {%- endif %}
+    <div class="doc-checkboxes">
+      <div class="doc-checkboxes__item">
+        <input class="doc-checkboxes__input" id="rota-calendar" name="calendar" type="checkbox" value="yes"{% if calendar %} checked{% endif %} />
+        <label class="doc-label doc-checkboxes__label" for="rota-calendar">Put every shift on the team's calendar, and on the calendar of whoever is on it</label>
+      </div>
+    </div>
+    <button class="doc-button" type="submit">{% if id.is_some() %}Save{% else %}Make the rota{% endif %}</button>
+  </form>
+{% endblock %}

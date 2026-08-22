@@ -1,0 +1,34 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      {%- if with_rota %}<th class="doc-table__header" scope="col">Rota</th>{% endif %}
+      <th class="doc-table__header" scope="col">From</th>
+      <th class="doc-table__header" scope="col">Until</th>
+      <th class="doc-table__header" scope="col">On</th>
+      <th class="doc-table__header" scope="col">How</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for shift in rows %}
+    <tr class="doc-table__row">
+      {%- if with_rota %}<td class="doc-table__cell"><a href="/p/rota/rotas/{{ shift.rota }}">{{ shift.rota_title }}</a> <span class="doc-hint">{{ shift.team }}</span></td>{% endif %}
+      <td class="doc-table__cell">{{ shift.when }}{% if shift.now %} <strong class="doc-badge doc-badge--up">Now</strong>{% endif %}</td>
+      <td class="doc-table__cell">{{ shift.until }}</td>
+      <td class="doc-table__cell">{% if shift.wants_cover && shift.who == "Nobody" %}<strong>Nobody</strong>{% else %}{{ shift.who }}{% endif %}</td>
+      <td class="doc-table__cell">
+        <strong class="doc-badge doc-badge--{{ shift.badge }}">{{ shift.state }}</strong>
+        {%- if !shift.choices.is_empty() || (shift.wants_cover && arranges) %}
+        <form class="doc-inline-form" hx-post="/p/rota/shifts/{{ shift.id }}/cover" hx-target="#rota" hx-swap="outerHTML">
+          <label class="nhsuk-u-visually-hidden" for="cover-{{ shift.id }}">Who covers it</label>
+          <select class="doc-select doc-select--small" id="cover-{{ shift.id }}" name="user">
+            {%- if shift.wants_cover %}<option value="">Choose who covers it</option>{% else %}<option value="">{{ shift.planned }}, from the rotation</option>{% endif %}
+            {%- for login in shift.choices %}<option value="{{ login }}">{{ login }}</option>{% endfor %}
+          </select>
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">{% if shift.wants_cover %}Pick cover{% else %}Change{% endif %}</button>
+        </form>
+        {%- endif %}
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

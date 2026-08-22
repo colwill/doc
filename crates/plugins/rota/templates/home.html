@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block tab_rotas %} aria-current="page"{% endblock %}
+{% block main %}
+  <h2>Your shifts</h2>
+  {%- if mine.is_empty() %}
+  <p class="doc-hint">You are on no rota's shifts to come.</p>
+  {%- else %}
+  {%- let rows = mine.as_slice() %}
+  {%- let with_rota = true %}
+  {%- let arranges = false %}
+  {% include "shifts.html" %}
+  {%- endif %}
+
+  <div class="doc-heading-row">
+    <h2>Every rota</h2>
+    {%- if !led.is_empty() %}
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="/p/rota/rotas/new">Make a rota</a>
+    </div>
+    {%- endif %}
+  </div>
+  {%- if !led.is_empty() %}
+  <p class="doc-hint">You arrange the rotas of the teams you lead and every team inside them.</p>
+  {%- endif %}
+  {%- if rotas.is_empty() %}
+  <div class="doc-empty"><p>No team has a rota yet. A team's lead makes one; a team's lead is set on its page under Teams.</p></div>
+  {%- else %}
+  {% include "rotas.html" %}
+  {%- endif %}
+{% endblock %}
