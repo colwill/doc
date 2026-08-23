@@ -1,0 +1,30 @@
+[package]
+name = "doc-insights"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+askama.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
+flate2.workspace = true
+futures.workspace = true
+reqwest.workspace = true
+rustls.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tar.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["process"] }
+tokio-util.workspace = true
+tracing.workspace = true
+url.workspace = true
+uuid.workspace = true
+
+doc-plugin-sdk = { workspace = true, features = ["reqwest"] }

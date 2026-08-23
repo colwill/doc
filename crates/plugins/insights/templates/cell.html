@@ -1,0 +1,10 @@
+{%- if let Some(modifier) = cell.badge -%}
+<strong class="doc-badge doc-badge--{{ modifier }}">{{ cell.text }}</strong>
+{%- else -%}
+{%- if let Some(href) = cell.href -%}
+<a href="{{ href }}">{% if cell.mono %}<code class="doc-mono">{{ cell.text }}</code>{% else %}{{ cell.text }}{% endif %}</a>
+{%- else -%}
+{%- if cell.mono %}<code class="doc-mono">{{ cell.text }}</code>{% else %}{{ cell.text }}{% endif -%}
+{%- endif -%}
+{%- endif -%}
+{%- if let Some(hint) = cell.hint %}<br><span class="doc-hint">{{ hint }}</span>{% endif -%}

@@ -1,0 +1,28 @@
+<div id="insights-repositories" hx-get="/p/insights/repositories" hx-trigger="doc-plugin-ui-insights from:body" hx-swap="outerHTML">
+  {%- if listing.rows.is_empty() %}
+  <div class="doc-empty"><p>No repository has been scanned yet.</p></div>
+  {%- else %}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Repository</th>
+        <th class="doc-table__header" scope="col">State</th>
+        {%- for header in listing.headers %}
+        <th class="doc-table__header{% if header.numeric %} doc-table__header--numeric{% endif %}" scope="col">{{ header.label }}</th>
+        {%- endfor %}
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for row in listing.rows %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row"><a href="{{ row.href }}">{{ row.repository }}</a><br><span class="doc-hint">{{ row.source }}</span></th>
+        <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ row.modifier }}">{{ row.word }}</strong>{% if let Some(problem) = row.problem %}<br><span class="doc-hint">{{ problem }}</span>{% endif %}</td>
+        {%- for cell in row.cells %}
+        <td class="doc-table__cell{% if cell.numeric %} doc-table__cell--numeric{% endif %}">{% include "cell.html" %}</td>
+        {%- endfor %}
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+</div>

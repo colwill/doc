@@ -1,0 +1,21 @@
+<table class="doc-table">
+  {%- if let Some(caption) = table.caption %}
+  <caption class="doc-table__caption">{{ caption }}</caption>
+  {%- endif %}
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      {%- for header in table.headers %}
+      <th class="doc-table__header{% if header.numeric %} doc-table__header--numeric{% endif %}" scope="col">{{ header.label }}</th>
+      {%- endfor %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in table.rows %}
+    <tr class="doc-table__row">
+      {%- for cell in row %}
+      <td class="doc-table__cell{% if cell.numeric %} doc-table__cell--numeric{% endif %}">{% include "cell.html" %}</td>
+      {%- endfor %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>

@@ -1,0 +1,6 @@
+<div id="insights-status" hx-get="/p/insights/r/{{ status.id }}/status{{ status.query }}" hx-trigger="doc-plugin-ui-insights from:body" hx-swap="outerHTML">
+  <p class="doc-hint"><strong class="doc-badge doc-badge--{{ status.modifier }}">{{ status.word }}</strong> {{ status.said }}{% if let Some(href) = status.newer %} <a href="{{ href }}">Show the newest scan</a>.{% endif %}</p>
+  {%- if let Some(problem) = status.problem %}
+  <p class="doc-error-message" role="alert">{{ problem }}</p>
+  {%- endif %}
+</div>

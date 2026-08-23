@@ -1,0 +1,28 @@
+<form id="insights-scan" hx-post="/p/insights/scans" hx-target="this" hx-swap="outerHTML">
+  {%- if let Some(said) = form.said %}
+  <p class="doc-hint" role="status">{{ said }}</p>
+  {%- endif %}
+  <div class="doc-form-group{% if form.problem.is_some() %} doc-form-group--error{% endif %}">
+    <label class="doc-label" for="insights-repository">Repository</label>
+    <span class="doc-hint">owner/name. It is scanned at its main branch, and again each time a pull request is merged into it.</span>
+    {%- if let Some(problem) = form.problem %}
+    <span class="doc-error-message">{{ problem }}</span>
+    {%- endif %}
+    <input class="doc-input{% if form.problem.is_some() %} doc-input--error{% endif %}" id="insights-repository" name="repository" type="text" value="{{ form.repository }}" autocomplete="off" spellcheck="false">
+  </div>
+  {%- if form.sources.len() > 1 %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="insights-source">From</label>
+    <select class="doc-select" id="insights-source" name="source">
+      {%- for source in form.sources %}
+      <option value="{{ source }}"{% if *source == form.source %} selected{% endif %}>{{ source }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- else %}
+  <input type="hidden" name="source" value="{{ form.source }}">
+  {%- endif %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Scan it</button>
+  </div>
+</form>

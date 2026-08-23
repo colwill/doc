@@ -1,0 +1,56 @@
+<div id="insights">
+  <nav class="doc-tabs" aria-label="{{ frame.repository }}">
+    <ul class="doc-tabs__list">
+      {%- for tab in frame.tabs %}
+      <li class="doc-tabs__item"><a class="doc-tabs__tab" href="{{ tab.href }}"{% if tab.current %} aria-current="page"{% endif %}>{{ tab.label }}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+  <div class="doc-heading-row">
+    <h2>{{ frame.repository }}</h2>
+    {%- if frame.writes %}
+    <div class="doc-heading-row__actions">
+      <button class="doc-button doc-button--secondary doc-button--small" type="button" hx-post="/p/insights/r/{{ frame.id }}/scan" hx-target="#insights-status" hx-swap="outerHTML">Scan again</button>
+    </div>
+    {%- endif %}
+  </div>
+  {% include "status.html" %}
+  {%- for section in sections %}
+  {%- match section %}
+  {%- when Section::Heading(heading) %}
+  <h3>{{ heading }}</h3>
+  {%- when Section::Text(said) %}
+  <p>{{ said }}</p>
+  {%- when Section::Hint(said) %}
+  <p class="doc-hint">{{ said }}</p>
+  {%- when Section::Empty(said) %}
+  <div class="doc-empty"><p>{{ said }}</p></div>
+  {%- when Section::Problem(said) %}
+  <p class="doc-error-message" role="alert">{{ said }}</p>
+  {%- when Section::Tiles(tiles) %}
+  {% include "tiles.html" %}
+  {%- when Section::Charts(charts) %}
+  <div class="doc-card-group doc-card-group--wide">
+    {%- for chart in charts %}
+    <div class="doc-card">
+      <h3 class="doc-card__heading">{{ chart.title }}</h3>
+      <div class="doc-card__content">
+        <canvas class="doc-chart" data-chart="{{ chart.config }}" role="img" aria-label="{{ chart.described }}"></canvas>
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- when Section::Summary(rows) %}
+  <dl class="doc-summary">
+    {%- for (key, cell) in rows %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">{{ key }}</dt>
+      <dd class="doc-summary__value">{% include "cell.html" %}</dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- when Section::Table(table) %}
+  {% include "table.html" %}
+  {%- endmatch %}
+  {%- endfor %}
+</div>

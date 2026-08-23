@@ -1,0 +1,48 @@
+<div id="insights">
+  <div class="doc-heading-row">
+    <h2>Repository insights</h2>
+    {%- if writes && onboarding.on %}
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="/p/insights/scans/new">Scan a repository</a>
+    </div>
+    {%- endif %}
+  </div>
+  <p class="doc-hint">What <a href="https://github.com/colwill/ccc">ccc</a> finds in each repository: its size and languages, where changes reach furthest, its services and the calls between them, lints, what tests miss and what changed since the scan before. A repository is scanned again each time a pull request is merged into {{ branch }}, and needs nothing added to it.</p>
+  {%- if let Some(problem) = onboarding.problem %}
+  <p class="doc-error-message" role="alert">{{ problem }}</p>
+  {%- endif %}
+  {%- if !onboarding.on %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">Repository insights are off</h3>
+    <div class="doc-card__content">
+      <p>Once they are on, each repository is scanned the first time a pull request is merged into it, and again after every merge, with nothing for its owners to set up.</p>
+      {%- if onboarding.admin %}
+      <p><a href="/plugins">Enable Repository insights on the Plugins page</a>. Where GitHub already signs people in, that one button turns on its delivery data too, which is how merges are heard.</p>
+      {%- else %}
+      <p>Somebody who administers the platform turns them on from the Plugins page.</p>
+      {%- endif %}
+    </div>
+  </div>
+  {%- endif %}
+  {%- if onboarding.on && listing.rows.is_empty() %}
+  <div class="doc-card">
+    <h3 class="doc-card__heading">Waiting for a merge</h3>
+    <div class="doc-card__content">
+      <p>Nothing has been scanned yet. A repository is scanned the first time a pull request merged into it is heard of{% if writes %}, or when somebody asks for it with Scan a repository{% endif %}.</p>
+      {%- if onboarding.sources.is_empty() %}
+      <p>None of the plugins merges are heard from is running here.</p>
+      {%- else %}
+      <dl class="doc-summary">
+        {%- for source in onboarding.sources %}
+        <div class="doc-summary__row">
+          <dt class="doc-summary__key">{{ source.id }}</dt>
+          <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{% if source.ready %}ready{% else %}unknown{% endif %}">{% if source.ready %}Listening{% else %}Not listening{% endif %}</strong> {{ source.said }}{% if onboarding.admin %} <a href="/plugins/{{ source.id }}/settings">Its settings</a>{% endif %}</dd>
+        </div>
+        {%- endfor %}
+      </dl>
+      {%- endif %}
+    </div>
+  </div>
+  {%- endif %}
+  {% include "repositories.html" %}
+</div>
