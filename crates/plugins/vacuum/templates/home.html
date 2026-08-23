@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block main %}
+  <h2>Data Vacuum</h2>
+  <p>Takes documentation and catalogue data from Confluence, Backstage, Jira, Markdown and MkDocs into DOC, with an LLM doing the reading and the reshaping. What it hands in waits here until you approve it: nothing reaches the Knowledge Base, Watercooler or the Catalogue before then.</p>
+
+  <div class="doc-heading-row">
+    <h3>Runs</h3>
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="/p/vacuum/runs/new">Start a run</a>
+    </div>
+  </div>
+  {%- if runs.is_empty() %}
+  <p class="doc-hint">None yet.</p>
+  {%- else %}
+  <table class="doc-table">
+    <thead class="doc-table__head">
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="col">Run</th>
+        <th class="doc-table__header" scope="col">By</th>
+        <th class="doc-table__header" scope="col">From</th>
+        <th class="doc-table__header" scope="col">Started</th>
+        <th class="doc-table__header" scope="col">State</th>
+      </tr>
+    </thead>
+    <tbody class="doc-table__body">
+      {%- for run in runs %}
+      <tr class="doc-table__row">
+        <th class="doc-table__header" scope="row"><a href="/p/vacuum/runs/{{ run.id }}">{{ run.title }}</a><br /><span class="doc-hint">{{ run.way }}</span></th>
+        <td class="doc-table__cell">{{ run.by }}</td>
+        <td class="doc-table__cell">{{ run.sources }}</td>
+        <td class="doc-table__cell">{{ run.when }}</td>
+        <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ run.badge }}">{{ run.state }}</strong></td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block main %}
+  <a class="doc-trail" href="/p/vacuum/" hidden>Data Vacuum</a>
+  <h2>Start a run</h2>
+  <p class="doc-hint">What it takes in waits for your approval before it reaches the Knowledge Base, Watercooler or the Catalogue.</p>
+  <form hx-post="/p/vacuum/runs" hx-target="#vacuum" hx-swap="outerHTML">
+    <div class="doc-form-group">
+      <label class="doc-label" for="run-title">Title</label>
+      <input class="doc-input" id="run-title" name="title" type="text" maxlength="100" placeholder="Engineering wiki and service catalogue" value="{{ self.value("title") }}" required />
+    </div>
+    <fieldset class="doc-fieldset">
+      <legend class="doc-fieldset__legend">Take from</legend>
+      <div class="doc-checkboxes">
+        {%- for (name, label) in sources %}
+        <div class="doc-checkboxes__item">
+          <input class="doc-checkboxes__input" id="source-{{ name }}" name="source" type="checkbox" value="{{ name }}"{% if self.ticked(name) %} checked{% endif %} />
+          <label class="doc-label doc-checkboxes__label" for="source-{{ name }}">{{ label }}</label>
+        </div>
+        {%- endfor %}
+      </div>
+    </fieldset>
+    <div class="doc-form-group">
+      <label class="doc-label" for="run-brief">What to take</label>
+      <span class="doc-hint" id="run-brief-hint">In your own words, such as: Confluence spaces ENG and OPS, but not their archived pages; everything in the Backstage catalogue; Jira projects PAY and CARD; the handbook at https://docs.acme.dev.</span>
+      <textarea class="doc-textarea" id="run-brief" name="brief" rows="5" aria-describedby="run-brief-hint">{{ self.value("brief") }}</textarea>
+    </div>
+    <fieldset class="doc-radios">
+      <legend class="doc-radios__legend">Who does it</legend>
+      <div class="doc-radios__item">
+        <input class="doc-radios__input" id="mode-agent" name="mode" type="radio" value="agent"{% if !self.by_claude() %} checked{% endif %} aria-describedby="mode-agent-hint" />
+        <label class="doc-radios__label" for="mode-agent">Your own agent</label>
+        <span class="doc-radios__hint" id="mode-agent-hint">Claude Code, Copilot or any other agent with access to the sources. DOC gives you its instructions and a token that lasts minutes, reaches only this plugin, and reads the Knowledge Base, Watercooler and the Catalogue.</span>
+      </div>
+      <div class="doc-radios__item">
+        <input class="doc-radios__input" id="mode-claude" name="mode" type="radio" value="claude"{% if !claude %} disabled{% endif %}{% if self.by_claude() %} checked{% endif %} aria-describedby="mode-claude-hint" />
+        <label class="doc-radios__label" for="mode-claude">Claude, driven by DOC</label>
+        <span class="doc-radios__hint" id="mode-claude-hint">{% if claude %}DOC works through it with the Claude API, reading only the sources in the settings.{% else %}Needs a Claude API key, and the sources, in <a href="/plugins/vacuum/settings">the settings</a>.{% endif %}</span>
+      </div>
+    </fieldset>
+    <div class="doc-button-group">
+      <button class="doc-button" type="submit">Start the run</button>
+      <a class="doc-button doc-button--secondary" href="/p/vacuum/">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

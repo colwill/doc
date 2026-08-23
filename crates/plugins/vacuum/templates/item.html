@@ -1,0 +1,27 @@
+<div id="vacuum">
+  <a class="doc-trail" href="/p/vacuum/" hidden>Data Vacuum</a>
+  <a class="doc-trail" href="/p/vacuum/runs/{{ item.run }}" hidden>{{ run_title }}</a>
+  <h2>{{ item.title }}</h2>
+  <dl class="doc-summary">
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Goes to</dt>
+      <dd class="doc-summary__value">{{ destination }}, as <code class="doc-mono">{{ item.key }}</code></dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">From</dt>
+      <dd class="doc-summary__value">{{ item.source }}{% if !item.source_url.is_empty() %}: <a href="{{ item.source_url }}" rel="noopener noreferrer">{{ item.source_url }}</a>{% endif %}</dd>
+    </div>
+    {%- if !item.tags.is_empty() %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Tagged</dt>
+      <dd class="doc-summary__value">{% for tag in item.tags %}<code class="doc-mono">{{ tag }}</code>{% if !loop.last %} {% endif %}{% endfor %}</dd>
+    </div>
+    {%- endif %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">State</dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ badge }}">{{ state }}</strong>{% if let Some(error) = item.error %} {{ error }}{% endif %}</dd>
+    </div>
+  </dl>
+  <h3>As it would be written</h3>
+  <pre class="doc-code">{{ item.content }}</pre>
+</div>

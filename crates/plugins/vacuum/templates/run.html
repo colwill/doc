@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block main %}
+  <a class="doc-trail" href="/p/vacuum/" hidden>Data Vacuum</a>
+  <h2>{{ run.title }}</h2>
+  <dl class="doc-summary">
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">State</dt>
+      <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ badge }}">{{ state }}</strong>{% if let Some(error) = run.error %} {{ error }}{% endif %}</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Who does it</dt>
+      <dd class="doc-summary__value">{{ way }}{% if !agent && run.turns > 0 %}, {{ run.turns }} turns so far{% endif %}</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Takes from</dt>
+      <dd class="doc-summary__value">{{ sources }}</dd>
+    </div>
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Started by</dt>
+      <dd class="doc-summary__value">{{ run.created_by }}</dd>
+    </div>
+    {%- if agent && collecting %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">Its token</dt>
+      <dd class="doc-summary__value">{% if token_until.is_empty() %}Expired: make a new one for the agent to go on{% else %}Works until {{ token_until }}{% endif %}</dd>
+    </div>
+    {%- endif %}
+    {%- if !run.brief.is_empty() %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">What to take</dt>
+      <dd class="doc-summary__value">{{ run.brief }}</dd>
+    </div>
+    {%- endif %}
+    {%- if !run.summary.is_empty() %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">What the LLM says</dt>
+      <dd class="doc-summary__value">{{ run.summary }}</dd>
+    </div>
+    {%- endif %}
+  </dl>
+
+  {%- if collecting %}
+  <div class="doc-button-group">
+    <form hx-post="/p/vacuum/runs/{{ run.id }}/stop" hx-target="#vacuum" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary" type="submit">Stop taking items in</button>
+    </form>
+    {%- if agent %}
+    <form hx-post="/p/vacuum/runs/{{ run.id }}/token" hx-target="#vacuum" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary" type="submit">Make a new token</button>
+    </form>
+    {%- endif %}
+  </div>
+  {%- endif %}
+
+  {%- if agent %}
+  <h3>Your agent's instructions</h3>
+  {%- if fresh %}
+  <p><strong>Copy these now:</strong> the token in them is not shown again. Paste them into your agent, such as Claude Code, as its task.</p>
+  {%- else %}
+  <p class="doc-hint">The token itself is shown only when it is made; make a new one to see it again.</p>
+  {%- endif %}
+  <textarea class="doc-textarea doc-mono" rows="{% if fresh %}24{% else %}12{% endif %}" readonly aria-label="Your agent's instructions">{{ instructions }}</textarea>
+  {%- else %}
+  <details class="nhsuk-details">
+    <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">What Claude is told</span></summary>
+    <div class="nhsuk-details__text"><pre class="doc-code">{{ instructions }}</pre></div>
+  </details>
+  {%- endif %}
+
+  <h3>What it handed in</h3>
+  {%- if items.is_empty() %}
+  <p class="doc-hint">Nothing yet.{% if collecting %} This page shows it as it comes.{% endif %}</p>
+  {%- else %}
+  {%- if reviewing && waiting > 0 %}
+  <form hx-post="/p/vacuum/runs/{{ run.id }}/approve" hx-target="#vacuum" hx-swap="outerHTML">
+    <input type="hidden" name="all" value="1" />
+    <button class="doc-button" type="submit">Approve and write everything waiting ({{ waiting }})</button>
+  </form>
+  {%- endif %}
+  <form id="review">
+    <table class="doc-table">
+      <thead class="doc-table__head">
+        <tr class="doc-table__row">
+          {%- if reviewing %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Choose</span></th>{% endif %}
+          <th class="doc-table__header" scope="col">Item</th>
+          <th class="doc-table__header" scope="col">Goes to</th>
+          <th class="doc-table__header" scope="col">From</th>
+          <th class="doc-table__header" scope="col">State</th>
+        </tr>
+      </thead>
+      <tbody class="doc-table__body">
+        {%- for item in items %}
+        <tr class="doc-table__row">
+          {%- if reviewing %}
+          <td class="doc-table__cell">{% if item.open %}<input type="checkbox" name="item" value="{{ item.id }}" aria-label="Choose {{ item.title }}" />{% endif %}</td>
+          {%- endif %}
+          <th class="doc-table__header" scope="row"><a href="/p/vacuum/items/{{ item.id }}">{{ item.title }}</a><br /><code class="doc-mono">{{ item.key }}</code></th>
+          <td class="doc-table__cell">{{ item.destination }}</td>
+          <td class="doc-table__cell">{{ item.source }}</td>
+          <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ item.badge }}">{{ item.state }}</strong>{% if !item.error.is_empty() %}<br /><span class="doc-hint">{{ item.error }}</span>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- if reviewing && waiting > 0 %}
+    <div class="doc-button-group">
+      <button class="doc-button doc-button--secondary" type="button" hx-post="/p/vacuum/runs/{{ run.id }}/approve" hx-include="#review" hx-target="#vacuum" hx-swap="outerHTML">Approve and write the chosen</button>
+      <button class="doc-button doc-button--warning" type="button" hx-post="/p/vacuum/runs/{{ run.id }}/reject" hx-include="#review" hx-target="#vacuum" hx-swap="outerHTML">Reject the chosen</button>
+    </div>
+    {%- endif %}
+  </form>
+  {%- endif %}
+
+  {%- if collecting || reviewing %}
+  <h3>Cancel this run</h3>
+  <p class="doc-hint">Nothing more of it is written, and its agent's token stops working. What was written already stays.</p>
+  <form hx-post="/p/vacuum/runs/{{ run.id }}/cancel" hx-target="#vacuum" hx-swap="outerHTML" hx-confirm="Cancel {{ run.title }}?">
+    <button class="doc-button doc-button--warning" type="submit">Cancel the run</button>
+  </form>
+  {%- endif %}
+{% endblock %}
