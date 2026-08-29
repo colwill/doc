@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>{% if editing.is_some() %}Change this job{% else %}A new job{% endif %}</h2>
+<p class="doc-hint">It runs as you: every call it makes is checked against your access at that moment, and whatever it changes, it changes as you.{% if editing.is_some() %} If it was somebody else's, it becomes yours.{% endif %}</p>
+<form method="post" action="{% if let Some(id) = editing %}/p/agent/jobs/{{ id }}/edit{% else %}/p/agent/jobs/new{% endif %}" hx-post="{% if let Some(id) = editing %}/p/agent/jobs/{{ id }}/edit{% else %}/p/agent/jobs/new{% endif %}" hx-target="#agent" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="job-title">Title</label>
+    <input class="doc-input" id="job-title" name="title" value="{{ title }}" maxlength="200" required />
+  </div>
+  <fieldset class="doc-radios">
+    <legend class="doc-radios__legend">Playbook</legend>
+    {%- for playbook in playbooks %}
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="playbook-{{ playbook.value }}" name="playbook" type="radio" value="{{ playbook.value }}"{% if playbook.selected %} checked{% endif %} />
+      <label class="doc-radios__label" for="playbook-{{ playbook.value }}">{{ playbook.label }}</label>
+      <span class="doc-radios__hint">{{ playbook.about }}</span>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {%- if !runbooks.is_empty() %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="job-runbook">Runbook</label>
+    <span class="doc-hint">For the Run a runbook playbook: one approved for Agent Smith to run by itself. It runs with Agent Smith's own access, as it read when it was approved.</span>
+    <select class="doc-select" id="job-runbook" name="runbook">
+      <option value="">None</option>
+      {%- for runbook in runbooks %}
+      <option value="{{ runbook.value }}"{% if runbook.selected %} selected{% endif %}>{{ runbook.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  {%- endif %}
+  <div class="doc-form-group">
+    <label class="doc-label" for="job-brief">Brief</label>
+    <span class="doc-hint">In your own words: for onboarding, where from and what; for anything, what matters to you.</span>
+    <textarea class="doc-textarea" id="job-brief" name="brief" rows="4" maxlength="4000">{{ brief }}</textarea>
+  </div>
+  <div class="doc-field-row">
+    <div class="doc-form-group">
+      <label class="doc-label" for="job-scope-kind">About</label>
+      <select class="doc-select" id="job-scope-kind" name="scope_kind">
+        <option value="">Nothing in particular</option>
+        {%- for kind in scope_kinds %}
+        <option value="{{ kind.value }}"{% if kind.selected %} selected{% endif %}>A {{ kind.label }}</option>
+        {%- endfor %}
+      </select>
+    </div>
+    <div class="doc-form-group">
+      <label class="doc-label" for="job-scope-name">Called</label>
+      <input class="doc-input" id="job-scope-name" name="scope_name" value="{{ scope_name }}" maxlength="200" />
+    </div>
+  </div>
+  <fieldset class="doc-radios">
+    <legend class="doc-radios__legend">It runs</legend>
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="trigger-manual" name="trigger" type="radio" value="manual"{% if trigger == "manual" %} checked{% endif %} />
+      <label class="doc-radios__label" for="trigger-manual">When asked</label>
+    </div>
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="trigger-schedule" name="trigger" type="radio" value="schedule"{% if trigger == "schedule" %} checked{% endif %} />
+      <label class="doc-radios__label" for="trigger-schedule">On a schedule</label>
+      <div class="doc-radios__hint">
+        At most hourly, as cron in UTC: <code class="doc-mono">0 8 * * 1</code> is every Monday at eight.
+        <input class="doc-input" id="job-cron" name="cron" value="{{ cron }}" aria-label="Schedule" />
+      </div>
+    </div>
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="trigger-event" name="trigger" type="radio" value="event"{% if trigger == "event" %} checked{% endif %} />
+      <label class="doc-radios__label" for="trigger-event">When something happens</label>
+      <span class="doc-radios__hint">To what it is about, when it is about something. Events arriving while a run waits join it.</span>
+    </div>
+  </fieldset>
+  <fieldset class="doc-checkboxes">
+    <legend class="doc-checkboxes__legend">What starts it, when something happens</legend>
+    {%- for event in events %}
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="event-{{ loop.index }}" name="events" type="checkbox" value="{{ event.value }}"{% if event.selected %} checked{% endif %} />
+      <label class="doc-checkboxes__label" for="event-{{ loop.index }}">{{ event.label }}</label>
+      <span class="doc-checkboxes__hint"><code class="doc-mono">{{ event.about }}</code></span>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  <fieldset class="doc-checkboxes">
+    <legend class="doc-checkboxes__legend">Where its report goes, besides its run's page</legend>
+    {%- for how in deliver %}
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="deliver-{{ how.value }}" name="deliver" type="checkbox" value="{{ how.value }}"{% if how.selected %} checked{% endif %} />
+      <label class="doc-checkboxes__label" for="deliver-{{ how.value }}">{{ how.label }}</label>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {%- if editing.is_some() %}
+  <div class="doc-checkboxes__item">
+    <input class="doc-checkboxes__input" id="job-enabled" name="enabled" type="checkbox" value="on"{% if enabled %} checked{% endif %} />
+    <label class="doc-checkboxes__label" for="job-enabled">On</label>
+    <span class="doc-checkboxes__hint">Off, it runs only when asked.</span>
+  </div>
+  {%- endif %}
+  <button class="doc-button" type="submit">{% if editing.is_some() %}Save{% else %}Set the job{% endif %}</button>
+</form>
+{% endblock %}

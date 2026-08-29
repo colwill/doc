@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ job.title }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if writes %}
+    <form method="post" action="/p/agent/jobs/{{ job.id }}/run" hx-post="/p/agent/jobs/{{ job.id }}/run" hx-target="#agent" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">Run now</button>
+    </form>
+    {%- if section == "overview" %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/agent/jobs/{{ job.id }}/edit">Change</a>
+    <form method="post" action="/p/agent/jobs/{{ job.id }}/delete" hx-post="/p/agent/jobs/{{ job.id }}/delete" hx-target="#agent" hx-swap="outerHTML" hx-confirm="Delete {{ job.title }} and its runs?">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Delete</button>
+    </form>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="This job">
+      <ul class="doc-contents__list">
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ job.href() }}"{% if section == "overview" %} aria-current="page"{% endif %}>Overview</a></li>
+        <li class="doc-contents__item"><a class="doc-contents__link" href="{{ job.href() }}?section=runs"{% if section == "runs" %} aria-current="page"{% endif %}>Runs</a></li>
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "runs" %}
+<h3>Runs</h3>
+{%- if runs.is_empty() %}
+<p class="doc-empty">It has not run yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Started</th>
+      <th class="doc-table__header" scope="col">By</th>
+      <th class="doc-table__header" scope="col">State</th>
+      <th class="doc-table__header" scope="col">Turns</th>
+      <th class="doc-table__header" scope="col">Tokens</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for run in runs %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ run.href }}">{{ run.started }}</a></td>
+      <td class="doc-table__cell">{{ run.why }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ run.colour }}">{{ run.state }}</strong></td>
+      <td class="doc-table__cell">{{ run.turns }}</td>
+      <td class="doc-table__cell">{{ run.tokens }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- else %}
+<h3>Overview</h3>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Playbook</dt>
+    <dd class="doc-summary__value">{{ playbook }}</dd>
+  </div>
+  {%- if let Some((href, title)) = runbook %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Runbook</dt>
+    <dd class="doc-summary__value"><a href="{{ href }}">{{ title }}</a>, at the version approved and against the environment approved for it</dd>
+  </div>
+  {%- endif %}
+  {%- if !job.brief.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Brief</dt>
+    <dd class="doc-summary__value">{{ job.brief }}</dd>
+  </div>
+  {%- endif %}
+  {%- if !job.scope.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">About</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ job.scope }}</code></dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">It runs</dt>
+    <dd class="doc-summary__value">{{ when }}{% if !job.enabled %}, but it is off{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Its report</dt>
+    <dd class="doc-summary__value">On its run's page{% for how in deliver %}; {{ how|lower }}{% endfor %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">As</dt>
+    <dd class="doc-summary__value">{% if runbook.is_some() %}Agent Smith, with its own access, for {{ job.owner_label }}. Pressing Run now runs it with your access instead.{% else %}{{ job.owner_label }}, with their access at the time of each call{% endif %}</dd>
+  </div>
+</dl>
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>{{ title }}: a run</h2>
+  <div class="doc-heading-row__actions">
+    {%- if going %}
+    <form method="post" action="/p/agent/runs/{{ run.id }}/stop" hx-post="/p/agent/runs/{{ run.id }}/stop" hx-target="#agent" hx-swap="outerHTML">
+      <button class="doc-button doc-button--warning doc-button--small" type="submit">Stop</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">State</dt>
+    <dd class="doc-summary__value"><strong class="doc-badge doc-badge--{{ colour }}">{{ state }}</strong>{% if let Some(error) = run.error %} {{ error }}{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Started by</dt>
+    <dd class="doc-summary__value">{{ run.why }}{% for event in events %}<br><span class="doc-hint">{{ event }}</span>{% endfor %}</dd>
+  </div>
+  {%- if !run.runbook.is_empty() %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Runbook</dt>
+    <dd class="doc-summary__value"><a href="/p/agent/runbooks/{{ run.runbook }}">{{ run.runbook_title }}</a>, against {{ run.environment }}{% if run.environment == "production" %}, so it only reads{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Requested by</dt>
+    <dd class="doc-summary__value">{{ run.owner_label }}</dd>
+  </div>
+  {%- endif %}
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">With the access of</dt>
+    <dd class="doc-summary__value">{{ access }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">When</dt>
+    <dd class="doc-summary__value">{% if started.is_empty() %}Waiting to start{% else %}{{ started }}{% if !finished.is_empty() %} to {{ finished }}{% endif %}{% endif %}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Turns</dt>
+    <dd class="doc-summary__value">{{ run.turns }}{% if !tokens.is_empty() %}, {{ tokens }} tokens{% endif %}</dd>
+  </div>
+</dl>
+{%- if let Some(job) = job %}
+<p><a href="{{ job.href() }}?section=runs">Back to {{ job.title }}</a></p>
+{%- else %}
+<p><a href="/p/agent/runbooks/{{ run.runbook }}">Back to {{ run.runbook_title }}</a></p>
+{%- endif %}
+{%- if !run.report.is_empty() %}
+<h3>Report</h3>
+<div class="doc-prose">{{ report|safe }}</div>
+{%- endif %}
+<h3>What it did</h3>
+<p class="doc-hint">Every call, in order, each made with the access of {{ access }}. Agent Smith is named on whatever they changed.</p>
+{%- if calls.is_empty() %}
+<p class="doc-empty">No calls yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Turn</th>
+      <th class="doc-table__header" scope="col">Tool</th>
+      <th class="doc-table__header" scope="col">What happened</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for call in calls %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{% if call.turn == 0 %}Report{% else %}{{ call.turn }}{% endif %}</td>
+      <td class="doc-table__cell"><code class="doc-mono">{{ call.tool }}</code>{% if call.failed %}<br><strong class="doc-badge doc-badge--error">Failed</strong>{% else if !call.done %}<br><strong class="doc-badge doc-badge--loading">Waiting</strong>{% endif %}</td>
+      <td class="doc-table__cell">
+        <details class="nhsuk-details">
+          <summary class="nhsuk-details__summary"><span class="nhsuk-details__summary-text">Given and answered</span></summary>
+          <div class="nhsuk-details__text">
+            <pre class="doc-code" data-doc-language="json"><code>{{ call.input }}</code></pre>
+            <pre class="doc-code"><code>{{ call.result }}</code></pre>
+          </div>
+        </details>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

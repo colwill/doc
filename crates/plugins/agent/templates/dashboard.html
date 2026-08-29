@@ -1,0 +1,24 @@
+{%- if runs.is_empty() && reminders.is_empty() %}
+<p class="doc-empty">Nothing yet: run a runbook or set Agent Smith a job, and it shows here.</p>
+{%- endif %}
+{%- if !runs.is_empty() %}
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for run in runs %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row"><a href="{{ run.href }}">{{ run.title }}</a><br /><span class="doc-hint">{{ run.when }}</span></th>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ run.colour }}">{{ run.state }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- if !reminders.is_empty() %}
+<h4 class="nhsuk-heading-xs">Reminders to come</h4>
+<ul class="nhsuk-list">
+  {%- for reminder in reminders %}
+  <li>{{ reminder.at }}: {{ reminder.message }}</li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+<p><a href="/p/agent/runbooks">Runbooks</a> · <a href="/p/agent/">Jobs</a> · <a href="/p/agent/reminders">Reminders</a></p>

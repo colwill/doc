@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block main %}
+<a class="doc-trail" href="/p/agent/runbooks" hidden>Runbooks</a>
+<div class="doc-heading-row">
+  <h2>{{ title }}</h2>
+  <div class="doc-heading-row__actions">
+    {%- if writes %}
+    <form class="doc-inline-form" method="post" action="/p/agent/runbooks/run" hx-post="/p/agent/runbooks/run" hx-target="#agent" hx-swap="outerHTML">
+      <input type="hidden" name="space" value="{{ space_key }}" />
+      <input type="hidden" name="path" value="{{ path }}" />
+      <label class="nhsuk-u-visually-hidden" for="run-environment">Run it against</label>
+      <select class="doc-select doc-select--small" id="run-environment" name="environment">
+        {%- for environment in environments %}
+        <option value="{{ environment.value }}"{% if environment.selected %} selected{% endif %}>{{ environment.label }}</option>
+        {%- endfor %}
+      </select>
+      <button class="doc-button doc-button--small" type="submit">Run</button>
+    </form>
+    {%- endif %}
+  </div>
+</div>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">The page</dt>
+    <dd class="doc-summary__value"><a href="{{ href }}">{{ title }}</a>, in {{ space }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">When you run it</dt>
+    <dd class="doc-summary__value">Agent Smith uses your access, and you are its requester. Against production it only reads; against development or test it changes nothing in production.</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Runs by itself</dt>
+    <dd class="doc-summary__value">
+      {%- if let Some((said, current)) = approval %}
+      {{ said }}.{% if !current %} <strong class="doc-badge doc-badge--error">Changed since</strong> The page has changed since, so schedules, events and automations do not run it until the new version is approved.{% endif %}
+      {%- else %}
+      No. Once somebody holding Agent Smith's runbooks permission approves it, schedules, events and automations can run it with Agent Smith's own access, as it reads now.
+      {%- endif %}
+    </dd>
+  </div>
+</dl>
+{%- if approves %}
+<div class="doc-button-group">
+  <form class="doc-inline-form" method="post" action="/p/agent/runbooks/approve" hx-post="/p/agent/runbooks/approve" hx-target="#agent" hx-swap="outerHTML">
+    <input type="hidden" name="runbook" value="{{ key }}" />
+    <label class="nhsuk-u-visually-hidden" for="approve-environment">Approve it against</label>
+    <select class="doc-select doc-select--small" id="approve-environment" name="environment">
+      {%- for environment in environments %}
+      <option value="{{ environment.value }}"{% if environment.selected %} selected{% endif %}>{{ environment.label }}</option>
+      {%- endfor %}
+    </select>
+    <button class="doc-button doc-button--secondary doc-button--small" type="submit">Approve this version</button>
+  </form>
+  {%- if approval.is_some() %}
+  <form method="post" action="/p/agent/runbooks/withdraw" hx-post="/p/agent/runbooks/withdraw" hx-target="#agent" hx-swap="outerHTML" hx-confirm="Stop schedules, events and automations running {{ title }} by itself?">
+    <input type="hidden" name="runbook" value="{{ key }}" />
+    <button class="doc-button doc-button--warning doc-button--small" type="submit">Withdraw approval</button>
+  </form>
+  {%- endif %}
+</div>
+{%- endif %}
+<h3>Runs</h3>
+{%- if runs.is_empty() %}
+<p class="doc-empty">{% if approves %}It has not run yet.{% else %}You have not run it yet.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Started</th>
+      <th class="doc-table__header" scope="col">Against</th>
+      <th class="doc-table__header" scope="col">Requested by</th>
+      <th class="doc-table__header" scope="col">State</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for run in runs %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ run.href }}">{{ run.started }}</a></td>
+      <td class="doc-table__cell">{{ run.environment }}</td>
+      <td class="doc-table__cell">{{ run.who }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ run.colour }}">{{ run.state }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<p><a href="/p/agent/runbooks">All runbooks</a></p>
+{% endblock %}

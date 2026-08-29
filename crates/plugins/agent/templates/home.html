@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Agent Smith</h2>
+  <div class="doc-heading-row__actions">
+    {%- if section == "jobs" && writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/agent/jobs/new">New job</a>
+    {%- else if section == "reminders" && writes %}
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/agent/reminders/new">New reminder</a>
+    {%- endif %}
+  </div>
+</div>
+
+<div class="doc-with-contents">
+  <details class="doc-contents" open>
+    <summary class="doc-contents__summary">Contents</summary>
+    <nav aria-label="Agent Smith">
+      <ul class="doc-contents__list">
+        <li class="doc-contents__item"><a class="doc-contents__link" href="/p/agent/"{% if section == "jobs" %} aria-current="page"{% endif %}>Jobs</a></li>
+        <li class="doc-contents__item"><a class="doc-contents__link" href="/p/agent/runbooks"{% if section == "runbooks" %} aria-current="page"{% endif %}>Runbooks</a></li>
+        <li class="doc-contents__item"><a class="doc-contents__link" href="/p/agent/reminders"{% if section == "reminders" %} aria-current="page"{% endif %}>Reminders</a></li>
+        <li class="doc-contents__item"><a class="doc-contents__link" href="/p/agent/connect"{% if section == "connect" %} aria-current="page"{% endif %}>Connect your agent</a></li>
+      </ul>
+    </nav>
+  </details>
+  <div class="doc-with-contents__main">
+{%- if section == "runbooks" %}
+<h3>Runbooks</h3>
+<p class="doc-hint">Knowledge Base pages that say what to do when something goes wrong: a page is one when its front matter says <code class="doc-mono">runbook: true</code>, it has the label <code class="doc-mono">runbook</code>, or it is called <code class="doc-mono">runbook.md</code> or sits in a <code class="doc-mono">runbooks</code> folder. When you run one, Agent Smith uses your access, and you are its requester. Against production it only reads, and lists what is left for you to do.</p>
+{%- if keyless %}
+<div class="nhsuk-warning-callout">
+  <h4 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>No Claude API key yet</span></h4>
+  <p>Running a runbook needs one in Agent Smith's settings, where it can come from Secret Storage.</p>
+</div>
+{%- endif %}
+{%- if runbooks.is_empty() %}
+<p class="doc-empty">There are no runbooks you can read.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Runbook</th>
+      <th class="doc-table__header" scope="col">Space</th>
+      <th class="doc-table__header" scope="col">For</th>
+      <th class="doc-table__header" scope="col">Runs by itself</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for runbook in runbooks %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ runbook.href }}">{{ runbook.title }}</a></td>
+      <td class="doc-table__cell">{{ runbook.space }}</td>
+      <td class="doc-table__cell">{{ runbook.environment }}</td>
+      <td class="doc-table__cell">{% if let Some((said, _)) = runbook.approval %}{{ said }}{% else %}No{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+<h3>{% if admin %}Runs of runbooks{% else %}Runs you asked for{% endif %}</h3>
+{%- if asked.is_empty() %}
+<p class="doc-empty">{% if admin %}Nobody has run a runbook yet.{% else %}You have not run a runbook yet.{% endif %}</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Started</th>
+      <th class="doc-table__header" scope="col">Runbook</th>
+      <th class="doc-table__header" scope="col">Against</th>
+      <th class="doc-table__header" scope="col">Requested by</th>
+      <th class="doc-table__header" scope="col">State</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for run in asked %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ run.href }}">{{ run.started }}</a></td>
+      <td class="doc-table__cell">{{ run.runbook }}</td>
+      <td class="doc-table__cell">{{ run.environment }}</td>
+      <td class="doc-table__cell">{{ run.who }}</td>
+      <td class="doc-table__cell"><strong class="doc-badge doc-badge--{{ run.colour }}">{{ run.state }}</strong></td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- else if section == "reminders" %}
+<h3>Reminders</h3>
+<p class="doc-hint">The reminders you set, here or through an agent, still to come. Each arrives as a notification when it is due.</p>
+{%- if reminders.is_empty() %}
+<p class="doc-empty">You have no reminders to come.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">When</th>
+      <th class="doc-table__header" scope="col">Reminder</th>
+      <th class="doc-table__header" scope="col">For</th>
+      <th class="doc-table__header" scope="col"></th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for reminder in reminders %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">{{ reminder.at }}</td>
+      <td class="doc-table__cell">{{ reminder.message }}</td>
+      <td class="doc-table__cell">{{ reminder.to }}</td>
+      <td class="doc-table__cell">
+        <form method="post" action="/p/agent/reminders/{{ reminder.id }}/cancel" hx-post="/p/agent/reminders/{{ reminder.id }}/cancel" hx-target="#agent" hx-swap="outerHTML">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Cancel</button>
+        </form>
+      </td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- else if section == "connect" %}
+<h3>Connect your agent</h3>
+<p>Claude Code, Claude Desktop, GitHub Copilot in VS Code, the Copilot coding agent and any other MCP client can use DOC through one server. It acts as you, with your access and nothing more, so make a <a href="/tokens">personal access token</a> for it. A scoped token reaches only Agent Smith's own tools.</p>
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Server</dt>
+    <dd class="doc-summary__value"><code class="doc-mono">{{ url }}</code></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Transport</dt>
+    <dd class="doc-summary__value">Streamable HTTP, with your token as a bearer token</dd>
+  </div>
+</dl>
+<h4>Claude Code</h4>
+<pre class="doc-code" data-doc-language="shell"><code>claude mcp add --transport http doc {{ url }} \
+  --header "Authorization: Bearer $DOC_TOKEN"</code></pre>
+<h4>GitHub Copilot in VS Code</h4>
+<p class="doc-hint">In <code class="doc-mono">.vscode/mcp.json</code>; VS Code asks for the token once and keeps it.</p>
+<pre class="doc-code" data-doc-language="json"><code>{
+  "inputs": [{ "id": "doc-token", "type": "promptString", "description": "DOC personal access token", "password": true }],
+  "servers": {
+    "doc": {
+      "type": "http",
+      "url": "{{ url }}",
+      "headers": { "Authorization": "Bearer ${input:doc-token}" }
+    }
+  }
+}</code></pre>
+<h4>The Copilot coding agent</h4>
+<p class="doc-hint">In the repository's settings, under Copilot's MCP configuration, with the token as the secret <code class="doc-mono">COPILOT_MCP_DOC_TOKEN</code> in its Copilot environment.</p>
+<pre class="doc-code" data-doc-language="json"><code>{
+  "mcpServers": {
+    "doc": {
+      "type": "http",
+      "url": "{{ url }}",
+      "headers": { "Authorization": "Bearer $COPILOT_MCP_DOC_TOKEN" },
+      "tools": ["*"]
+    }
+  }
+}</code></pre>
+<h4>Claude Desktop</h4>
+<p class="doc-hint">Add it under Settings, Connectors, as a custom connector with this address, or in <code class="doc-mono">claude_desktop_config.json</code> through <code class="doc-mono">mcp-remote</code>:</p>
+<pre class="doc-code" data-doc-language="json"><code>{
+  "mcpServers": {
+    "doc": {
+      "command": "npx",
+      "args": ["mcp-remote", "{{ url }}", "--header", "Authorization: Bearer ${DOC_TOKEN}"],
+      "env": { "DOC_TOKEN": "your personal access token" }
+    }
+  }
+}</code></pre>
+<h4>Playbooks</h4>
+<p class="doc-hint">Offered as the server's prompts: Claude Code lists them as slash commands.</p>
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for prompt in prompts %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><code class="doc-mono">{{ prompt.name }}</code><br>{{ prompt.about }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+<h4>The tools you would have</h4>
+<p class="doc-hint">{{ tools.len() }} tools, worked out for you now: DOC's own, and those of every plugin that lets you use it.</p>
+<table class="doc-table">
+  <tbody class="doc-table__body">
+    {%- for tool in tools %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><code class="doc-mono">{{ tool.name }}</code><br>{{ tool.about }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- else %}
+<h3>Jobs</h3>
+<p class="doc-hint">What you set Agent Smith to do by itself: when asked, on a schedule, or when something happens. A job runs as you, with your access at that moment, and can change whatever you could; every call it makes is listed on its run.</p>
+{%- if keyless %}
+<div class="nhsuk-warning-callout">
+  <h4 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>No Claude API key yet</span></h4>
+  <p>Jobs need one in Agent Smith's settings, where it can come from Secret Storage. Your own agent needs none.</p>
+</div>
+{%- endif %}
+{%- if !unmet.is_empty() %}
+<p class="doc-error-message">The sources in Agent Smith's settings name credentials nobody has added: {{ unmet.join(", ") }}. doc_fetch cannot read them until somebody does.</p>
+{%- endif %}
+{%- if jobs.is_empty() %}
+<p class="doc-empty">You have set no jobs.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Job</th>
+      <th class="doc-table__header" scope="col">Playbook</th>
+      <th class="doc-table__header" scope="col">Runs</th>
+      <th class="doc-table__header" scope="col">Last run</th>
+      {%- if admin %}<th class="doc-table__header" scope="col">As</th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for job in jobs %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ job.href }}">{{ job.title }}</a>{% if !job.enabled %}<br><strong class="doc-badge">Off</strong>{% endif %}</td>
+      <td class="doc-table__cell">{{ job.playbook }}</td>
+      <td class="doc-table__cell">{{ job.when }}</td>
+      <td class="doc-table__cell">{% if let Some((at, word, colour)) = job.last %}<strong class="doc-badge doc-badge--{{ colour }}">{{ word }}</strong> {{ at }}{% else %}Never{% endif %}</td>
+      {%- if admin %}<td class="doc-table__cell">{{ job.owner }}</td>{% endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{%- endif %}
+  </div>
+</div>
+{% endblock %}

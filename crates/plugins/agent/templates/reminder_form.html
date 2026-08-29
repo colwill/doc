@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>A new reminder</h2>
+<p class="doc-hint">It arrives as a notification when it is due. An agent sets them the same way, with doc_remind.</p>
+<form method="post" action="/p/agent/reminders/new" hx-post="/p/agent/reminders/new" hx-target="#agent" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="reminder-at">When</label>
+    <span class="doc-hint">In UTC, as 2026-10-01 09:00, or a while from now: in 3 days, in 2 hours.</span>
+    <input class="doc-input" id="reminder-at" name="at" value="{{ at }}" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reminder-message">What to be reminded of</label>
+    <textarea class="doc-textarea" id="reminder-message" name="message" rows="3" maxlength="1000" required>{{ message }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="reminder-to">For</label>
+    <span class="doc-hint">me, somebody in one of your teams by their login, or a team you are in by its name.</span>
+    <input class="doc-input" id="reminder-to" name="to" value="{{ to }}" required />
+  </div>
+  <button class="doc-button" type="submit">Set it</button>
+</form>
+{% endblock %}
