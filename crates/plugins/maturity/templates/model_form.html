@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2>{% if editing.is_some() %}Change this model{% else %}A new maturity model{% endif %}</h2>
+<p class="doc-hint">A model is what one organisation or one team expects of the things it runs. The organisation's is the baseline; a team writes its own for what it expects on top.</p>
+<form method="post" action="{% if let Some(id) = editing %}/p/maturity/models/{{ id }}/edit{% else %}/p/maturity/models/new{% endif %}"
+      hx-post="{% if let Some(id) = editing %}/p/maturity/models/{{ id }}/edit{% else %}/p/maturity/models/new{% endif %}"
+      hx-target="#maturity" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="model-name">Name</label>
+    <span class="doc-hint" id="model-name-hint">What people will call it, such as &ldquo;Production ready&rdquo;.</span>
+    <input class="doc-input" id="model-name" name="name" value="{{ name }}" aria-describedby="model-name-hint" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="model-description">Description</label>
+    <textarea class="doc-textarea" id="model-description" name="description" rows="3">{{ description }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="model-owner">Kept by</label>
+    <span class="doc-hint" id="model-owner-hint">Start typing and choose one. A team's model grades only what that team owns in the Catalogue; the organisation's grades everything.</span>
+    {#- The Catalogue's own picker, narrowed to the only two kinds that can keep a model, so
+        nothing else can be chosen however it is typed. -#}
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="model-owner" name="owner" value="{{ owner }}"
+             placeholder="team:payments" autocomplete="off" required
+             role="combobox" aria-expanded="false" aria-autocomplete="list"
+             aria-controls="model-owner-options" aria-describedby="model-owner-hint"
+             hx-get="/p/resources/options?field=owner&amp;kinds=Organisation,Team" hx-params="owner"
+             hx-trigger="focus, input changed delay:200ms" hx-target="#model-owner-options"
+             hx-swap="innerHTML" />
+      <div class="doc-combo__list" id="model-owner-options" role="listbox" aria-label="Organisations and teams" hidden></div>
+    </div>
+  </div>
+  <fieldset class="doc-checkboxes">
+    <legend class="doc-checkboxes__legend">What it grades</legend>
+    {%- for kind in kinds %}
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="kind-{{ kind.value }}" name="kinds" type="checkbox" value="{{ kind.value }}"{% if kind.selected %} checked{% endif %} />
+      <label class="doc-checkboxes__label" for="kind-{{ kind.value }}">{{ kind.label }}</label>
+    </div>
+    {%- endfor %}
+  </fieldset>
+  {%- if editing.is_some() %}
+  <fieldset class="doc-checkboxes">
+    <legend class="doc-checkboxes__legend">Scoring</legend>
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="model-enabled" name="enabled" type="checkbox" value="on" checked />
+      <label class="doc-checkboxes__label" for="model-enabled">Score against it</label>
+      <span class="doc-checkboxes__hint">Turn this off to stop scoring without losing the model or its criteria.</span>
+    </div>
+  </fieldset>
+  {%- endif %}
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/maturity/">Cancel</a>
+  </div>
+</form>
+{%- if let Some(id) = editing %}
+<form method="post" action="/p/maturity/models/{{ id }}/delete" hx-post="/p/maturity/models/{{ id }}/delete" hx-target="#maturity" hx-swap="outerHTML">
+  <button class="doc-button doc-button--warning doc-button--small" type="submit">Remove this model</button>
+  <span class="doc-hint">Its criteria and every scorecard written against it go with it.</span>
+</form>
+{%- endif %}
+{% endblock %}

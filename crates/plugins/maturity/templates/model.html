@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block main %}
+<p class="doc-back"><a href="/p/maturity/">Back to Maturity</a></p>
+<div class="doc-heading-row">
+  <h2>{{ name }}{% if !enabled %} <span class="doc-badge doc-badge--unknown">Off</span>{% endif %}</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/maturity/models/{{ id }}/criteria/new">Add a criterion</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/maturity/models/{{ id }}/edit">Change</a>
+    <form method="post" action="/p/maturity/models/{{ id }}/score" hx-post="/p/maturity/models/{{ id }}/score" hx-target="#maturity" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">Score now</button>
+    </form>
+  </div>
+  {%- endif %}
+</div>
+{%- if !description.is_empty() %}
+<p>{{ description }}</p>
+{%- endif %}
+<dl class="doc-summary">
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Kept by</dt>
+    <dd class="doc-summary__value"><a href="{{ owner_href }}">{{ owner }}</a></dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Grades</dt>
+    <dd class="doc-summary__value">{{ grades }}</dd>
+  </div>
+  <div class="doc-summary__row">
+    <dt class="doc-summary__key">Last scored</dt>
+    <dd class="doc-summary__value">{% if let Some(when) = scored %}{{ when }}{% else %}Not yet{% endif %}</dd>
+  </div>
+</dl>
+
+<h3>What it asks for</h3>
+{%- if criteria.is_empty() %}
+<div class="doc-empty"><p>No criteria yet, so nothing is graded. A criterion is one thing that is either true of a component or not.</p></div>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Criterion</th>
+      <th class="doc-table__header" scope="col">Of each</th>
+      <th class="doc-table__header" scope="col">Decided by</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Weight</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="nhsuk-u-visually-hidden">Actions</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for criterion in criteria %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">{{ criterion.title }}{% if !criterion.description.is_empty() %}<span class="doc-hint">{{ criterion.description }}</span>{% endif %}</th>
+      <td class="doc-table__cell">{{ criterion.kind }}</td>
+      <td class="doc-table__cell">
+        {{ criterion.about }}
+        {%- if !criterion.automatic %} <span class="doc-badge doc-badge--unknown">By hand</span>{% endif %}
+        {%- if let Some(problem) = criterion.problem %} <span class="doc-error-message">{{ problem }}</span>{% endif %}
+      </td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ criterion.weight }}</td>
+      {%- if writes %}
+      <td class="doc-table__cell">
+        <a href="/p/maturity/criteria/{{ criterion.id }}/edit">Change</a>
+        <form method="post" action="/p/maturity/criteria/{{ criterion.id }}/delete" hx-post="/p/maturity/criteria/{{ criterion.id }}/delete" hx-target="#maturity" hx-swap="outerHTML">
+          <button class="doc-link-button" type="submit">Remove</button>
+        </form>
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+<h3>How each one stands</h3>
+{%- if cards.is_empty() %}
+<div class="doc-empty"><p>Nothing is graded against this model yet. It is scored on its own schedule, and whenever it changes.</p></div>
+{%- else %}
+{% include "spread.html" %}
+<table class="doc-table">
+  <caption class="doc-table__caption">Worst first</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Grade</th>
+      <th class="doc-table__header" scope="col">Component</th>
+      <th class="doc-table__header" scope="col">Met</th>
+      <th class="doc-table__header" scope="col">Short on</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for card in cards %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell">
+        <span class="doc-grade {{ card.grade_class }}">{{ card.grade }}</span>
+        <span class="doc-hint">{{ card.word }}</span>
+        {%- if !card.moved.is_empty() %}<span class="doc-hint">{{ card.moved }}</span>{% endif %}
+      </td>
+      <th class="doc-table__header" scope="row"><a href="{{ card.href }}">{{ card.name }}</a><span class="doc-hint">{{ card.kind }}</span></th>
+      <td class="doc-table__cell">{{ card.met }} of {{ card.asked }} by weight</td>
+      <td class="doc-table__cell">{% if card.short.is_empty() %}Nothing{% else %}{{ card.short.join(", ") }}{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

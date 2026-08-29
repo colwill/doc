@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block main %}
+<p class="doc-back"><a href="/p/maturity/models/{{ model }}">Back to {{ model_name }}</a></p>
+<h2>{% if editing.is_some() %}Change this criterion{% else %}A new criterion{% endif %}</h2>
+<p class="doc-hint">One thing that is either true of a component or not. Most are decided from what the platform already knows, so nobody has to keep them up by hand.</p>
+<form method="post" action="{% if let Some(id) = editing %}/p/maturity/criteria/{{ id }}/edit{% else %}/p/maturity/models/{{ model }}/criteria/new{% endif %}"
+      hx-post="{% if let Some(id) = editing %}/p/maturity/criteria/{{ id }}/edit{% else %}/p/maturity/models/{{ model }}/criteria/new{% endif %}"
+      hx-target="#maturity" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="criterion-title">What has to be true</label>
+    <span class="doc-hint" id="criterion-title-hint">Written as a statement, such as &ldquo;It has a repository&rdquo;.</span>
+    <input class="doc-input" id="criterion-title" name="title" value="{{ title }}" aria-describedby="criterion-title-hint" required />
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="criterion-description">Why it matters</label>
+    <textarea class="doc-textarea" id="criterion-description" name="description" rows="2">{{ description }}</textarea>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="criterion-kind">Of each</label>
+    <select class="doc-select" id="criterion-kind" name="kind">
+      {%- for kind in kinds %}
+      <option value="{{ kind.value }}"{% if kind.selected %} selected{% endif %}>{{ kind.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="criterion-weight">Weight</label>
+    <span class="doc-hint" id="criterion-weight-hint">What it counts for beside the other criteria, 1 to 10.</span>
+    <input class="doc-input" id="criterion-weight" name="weight" type="number" min="1" max="10" value="{{ weight }}" aria-describedby="criterion-weight-hint" />
+  </div>
+
+  <fieldset class="doc-radios">
+    <legend class="doc-radios__legend">How it is decided</legend>
+    {%- for check in checks %}
+    <div class="doc-radios__item">
+      <input class="doc-radios__input" id="check-{{ check.value }}" name="check" type="radio" value="{{ check.value }}"{% if check.selected %} checked{% endif %} />
+      <label class="doc-radios__label" for="check-{{ check.value }}">{{ check.label }}</label>
+    </div>
+    {%- endfor %}
+  </fieldset>
+
+  <div class="doc-form-group">
+    <label class="doc-label" for="connected-kind">Connected to &mdash; for &ldquo;connected to something&rdquo;</label>
+    <div class="doc-field-row">
+      <select class="doc-select" id="connected-kind" name="connected_kind">
+        {%- for kind in connected_kinds %}
+        <option value="{{ kind.value }}"{% if kind.selected %} selected{% endif %}>{{ kind.label }}</option>
+        {%- endfor %}
+      </select>
+      <input class="doc-input" name="connected_least" type="number" min="1" max="50" value="{{ connected_least }}" aria-label="At least this many" />
+    </div>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="metadata-key">Metadata key &mdash; for &ldquo;its metadata says something&rdquo;</label>
+    <span class="doc-hint" id="metadata-key-hint">The keys already set on what this model grades are offered as you type. Leave the values empty to ask only that it is set.</span>
+    <div class="doc-field-row">
+      <input class="doc-input" id="metadata-key" name="metadata_key" value="{{ metadata_key }}" placeholder="lifecycle" list="metadata-keys" autocomplete="off" aria-describedby="metadata-key-hint" />
+      <datalist id="metadata-keys">
+        {%- for key in metadata_keys %}
+        <option value="{{ key }}"></option>
+        {%- endfor %}
+      </datalist>
+      <input class="doc-input" name="metadata_one_of" value="{{ metadata_one_of }}" placeholder="production, design" aria-label="One of these values, separated by commas" />
+    </div>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="stands-on">Another model &mdash; for &ldquo;it meets another maturity model&rdquo;</label>
+    <span class="doc-hint" id="stands-on-hint">What this model stands on: a production model asks that a service is development ready first. That model is scored before this one, so the grade read is today's. A model cannot stand on itself, or on one that stands on it.</span>
+    {%- if models.is_empty() %}
+    <p class="doc-empty">There is no other model to stand on yet.</p>
+    {%- else %}
+    <div class="doc-field-row">
+      <select class="doc-select" id="stands-on" name="stands_on" aria-describedby="stands-on-hint">
+        {%- for other in models %}
+        <option value="{{ other.value }}"{% if other.selected %} selected{% endif %}>{{ other.label }}</option>
+        {%- endfor %}
+      </select>
+      <input class="doc-input" name="model_least" type="number" min="1" max="10" value="{{ model_least }}" aria-label="The grade it must reach against that model, 10 being all of it" />
+    </div>
+    {%- endif %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="readiness-plugin">Plugin &mdash; for &ldquo;a plugin says it is ready&rdquo;</label>
+    <span class="doc-hint" id="readiness-plugin-hint">One that answers readiness about a service. The four that do today are offered first, then every other plugin the platform runs.</span>
+    <input class="doc-input" id="readiness-plugin" name="readiness_plugin" value="{{ readiness_plugin }}" placeholder="eol" list="readiness-plugins" autocomplete="off" aria-describedby="readiness-plugin-hint" />
+    <datalist id="readiness-plugins">
+      {%- for plugin in plugins %}
+      <option value="{{ plugin }}"></option>
+      {%- endfor %}
+    </datalist>
+  </div>
+  <fieldset class="doc-checkboxes">
+    <legend class="nhsuk-u-visually-hidden">Readiness</legend>
+    <div class="doc-checkboxes__item">
+      <input class="doc-checkboxes__input" id="allow-warning" name="readiness_allow_warning" type="checkbox" value="on"{% if readiness_allow_warning %} checked{% endif %} />
+      <label class="doc-checkboxes__label" for="allow-warning">A warning still counts as met</label>
+    </div>
+  </fieldset>
+
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/maturity/models/{{ model }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

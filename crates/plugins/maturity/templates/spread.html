@@ -1,0 +1,11 @@
+{#- The grades in use, worst first: one bar per grade, coloured by it. -#}
+{%- if !spread.is_empty() %}
+<ul class="doc-grades">
+  {%- for (grade, class, count) in spread %}
+  <li class="doc-grades__item">
+    <span class="doc-grade {{ class }}">{{ grade }}</span>
+    <span class="doc-grades__count">{{ count }}</span>
+  </li>
+  {%- endfor %}
+</ul>
+{%- endif %}

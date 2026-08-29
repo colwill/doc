@@ -1,0 +1,3 @@
+<span class="doc-stat__label"><a href="{{ href }}">{{ label }}</a></span>
+<span class="doc-stat__value">{% if let Some(value) = value %}<span class="doc-grade doc-grade--large {{ grade_class }}">{{ value }}</span>{% else %}&mdash;{% endif %}</span>
+<span class="doc-stat__note">{{ note }}</span>

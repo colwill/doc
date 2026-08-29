@@ -1,0 +1,39 @@
+<div>
+  {%- if let Some(message) = message %}
+  <p class="doc-hint">{{ message }}</p>
+  {%- else %}
+  {%- for card in cards %}
+  <div class="doc-heading-row">
+    <h4><a href="{{ card.href }}">{{ card.name }}</a></h4>
+    <div class="doc-heading-row__actions"><span class="doc-grade {{ card.grade_class }}">{{ card.grade }}</span> <span class="doc-hint">{{ card.word }}</span></div>
+  </div>
+  <dl class="doc-summary">
+    {%- for result in card.results %}
+    <div class="doc-summary__row">
+      <dt class="doc-summary__key">
+        {%- if result.unknown %}<span class="doc-badge doc-badge--unknown">Not known</span>
+        {%- else if result.met %}<span class="doc-badge doc-badge--ready">Met</span>
+        {%- else %}<span class="doc-badge doc-badge--error">Not met</span>{% endif %}
+        {{ result.title }}<span class="doc-hint">Worth {{ result.weight }}</span>
+      </dt>
+      <dd class="doc-summary__value">
+        {{ result.why }}
+        {%- if result.manual && writes %}
+        <form class="doc-form-group" method="post" action="/p/maturity/attest" hx-post="/p/maturity/attest" hx-target="#maturity" hx-swap="outerHTML">
+          <input type="hidden" name="criterion" value="{{ result.criterion }}" />
+          <input type="hidden" name="component" value="{{ component }}" />
+          <div class="doc-field-row">
+            <input class="doc-input" name="note" placeholder="How it is met" aria-label="How it is met" />
+            <button class="doc-button doc-button--secondary doc-button--small" type="submit" name="met" value="on">It is met</button>
+            <button class="doc-button doc-button--secondary doc-button--small" type="submit">It is not</button>
+          </div>
+        </form>
+        {%- endif %}
+      </dd>
+    </div>
+    {%- endfor %}
+  </dl>
+  {%- endfor %}
+  {%- endif %}
+  <p class="doc-hint"><a href="/p/maturity/">Every maturity model</a></p>
+</div>

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Maturity</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/maturity/models/new">New model</a>
+  </div>
+  {%- endif %}
+</div>
+
+{%- if !models.is_empty() && reading_as.is_none() %}
+<div class="nhsuk-warning-callout">
+  <h3 class="nhsuk-warning-callout__label"><span role="text"><span class="nhsuk-u-visually-hidden">Important: </span>Nothing is scored on its own yet</span></h3>
+  <p>Scoring reads the Catalogue, and the Catalogue answers whoever is asking &mdash; so a run nobody started has nobody to read as, and grades only move when somebody asks for them. Open a model and <strong>Score now</strong> once: from then on the schedule and any change in the Catalogue score as you.</p>
+</div>
+{%- else if let Some(who) = reading_as %}
+<p class="doc-hint">Scoring reads the Catalogue as {{ who }}, who asked for it last.</p>
+{%- endif %}
+
+{%- if models.is_empty() %}
+<div class="doc-empty">
+  <p>Nobody has written a maturity model yet. A model is what an organisation or a team expects of the things it runs &mdash; that a service has a repository, that a repository has documentation, that nothing it runs is past its end of life &mdash; and every service, repository, page and cloud resource it covers is graded from 1 to 10 against it.</p>
+  {%- if writes %}
+  <p><a class="doc-button" href="/p/maturity/models/new">Write the first one</a></p>
+  {%- endif %}
+</div>
+{%- else %}
+<p>{{ graded }} graded against {% if models.len() == 1 %}one model{% else %}{{ models.len() }} models{% endif %}. One is the lowest and ten means it meets everything the model asks.</p>
+{% include "spread.html" %}
+
+<table class="doc-table">
+  <caption class="doc-table__caption">Every model, the organisation's first</caption>
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Model</th>
+      <th class="doc-table__header" scope="col">Kept by</th>
+      <th class="doc-table__header" scope="col">Grades</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Criteria</th>
+      <th class="doc-table__header doc-table__header--numeric" scope="col">Components</th>
+      <th class="doc-table__header" scope="col">Average</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for model in models %}
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="row">
+        <a href="{{ model.href }}">{{ model.name }}</a>
+        {%- if !model.enabled %} <span class="doc-badge doc-badge--unknown">Off</span>{% endif %}
+        {%- if !model.description.is_empty() %}<span class="doc-hint">{{ model.description }}</span>{% endif %}
+      </th>
+      <td class="doc-table__cell"><a href="{{ model.owner_href }}">{{ model.owner }}</a></td>
+      <td class="doc-table__cell">{{ model.grades }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ model.criteria }}</td>
+      <td class="doc-table__cell doc-table__cell--numeric">{{ model.components }}</td>
+      <td class="doc-table__cell">{% if let Some(average) = model.average %}<span class="doc-grade {{ model.average_class }}">{{ average }}</span>{% else %}&ndash;{% endif %}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}
