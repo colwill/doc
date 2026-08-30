@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="doc-heading-row">
+  <h2>Architecture</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/architecture/views/new">Add a view</a>
+  </div>
+  {%- endif %}
+</div>
+<p class="doc-hint">A view is a picture of part of the estate. How it is arranged belongs to whoever owns it; what its lines claim belongs to the estate, and the platform checks those.</p>
+{%- if views.is_empty() %}
+<p class="doc-empty">There are no views yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">View</th>
+      <th class="doc-table__header" scope="col">Owner</th>
+      <th class="doc-table__header" scope="col">On it</th>
+      {%- if writes %}<th class="doc-table__header" scope="col"><span class="doc-visually-hidden">Actions</span></th>{% endif %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in views %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="/p/architecture/views/{{ row.id }}">{{ row.name }}</a></td>
+      <td class="doc-table__cell"><span class="doc-kind doc-kind--{{ row.owner_kind }}"><span class="doc-kind__label">{{ row.owner_label_kind }}</span> <a href="{{ row.owner_href }}">{{ row.owner_name }}</a></span></td>
+      <td class="doc-table__cell">{% if row.on_it == 1 %}1 thing{% else %}{{ row.on_it }} things{% endif %}</td>
+      {%- if writes %}
+      <td class="doc-table__cell">
+        <form method="post" action="/p/architecture/views/{{ row.id }}/remove" hx-post="/p/architecture/views/{{ row.id }}/remove" hx-target="#architecture" hx-swap="outerHTML">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Delete</button>
+        </form>
+      </td>
+      {%- endif %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+
+<h3>Components</h3>
+<p class="doc-hint">A component is a part of a service that runs or stores, and the test is whether it can be deployed or fail on its own.</p>
+{%- if components.is_empty() %}
+<p class="doc-empty">No components are declared yet.</p>
+{%- else %}
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      <th class="doc-table__header" scope="col">Component</th>
+      <th class="doc-table__header" scope="col">Service</th>
+      <th class="doc-table__header" scope="col">What it is</th>
+      <th class="doc-table__header" scope="col">Declared</th>
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in components %}
+    <tr class="doc-table__row">
+      <td class="doc-table__cell"><a href="{{ row.href }}">{{ row.shown }}</a></td>
+      <td class="doc-table__cell"><a href="/p/resources/r/service/{{ row.service }}">{{ row.service }}</a></td>
+      <td class="doc-table__cell">{{ row.role }}</td>
+      <td class="doc-table__cell">{{ row.origin }}</td>
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block main %}
+<a class="doc-trail" href="/p/architecture/views/{{ id }}" hidden>Back</a>
+<h2>Rename this view</h2>
+<form method="post" action="/p/architecture/views/{{ id }}/rename" hx-post="/p/architecture/views/{{ id }}/rename" hx-target="#architecture" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    <input class="doc-input" id="name" name="name" value="{{ name }}" maxlength="200" required>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Save</button>
+    <a class="doc-button doc-button--secondary" href="/p/architecture/views/{{ id }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

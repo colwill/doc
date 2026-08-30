@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block main %}
+<a class="doc-trail" href="/p/architecture/views/{{ view_id }}" hidden>Back</a>
+<h2>Add a component</h2>
+<p class="doc-hint">A part of a service that runs or stores. The test is whether it can be deployed or fail on its own: an API, a worker, a job, a queue, a database. Not a module.</p>
+<form method="post" action="/p/architecture/views/{{ view_id }}/components/new" hx-post="/p/architecture/views/{{ view_id }}/components/new" hx-target="#architecture" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="service">Service</label>
+    {%- if services.is_empty() %}
+    <input class="doc-input" id="service" name="service" value="{{ service }}" required>
+    {%- else %}
+    <input class="doc-input" id="service" name="service" value="{{ service }}" list="service-names" required autocomplete="off">
+    <datalist id="service-names">
+      {%- for choice in services %}
+      <option value="{{ choice.value }}"></option>
+      {%- endfor %}
+    </datalist>
+    {%- endif %}
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    <input class="doc-input" id="name" name="name" value="{{ name }}" required>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="title">Title</label>
+    <input class="doc-input" id="title" name="title" value="{{ title }}">
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="role">What it is</label>
+    <select class="doc-select" id="role" name="role">
+      {%- for choice in roles %}
+      <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+  <div class="doc-form-group">
+    <label class="doc-label" for="description">Description</label>
+    <textarea class="doc-textarea" id="description" name="description" rows="3">{{ description }}</textarea>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Add it</button>
+    <a class="doc-button doc-button--secondary" href="/p/architecture/views/{{ view_id }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

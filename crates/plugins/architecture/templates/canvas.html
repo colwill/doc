@@ -1,0 +1,184 @@
+{#- A view's canvas, as its own page draws it to be arranged and as a service's page draws it to be
+    read. `writes` decides which: without it nothing on it saves, so nothing on it moves, and it
+    can still be panned, zoomed and followed into the views its things open into. -#}
+<div class="doc-canvas-area" data-doc-canvas
+     data-doc-canvas-view="{{ id }}"
+     {%- if writes %}
+     data-doc-canvas-place="/p/architecture/views/{{ id }}/place"
+     data-doc-canvas-connect="/p/architecture/views/{{ id }}/connect"
+     data-doc-canvas-add="/p/architecture/views/{{ id }}/add"
+     data-doc-canvas-target="#architecture"
+     {%- else %}
+     data-doc-canvas-still
+     {%- endif %}
+     data-doc-canvas-primary="{{ view.primary }}">
+  <div class="doc-canvas">
+    <div class="doc-canvas__surface" data-doc-canvas-surface>
+    <svg class="doc-canvas__lines" data-doc-canvas-lines aria-hidden="true"></svg>
+    {%- for row in components %}
+    <div class="doc-canvas__node{% if row.whole_service %} doc-canvas__node--service{% endif %}{% if !row.dress.colour.is_empty() %} doc-canvas__node--colour-{{ row.dress.colour }}{% endif %}{% if !row.dress.border.is_empty() %} doc-canvas__node--border-{{ row.dress.border }}{% endif %}"
+         data-doc-canvas-node="{{ row.node }}" data-x="{{ row.x }}" data-y="{{ row.y }}"
+         data-w="{{ row.w }}" data-h="{{ row.h }}"
+         tabindex="0" aria-label="{{ row.shown }}, {{ row.role }}">
+      <span class="doc-canvas__name">{{ row.shown }}</span>
+      <span class="doc-canvas__what">{{ row.role }}</span>
+      {%- if !row.dress.description.is_empty() %}
+      <span class="doc-canvas__note">{{ row.dress.description }}</span>
+      {%- endif %}
+      {#- One connector a side, so a line can be drawn from and to a particular edge and stay
+          there. They are decoration until something is dragged from one. -#}
+      <span class="doc-canvas__handle doc-canvas__handle--top" data-doc-canvas-handle="top" aria-hidden="true"></span>
+      <span class="doc-canvas__handle doc-canvas__handle--right" data-doc-canvas-handle="right" aria-hidden="true"></span>
+      <span class="doc-canvas__handle doc-canvas__handle--bottom" data-doc-canvas-handle="bottom" aria-hidden="true"></span>
+      <span class="doc-canvas__handle doc-canvas__handle--left" data-doc-canvas-handle="left" aria-hidden="true"></span>
+      <span class="doc-canvas__grip" data-doc-canvas-grip aria-hidden="true"></span>
+      {#- Shown with the × once it is chosen: change how it looks, and go into the view that
+          draws it in more detail, when there is one this reader may see. -#}
+      {%- if writes || !row.dress.opens_href.is_empty() %}
+      <span class="doc-canvas__tools" data-doc-canvas-tools hidden>
+        {%- if writes %}
+        <button class="doc-canvas__tool" type="button" data-doc-canvas-edit="{{ row.node }}" aria-label="Change how {{ row.shown }} looks on this view">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>
+        </button>
+        {%- endif %}
+        {%- if !row.dress.opens_href.is_empty() %}
+        <a class="doc-canvas__tool" href="{{ row.dress.opens_href }}" data-doc-canvas-expand aria-label="Open {{ row.dress.opens_name }}">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>
+        </a>
+        {%- endif %}
+      </span>
+      {%- endif %}
+      {%- if writes %}
+      <form class="doc-canvas__off" data-doc-canvas-off hx-post="/p/architecture/views/{{ id }}/take-off" hx-target="#architecture" hx-swap="outerHTML" hidden>
+        <input type="hidden" name="node" value="{{ row.node }}">
+        <button class="doc-canvas__off-button" type="submit" aria-label="Take {{ row.shown }} off this view">×</button>
+      </form>
+      {%- endif %}
+    </div>
+    {%- endfor %}
+    </div>
+    <div class="doc-canvas__zoom">
+      <button class="doc-canvas__zoom-button" type="button" data-doc-canvas-zoom="out" aria-label="Zoom out">&minus;</button>
+      <button class="doc-canvas__zoom-button" type="button" data-doc-canvas-zoom="reset" aria-label="Back to where this view opens">Reset</button>
+      <button class="doc-canvas__zoom-button" type="button" data-doc-canvas-zoom="in" aria-label="Zoom in">+</button>
+    </div>
+    {#- Away from its own page, who owns the view sits in the corner opposite the zoom. -#}
+    {%- if let Some(caption) = caption %}
+    <p class="doc-canvas__caption" data-doc-canvas-caption>
+      {%- if !caption.href.is_empty() %}<a href="{{ caption.href }}">{{ caption.name }}</a> &middot; {% endif %}Owned by {{ caption.owner }}
+    </p>
+    {%- endif %}
+  </div>
+  {#- A line, and the menu clicking it opens. The menu sits outside the canvas, which clips
+      what is on it, so a menu opened near an edge is still whole. It is rendered here rather
+      than built in the browser, so each choice is an ordinary HTMX form and the page's CSP
+      needs no exception for inline anything. -#}
+  {%- for row in claims %}
+  <span data-doc-canvas-line data-claim="{{ row.id }}" data-from="{{ row.from_node }}" data-to="{{ row.to_node }}" data-from-side="{{ row.from_side }}" data-to-side="{{ row.to_side }}" data-both="{{ row.both }}" data-label="{{ row.relationship }}" hidden></span>
+  {%- if writes %}
+  <div class="doc-canvas__menu" data-doc-canvas-menu="{{ row.id }}" role="dialog" aria-label="{{ row.from }} {{ row.relationship }} {{ row.to }}" hidden>
+    <p class="doc-canvas__menu-what">
+      {{ row.from }} <strong>{{ row.relationship }}</strong> {{ row.to }}
+      {%- if !row.crossing.is_empty() %} <span class="doc-tag">{{ row.crossing }}</span>{% endif %}
+      <span class="doc-hint">{{ row.origin }}</span>
+    </p>
+    {#- Each change is saved as it is made, and the menu opens again where it was. -#}
+    <form method="post" action="/p/architecture/views/{{ id }}/claims/{{ row.id }}/relationship" hx-post="/p/architecture/views/{{ id }}/claims/{{ row.id }}/relationship" hx-trigger="change, submit" hx-target="#architecture" hx-swap="outerHTML">
+      <div class="doc-form-group">
+        <label class="doc-label" for="relationship-{{ row.id }}">It</label>
+        <select class="doc-select" id="relationship-{{ row.id }}" name="relationship">
+          {%- for choice in row.others %}
+          <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="description-{{ row.id }}">What for</label>
+        <input class="doc-input" id="description-{{ row.id }}" name="description" value="{{ row.description }}">
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="arrows-{{ row.id }}">Arrows</label>
+        <select class="doc-select" id="arrows-{{ row.id }}" name="arrows">
+          {%- for choice in row.arrows %}
+          <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      <noscript><button class="doc-button doc-button--small" type="submit">Save</button></noscript>
+    </form>
+    <div class="doc-button-group">
+      <form hx-post="/p/architecture/views/{{ id }}/claims/{{ row.id }}/remove" hx-target="#architecture" hx-swap="outerHTML">
+        <button class="doc-button doc-button--secondary doc-button--small" type="submit">Remove it</button>
+      </form>
+    </div>
+    <button class="doc-canvas__menu-close" type="button" data-doc-canvas-menu-close aria-label="Close">Close</button>
+  </div>
+  {%- endif %}
+  {%- endfor %}
+  {#- How each thing looks on this view, opened by its edit button. Outside the canvas for the
+      same reason a line's menu is. -#}
+  {%- if writes %}
+  {%- for row in components %}
+  {%- let n = loop.index %}
+  <div class="doc-canvas__menu" data-doc-canvas-menu="{{ row.node }}" role="dialog" aria-labelledby="look-{{ n }}" hidden>
+    <p class="doc-canvas__menu-what" id="look-{{ n }}"><strong>{{ row.shown }}</strong> <span class="doc-hint">How it looks on this view</span></p>
+    {#- Each change is saved as it is made: a choice at once, typing when the field is left or
+        Enter is pressed, while what is typed shows on the box as it goes. -#}
+    <form method="post" action="/p/architecture/views/{{ id }}/look" hx-post="/p/architecture/views/{{ id }}/look" hx-trigger="change, submit" hx-target="#architecture" hx-swap="outerHTML">
+      <input type="hidden" name="node" value="{{ row.node }}">
+      <div class="doc-form-group">
+        <label class="doc-label" for="look-{{ n }}-label">Name</label>
+        <span class="doc-hint" id="look-{{ n }}-label-hint">Only on this view. Clear it to go back to {{ row.dress.usual }}.</span>
+        <input class="doc-input" id="look-{{ n }}-label" name="label" value="{{ row.shown }}" maxlength="200" aria-describedby="look-{{ n }}-label-hint" data-doc-canvas-preview="name" data-doc-canvas-usual="{{ row.dress.usual }}">
+      </div>
+      <div class="doc-form-group">
+        <label class="doc-label" for="look-{{ n }}-description">Description</label>
+        <textarea class="doc-textarea" id="look-{{ n }}-description" name="description" rows="2" maxlength="2000" data-doc-canvas-preview="description">{{ row.dress.description }}</textarea>
+      </div>
+      <fieldset class="doc-fieldset doc-canvas__colours">
+        <legend class="doc-label">Border colour</legend>
+        <label class="doc-canvas__swatch doc-canvas__swatch--usual" title="The usual">
+          <input type="radio" id="look-{{ n }}-colour" name="colour" value=""{% if row.dress.colour.is_empty() %} checked{% endif %}>
+          <span class="nhsuk-u-visually-hidden">The usual</span>
+        </label>
+        {%- for choice in row.dress.colours %}
+        <label class="doc-canvas__swatch doc-canvas__swatch--{{ choice.value }}" title="{{ choice.label }}">
+          <input type="radio" id="look-{{ n }}-colour-{{ choice.value }}" name="colour" value="{{ choice.value }}"{% if choice.chosen %} checked{% endif %}>
+          <span class="nhsuk-u-visually-hidden">{{ choice.label }}</span>
+        </label>
+        {%- endfor %}
+      </fieldset>
+      <div class="doc-form-group">
+        <label class="doc-label" for="look-{{ n }}-border">Border style</label>
+        <select class="doc-select" id="look-{{ n }}-border" name="border">
+          {%- for choice in row.dress.borders %}
+          <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      {%- if !row.dress.views.is_empty() %}
+      <div class="doc-form-group">
+        <label class="doc-label" for="look-{{ n }}-opens">Opens into</label>
+        <span class="doc-hint" id="look-{{ n }}-opens-hint">A view that shows it in more detail. It gets a button that goes there.</span>
+        <select class="doc-select" id="look-{{ n }}-opens" name="opens" aria-describedby="look-{{ n }}-opens-hint">
+          <option value="">No other view</option>
+          {%- for choice in row.dress.views %}
+          <option value="{{ choice.value }}"{% if choice.chosen %} selected{% endif %}>{{ choice.label }}</option>
+          {%- endfor %}
+        </select>
+      </div>
+      {%- endif %}
+      <div class="doc-checkboxes">
+        <div class="doc-checkboxes__item">
+          <input class="doc-checkboxes__input" id="look-{{ n }}-primary" name="primary" type="checkbox" value="yes"{% if row.dress.primary %} checked{% endif %}>
+          <label class="doc-label doc-checkboxes__label" for="look-{{ n }}-primary">The primary component: this view opens centred on it, and a service shows it on its own page</label>
+        </div>
+      </div>
+      <noscript><button class="doc-button doc-button--small" type="submit">Save</button></noscript>
+    </form>
+    <button class="doc-canvas__menu-close" type="button" data-doc-canvas-menu-close aria-label="Close">Close</button>
+  </div>
+  {%- endfor %}
+  {%- endif %}
+  <p class="nhsuk-u-visually-hidden" data-doc-canvas-live aria-live="polite"></p>
+</div>

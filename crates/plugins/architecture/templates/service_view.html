@@ -1,0 +1,13 @@
+{#- The view a service is the primary component of, on the service's own page, drawn as it opens:
+    centred on the service with everything else in sight. It can be panned and zoomed, and is
+    arranged on its own page. Pinned to the top of the page it brings its own heading, which is the
+    way to the view; otherwise the Catalogue heads it and the corner of the canvas has the way. -#}
+{%- if pinned %}
+<h3><a href="/p/architecture/views/{{ id }}">{{ heading }}</a></h3>
+{%- endif %}
+{%- include "canvas.html" %}
+{%- if !others.is_empty() %}
+<p class="doc-hint">Also centred on this service:
+  {%- for other in others %} <a href="/p/architecture/views/{{ other.value }}">{{ other.label }}</a>{% if !loop.last %},{% endif %}{% endfor %}
+</p>
+{%- endif %}

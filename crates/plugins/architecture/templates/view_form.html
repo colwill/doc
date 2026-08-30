@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block main %}
+<a class="doc-trail" href="/p/architecture/" hidden>Architecture</a>
+<h2>Add a view</h2>
+<p class="doc-hint">A view starts empty: put components on it afterwards, by dragging them from the palette or pressing Add. Who owns it decides who may rearrange it. A view owned by a service follows that service if it is handed to another team; one owned by a team stays with the team.</p>
+<form method="post" action="/p/architecture/views/new" hx-post="/p/architecture/views/new" hx-target="#architecture" hx-swap="outerHTML">
+  <div class="doc-form-group">
+    <label class="doc-label" for="name">Name</label>
+    <input class="doc-input" id="name" name="name" value="{{ name }}" required>
+  </div>
+  {#- The Catalogue's own picker, so the field offers what exists. Without the script it is a text
+      box that takes the same thing typed, which is why the hint says the shape. -#}
+  <div class="doc-form-group">
+    <label class="doc-label" for="owner">Owned by</label>
+    <div class="doc-combo" data-doc-combo>
+      <input class="doc-input doc-combo__input" id="owner" name="owner" value="{{ owner }}"
+             role="combobox" aria-expanded="false" aria-controls="owner-options" autocomplete="off"
+             required
+             hx-get="/p/resources/options" hx-trigger="focus, input changed delay:200ms"
+             hx-target="#owner-options" hx-swap="innerHTML"
+             hx-vals='{"kinds": "Team,Service,Organisation", "field": "owner"}'
+             hx-params="owner,kinds,field">
+      <div class="doc-combo__list" id="owner-options" role="listbox" hidden></div>
+    </div>
+    <p class="doc-hint">A team, a service or an organisation, as <code class="doc-mono">Team:payments</code>.</p>
+  </div>
+  <div class="doc-button-group">
+    <button class="doc-button" type="submit">Add it</button>
+    <a class="doc-button doc-button--secondary" href="/p/architecture/">Cancel</a>
+  </div>
+</form>
+{% endblock %}

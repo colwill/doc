@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block main %}
+<a class="doc-trail" href="/p/architecture/" hidden>Architecture</a>
+<div class="doc-heading-row">
+  <h2>{{ view.name }}</h2>
+  {%- if writes %}
+  <div class="doc-heading-row__actions">
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/architecture/views/{{ view.id }}/components/new">Add a component</a>
+    <a class="doc-button doc-button--secondary doc-button--small" href="/p/architecture/views/{{ view.id }}/rename">Rename this view</a>
+    <form method="post" action="/p/architecture/views/{{ view.id }}/remove" hx-post="/p/architecture/views/{{ view.id }}/remove" hx-target="#architecture" hx-swap="outerHTML">
+      <button class="doc-button doc-button--secondary doc-button--small" type="submit">Delete this view</button>
+    </form>
+  </div>
+  {%- endif %}
+</div>
+<ul class="doc-kinds">
+  <li class="doc-kind doc-kind--{{ owner_kind }}">
+    <span class="doc-kind__label">{{ owner_label_kind }}</span>
+    <a href="{{ owner_href }}">{{ owner_name }}</a>
+  </li>
+</ul>
+
+{#- The canvas is how a view is arranged (ADR-0017 §5): drag a thing from the palette onto it,
+    left-drag to move, right-drag to pan, and drag from a thing's handle onto another to connect
+    them. Every move and every line is a request, so nothing is kept only in the browser.
+
+    The palette takes the column a contents list takes elsewhere, so the canvas has the rest of the
+    width and folds above it on a narrow screen. -#}
+<div class="doc-with-contents">
+  {%- if writes %}
+  <div>
+    <h3 class="doc-builder__palette-heading">Components</h3>
+    {%- if palette.is_empty() %}
+    <p class="doc-empty">Everything the Catalogue knows and everything declared here is on this view already.</p>
+    {%- else %}
+    <ul class="doc-builder__palette">
+      {%- for item in palette %}
+      <li class="doc-builder__item" data-doc-canvas-drag="{{ item.node }}">
+        <span>{{ item.shown }} <span class="doc-tag">{{ item.role }}</span></span>
+        <form method="post" action="/p/architecture/views/{{ id }}/add" hx-post="/p/architecture/views/{{ id }}/add" hx-target="#architecture" hx-swap="outerHTML">
+          <input type="hidden" name="node" value="{{ item.node }}">
+          <button class="doc-button doc-button--secondary doc-button--small" type="submit">Add</button>
+        </form>
+      </li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </div>
+  {%- endif %}
+  <div class="doc-with-contents__main">
+    {%- include "canvas.html" %}
+    {%- if components.is_empty() %}
+    <p class="doc-empty">Nothing is on this view yet. Drag something onto the canvas.</p>
+    {%- endif %}
+  </div>
+</div>
+
+{% endblock %}
