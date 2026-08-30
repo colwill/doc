@@ -1,0 +1,13 @@
+<div id="grafana">
+  <a class="doc-trail" href="{{ board_href }}" hidden>{{ board_title }}</a>
+  <h2>{{ title }}</h2>
+  <p class="doc-hint">{{ lede }} <a href="{{ board_href }}">Back to {{ board_title }}</a></p>
+  {%- for problem in problems %}
+  <p class="doc-error-message" role="alert">{{ problem }}</p>
+  {%- endfor %}
+  {%- if let Some(table) = table %}
+  {% include "table.html" %}
+  {%- else if problems.is_empty() %}
+  <div class="doc-empty"><p>Nothing in this range.</p></div>
+  {%- endif %}
+</div>

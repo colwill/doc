@@ -1,0 +1,40 @@
+{%- if !description.is_empty() %}
+<p class="doc-hint">{{ description }}</p>
+{%- endif %}
+{%- for problem in problems %}
+<p class="doc-error-message" role="alert">{{ problem }}</p>
+{%- endfor %}
+{%- match drawn %}
+{%- when Drawn::Chart(chart) %}
+<canvas class="doc-chart" role="img" aria-label="{{ chart.described }}" data-chart="{{ chart.config }}"></canvas>
+{%- when Drawn::Map(map) %}
+<figure class="doc-geomap" aria-label="{{ map.described }}" data-geomap="{{ map.config }}"></figure>
+{%- when Drawn::Figures(figures) %}
+<div class="doc-stat-group">
+  {%- for figure in figures %}
+  <div class="doc-stat">
+    <span class="doc-stat__label">{{ figure.label }}</span>
+    <span class="doc-stat__value">{{ figure.value }}</span>
+    {%- if !figure.note.is_empty() %}
+    <span class="doc-stat__note">{{ figure.note }}</span>
+    {%- endif %}
+  </div>
+  {%- endfor %}
+</div>
+{%- when Drawn::Table(table) %}
+{% include "table.html" %}
+{%- when Drawn::Text(paragraphs) %}
+{%- for paragraph in paragraphs %}
+<p>{{ paragraph }}</p>
+{%- endfor %}
+{%- when Drawn::Nothing(said) %}
+{%- if !said.is_empty() %}
+<p class="doc-hint">{{ said }}</p>
+{%- endif %}
+{%- endmatch %}
+{%- if let Some(figures) = figures %}
+<p class="doc-hint"><a href="{{ figures }}">The figures behind this {{ pictured }}</a></p>
+{%- endif %}
+{%- if let Some(open) = open %}
+<p class="doc-hint"><a href="{{ open }}">Open this panel in Grafana</a></p>
+{%- endif %}

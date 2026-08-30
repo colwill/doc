@@ -1,0 +1,50 @@
+<div id="grafana">
+  <h2>Grafana</h2>
+  {%- if !connected %}
+  <div class="doc-empty">
+    <p>Grafana is not connected yet. DOC reaches it through a vendor account in Secret Storage, so this plugin holds no credential of its own and every call it makes is recorded there.</p>
+    <ol>
+      <li>Onboard Grafana as a proxied account in <a href="/p/secrets/">Secret Storage</a>, with the token of a Grafana service account that can see the dashboards to show.</li>
+      <li>Allow the grafana plugin on that account, with these rules.</li>
+      <li>Choose the account on {% if settles %}<a href="/plugins/grafana/settings">this plugin's Settings page</a>{% else %}this plugin's Settings page, which an administrator can change{% endif %}.</li>
+    </ol>
+    <pre class="doc-code"><code>{% for rule in rules %}{{ rule }}
+{% endfor %}</code></pre>
+  </div>
+  {%- else %}
+  <p class="doc-hint">Dashboards from Grafana, drawn in DOC from their own queries.</p>
+  {%- if let Some(problem) = problem %}
+  <p class="doc-error-message" role="alert">{{ problem }}</p>
+  {%- endif %}
+  {%- if every %}
+  <form action="/p/grafana/" method="get" hx-get="/p/grafana/" hx-trigger="input delay:300ms from:#grafana-q, change" hx-select="#grafana-every" hx-target="#grafana-every" hx-swap="outerHTML" hx-push-url="true">
+    <div class="doc-form-group">
+      <label class="doc-label" for="grafana-q">Search</label>
+      <span class="doc-hint" id="grafana-q-hint">By title, such as checkout or latency.</span>
+      <input class="doc-input" id="grafana-q" name="q" type="search" value="{{ q }}" autocomplete="off" aria-describedby="grafana-q-hint" />
+    </div>
+    <noscript><button class="doc-button doc-button--secondary" type="submit">Search</button></noscript>
+  </form>
+  {%- endif %}
+  <div id="grafana-every">
+    {%- if rows.is_empty() %}
+    {%- if problem.is_none() %}
+    <div class="doc-empty"><p>{% if q.is_empty() %}The vendor account sees no dashboards in Grafana.{% else %}No dashboard's title matches that.{% endif %}</p></div>
+    {%- endif %}
+    {%- else %}
+    <p class="doc-results__count">{{ count }}</p>
+    <ul class="doc-results">
+      {%- for row in rows %}
+      <li class="doc-results__item">
+        <a class="doc-results__title" href="{{ row.href }}">{{ row.title }}</a>
+        <p class="doc-results__meta">{% if !row.folder.is_empty() %}<span>{{ row.folder }}</span>{% endif %}{% for tag in row.tags %}<span>{{ tag }}</span>{% endfor %}{% if row.missing %}<span>Not found in Grafana</span>{% endif %}</p>
+        {%- if !row.services.is_empty() %}
+        <p class="doc-results__description">For {{ row.services }}</p>
+        {%- endif %}
+      </li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </div>
+  {%- endif %}
+</div>

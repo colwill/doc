@@ -1,0 +1,28 @@
+<div>
+  {%- if !connected %}
+  <p class="doc-hint">Grafana is not connected to DOC yet.{% if settles %} <a href="/p/grafana/">How to connect it</a>{% endif %}</p>
+  {%- else if boards.is_empty() %}
+  <p class="doc-hint">No Grafana dashboard is given this service. Whoever may change the grafana plugin's settings gives it one under <strong>Dashboards shown</strong>.</p>
+  {%- else %}
+  {%- for board in boards %}
+  <h4><a href="{{ board.href }}">{{ board.title }}</a></h4>
+  {%- if let Some(problem) = board.problem %}
+  <p class="doc-error-message" role="alert">{{ problem }}</p>
+  {%- else %}
+  <div class="doc-card-group doc-card-group--wide">
+    {%- for card in board.cards %}
+    <div class="doc-card">
+      <h3 class="doc-card__heading">{{ card.title }}</h3>
+      <div class="doc-card__content" hx-get="{{ card.href }}" hx-trigger="load" hx-target="this" hx-swap="innerHTML">
+        <p class="doc-hint">Drawing it…</p>
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- if !board.more.is_empty() %}
+  <p class="doc-hint"><a href="{{ board.href }}">{{ board.more }}</a></p>
+  {%- endif %}
+  {%- endif %}
+  {%- endfor %}
+  {%- endif %}
+</div>

@@ -1,0 +1,21 @@
+<table class="doc-table">
+  <thead class="doc-table__head">
+    <tr class="doc-table__row">
+      {%- for column in table.columns %}
+      <th class="doc-table__header{% if column.numeric %} doc-table__header--numeric{% endif %}" scope="col">{{ column.name }}</th>
+      {%- endfor %}
+    </tr>
+  </thead>
+  <tbody class="doc-table__body">
+    {%- for row in table.rows %}
+    <tr class="doc-table__row">
+      {%- for cell in row %}
+      <td class="doc-table__cell{% if table.columns[loop.index0].numeric %} doc-table__cell--numeric{% endif %}">{{ cell }}</td>
+      {%- endfor %}
+    </tr>
+    {%- endfor %}
+  </tbody>
+</table>
+{%- if table.more > 0 %}
+<p class="doc-hint">And {{ table.more }} more rows, in Grafana.</p>
+{%- endif %}

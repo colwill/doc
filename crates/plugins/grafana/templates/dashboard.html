@@ -1,0 +1,54 @@
+<div id="grafana">
+  <div class="doc-heading-row">
+    <h2>{{ title }}</h2>
+    {%- if let Some(open) = open %}
+    <div class="doc-heading-row__actions">
+      <a class="doc-button doc-button--secondary doc-button--small" href="{{ open }}">Open in Grafana</a>
+    </div>
+    {%- endif %}
+  </div>
+  <p class="doc-hint">{{ lede }}{% if !services.is_empty() %} · For {{ services }}{% endif %}</p>
+  <form action="{{ action }}" method="get" hx-get="{{ action }}" hx-trigger="change" hx-select="#grafana-panels" hx-target="#grafana-panels" hx-swap="outerHTML" hx-push-url="true">
+    <div class="doc-form-group">
+      <label class="doc-label" for="grafana-range">Time range</label>
+      <select class="doc-select" id="grafana-range" name="range">
+        {%- for pick in ranges %}
+        <option value="{{ pick.value }}"{% if pick.chosen %} selected{% endif %}>{{ pick.label }}</option>
+        {%- endfor %}
+      </select>
+    </div>
+    {%- for input in inputs %}
+    <div class="doc-form-group">
+      <label class="doc-label" for="{{ input.id }}">{{ input.label }}</label>
+      {%- if let Some(free) = input.free %}
+      <input class="doc-input" id="{{ input.id }}" name="{{ input.name }}" type="text" value="{{ free }}" autocomplete="off" />
+      {%- else %}
+      <select class="doc-select" id="{{ input.id }}" name="{{ input.name }}">
+        {%- for pick in input.picks %}
+        <option value="{{ pick.value }}"{% if pick.chosen %} selected{% endif %}>{{ pick.label }}</option>
+        {%- endfor %}
+      </select>
+      {%- endif %}
+    </div>
+    {%- endfor %}
+    <noscript><button class="doc-button doc-button--secondary" type="submit">Show</button></noscript>
+  </form>
+  <div id="grafana-panels">
+    {%- for part in parts %}
+    {%- if !part.title.is_empty() %}
+    <h3>{{ part.title }}</h3>
+    {%- endif %}
+    <div class="doc-card-group doc-card-group--wide">
+      {%- for card in part.cards %}
+      <div class="doc-card">
+        <h3 class="doc-card__heading">{{ card.title }}</h3>
+        <div class="doc-card__content" hx-get="{{ card.href }}" hx-trigger="load" hx-target="this" hx-swap="innerHTML">
+          <p class="doc-hint">Drawing it…</p>
+          <noscript><p><a href="{{ card.href }}">Show this panel</a></p></noscript>
+        </div>
+      </div>
+      {%- endfor %}
+    </div>
+    {%- endfor %}
+  </div>
+</div>
