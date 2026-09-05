@@ -1,0 +1,594 @@
+name: ${DOC_STACK:-doc}-plugins
+
+# Every plugin gets its registration token and certificate from the secrets volume and restarts
+# only on failure, so a version that exits 0 after handing over to a newer one stays stopped.
+x-plugin: &plugin
+  restart: on-failure
+  environment: &plugin-env
+    DOC_SECRETS_DIR: /secrets
+    DOC_BACKEND_QUIC: backend:4433
+    DOC_PLUGIN_BIND: 0.0.0.0:4440
+    RUST_LOG: ${DOC_PLUGIN_LOG:-info,quiche=warn,tokio_quiche=warn}
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+  volumes:
+    - secrets:/secrets:ro
+  networks: [doc]
+
+x-build: &build
+  context: ../..
+  dockerfile: crates/core/Dockerfile
+
+services:
+  # First, since every other plugin's routes are checked against the permissions it provides.
+  rbac:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-rbac
+    image: doc/rbac:${PLUGIN_TAG:-dev}
+
+  # DOC accounts: usernames and passwords kept in DOC, for trying it without a company directory.
+  # While it has no accounts, it makes the first sign-in the bootstrap job wrote to the secrets
+  # volume, as `first-sign-in`.
+  local:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-local
+    image: doc/local:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Sign-in with GitHub.com; the OAuth app comes from DOC_GITHUB_* (see .env.example).
+  github:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-github
+    image: doc/github:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_GITHUB_URL: ${DOC_GITHUB_URL:-}
+      DOC_GITHUB_CLIENT_ID: ${DOC_GITHUB_CLIENT_ID:-}
+      DOC_GITHUB_CLIENT_SECRET: ${DOC_GITHUB_CLIENT_SECRET:-}
+      DOC_GITHUB_ORGS: ${DOC_GITHUB_ORGS:-}
+      DOC_GITHUB_SCOPES: ${DOC_GITHUB_SCOPES:-}
+      DOC_GITHUB_TOKEN: ${DOC_GITHUB_TOKEN:-}
+      DOC_GITHUB_APP_ID: ${DOC_GITHUB_APP_ID:-}
+      DOC_GITHUB_APP_KEY_FILE: ${DOC_GITHUB_APP_KEY_FILE:-}
+      DOC_GITHUB_SYNC_SCHEDULE: ${DOC_GITHUB_SYNC_SCHEDULE:-}
+      DOC_GITHUB_ARCHIVE_PLUGINS: ${DOC_GITHUB_ARCHIVE_PLUGINS:-}
+      DOC_GITHUB_WEBHOOK_SECRET: ${DOC_GITHUB_WEBHOOK_SECRET:-}
+    # A GitHub server on the Docker host, such as a test one, is host.docker.internal.
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [rbac]
+
+  # Sign-in through any OpenID Connect provider. Everything but the issuer, the client and its
+  # secret is discovered. Run it again under another ID (DOC_OIDC_PLUGIN_ID) for a second provider.
+  oidc:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-oidc
+    image: doc/oidc:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_OIDC_ISSUER: ${DOC_OIDC_ISSUER:-}
+      DOC_OIDC_CLIENT_ID: ${DOC_OIDC_CLIENT_ID:-}
+      DOC_OIDC_CLIENT_SECRET: ${DOC_OIDC_CLIENT_SECRET:-}
+      DOC_OIDC_CLIENT_SECRET_FILE: ${DOC_OIDC_CLIENT_SECRET_FILE:-}
+      DOC_OIDC_SCOPES: ${DOC_OIDC_SCOPES:-}
+      DOC_OIDC_TITLE: ${DOC_OIDC_TITLE:-}
+    # A provider on the Docker host, such as `just oidc-dev`, is host.docker.internal.
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [rbac]
+
+  # The same binary again, once per provider, each with its own ID, its own settings and its own
+  # button on the sign-in page. Started with `--profile google`, `--profile entra`,
+  # `--profile akamai`, or several at once; each ID must also be in `config/doc.toml`.
+  google:
+    <<: *plugin
+    profiles: [google]
+    image: doc/oidc:${PLUGIN_TAG:-dev}
+    build:
+      <<: *build
+      args:
+        BIN: doc-oidc
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_OIDC_PLUGIN_ID: google
+      DOC_GOOGLE_ISSUER: ${DOC_GOOGLE_ISSUER:-https://accounts.google.com}
+      DOC_GOOGLE_CLIENT_ID: ${DOC_GOOGLE_CLIENT_ID:-}
+      DOC_GOOGLE_CLIENT_SECRET: ${DOC_GOOGLE_CLIENT_SECRET:-}
+      DOC_GOOGLE_CLIENT_SECRET_FILE: ${DOC_GOOGLE_CLIENT_SECRET_FILE:-}
+      DOC_GOOGLE_SCOPES: ${DOC_GOOGLE_SCOPES:-}
+      DOC_GOOGLE_TITLE: ${DOC_GOOGLE_TITLE:-Google}
+    depends_on: [rbac]
+
+  entra:
+    <<: *plugin
+    profiles: [entra]
+    image: doc/oidc:${PLUGIN_TAG:-dev}
+    build:
+      <<: *build
+      args:
+        BIN: doc-oidc
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_OIDC_PLUGIN_ID: entra
+      # Microsoft Entra ID: the issuer carries the tenant, such as
+      # https://login.microsoftonline.com/<tenant>/v2.0
+      DOC_ENTRA_ISSUER: ${DOC_ENTRA_ISSUER:-}
+      DOC_ENTRA_CLIENT_ID: ${DOC_ENTRA_CLIENT_ID:-}
+      DOC_ENTRA_CLIENT_SECRET: ${DOC_ENTRA_CLIENT_SECRET:-}
+      DOC_ENTRA_CLIENT_SECRET_FILE: ${DOC_ENTRA_CLIENT_SECRET_FILE:-}
+      DOC_ENTRA_SCOPES: ${DOC_ENTRA_SCOPES:-}
+      DOC_ENTRA_TITLE: ${DOC_ENTRA_TITLE:-Microsoft}
+    depends_on: [rbac]
+
+  akamai:
+    <<: *plugin
+    profiles: [akamai]
+    image: doc/oidc:${PLUGIN_TAG:-dev}
+    build:
+      <<: *build
+      args:
+        BIN: doc-oidc
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_OIDC_PLUGIN_ID: akamai
+      DOC_AKAMAI_ISSUER: ${DOC_AKAMAI_ISSUER:-}
+      DOC_AKAMAI_CLIENT_ID: ${DOC_AKAMAI_CLIENT_ID:-}
+      DOC_AKAMAI_CLIENT_SECRET: ${DOC_AKAMAI_CLIENT_SECRET:-}
+      DOC_AKAMAI_CLIENT_SECRET_FILE: ${DOC_AKAMAI_CLIENT_SECRET_FILE:-}
+      DOC_AKAMAI_SCOPES: ${DOC_AKAMAI_SCOPES:-}
+      DOC_AKAMAI_TITLE: ${DOC_AKAMAI_TITLE:-Akamai}
+    depends_on: [rbac]
+
+  # Sign-in with GitHub Enterprise: the same crate built as `ghe`, started with `--profile ghe`.
+  ghe:
+    <<: *plugin
+    profiles: [ghe]
+    build:
+      <<: *build
+      args:
+        BIN: doc-github
+        FEATURES: ghe
+    image: doc/ghe:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_GHE_URL: ${DOC_GHE_URL:-}
+      DOC_GHE_CLIENT_ID: ${DOC_GHE_CLIENT_ID:-}
+      DOC_GHE_CLIENT_SECRET: ${DOC_GHE_CLIENT_SECRET:-}
+      DOC_GHE_ORGS: ${DOC_GHE_ORGS:-}
+      DOC_GHE_SCOPES: ${DOC_GHE_SCOPES:-}
+      DOC_GHE_TOKEN: ${DOC_GHE_TOKEN:-}
+      DOC_GHE_APP_ID: ${DOC_GHE_APP_ID:-}
+      DOC_GHE_APP_KEY_FILE: ${DOC_GHE_APP_KEY_FILE:-}
+      DOC_GHE_SYNC_SCHEDULE: ${DOC_GHE_SYNC_SCHEDULE:-}
+      DOC_GHE_ARCHIVE_PLUGINS: ${DOC_GHE_ARCHIVE_PLUGINS:-}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [rbac]
+
+  # The catalogue: organisations, services, teams and what other plugins publish, and how they connect.
+  resources:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-resource-definitions
+    image: doc/resources:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Maps of services and what surrounds them, drawn from Resource Definitions.
+  service-map:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-service-map
+    image: doc/service-map:${PLUGIN_TAG:-dev}
+    depends_on: [resources]
+
+  # What the organisation adopts, trials, assesses and holds, drawn as Backstage's tech radar.
+  radar:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-tech-radar
+    image: doc/radar:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Everyone's inbox: the header bell and /p/notifications/. Any plugin puts something in it with
+  # Backend::notify; Automation's "Notify someone in DOC" action is built on the same call.
+  notifications:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-notifications
+    image: doc/notifications:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Documents imported from MkDocs projects, Markdown and GitHub, and searched.
+  kb:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-knowledge-base
+    image: doc/kb:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      # Where the frontend is, so the MCP server's links work outside DOC.
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+    depends_on: [rbac]
+
+  # Automations. Webhook URLs start at DOC_API_PUBLIC_URL; Slack and SMTP come from
+  # DOC_AUTOMATION_* (see .env.example), and without them those actions fail and say so.
+  automation:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-automation
+    image: doc/automation:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_API_PUBLIC_URL: ${DOC_API_PUBLIC_URL:-http://127.0.0.1:8080}
+      DOC_AUTOMATION_SLACK_TOKEN: ${DOC_AUTOMATION_SLACK_TOKEN:-}
+      DOC_AUTOMATION_SMTP_URL: ${DOC_AUTOMATION_SMTP_URL:-}
+      DOC_AUTOMATION_SMTP_FROM: ${DOC_AUTOMATION_SMTP_FROM:-}
+    depends_on: [rbac]
+
+  # Calendars and their ICS feeds; calendar apps fetch feeds from the backend, at DOC_API_PUBLIC_URL.
+  calendar:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-calendar
+    image: doc/calendar:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_API_PUBLIC_URL: ${DOC_API_PUBLIC_URL:-http://127.0.0.1:8080}
+    depends_on: [rbac]
+
+  # Events, recurrence, RSVPs and reminders on those calendars.
+  calendar-events:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-calendar-events
+    image: doc/calendar-events:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+    depends_on: [rbac]
+
+  # Recurring processes on any resource, their occurrences on the resource's calendar.
+  process:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-process
+    image: doc/process:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+    depends_on: [rbac]
+
+  # Discussions tagged with resources.
+  water:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-watercooler
+    image: doc/watercooler:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+    depends_on: [rbac]
+
+  # Self-service cloud resources, with the shared vendor credentials from .env.
+  infra:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-infra
+    image: doc/infra:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_INFRA_LINODE_TOKEN: ${DOC_INFRA_LINODE_TOKEN:-}
+      DOC_INFRA_AWS_ACCESS_KEY_ID: ${DOC_INFRA_AWS_ACCESS_KEY_ID:-}
+      DOC_INFRA_AWS_SECRET_ACCESS_KEY: ${DOC_INFRA_AWS_SECRET_ACCESS_KEY:-}
+      DOC_INFRA_GCP_KEY: ${DOC_INFRA_GCP_KEY:-}
+      DOC_INFRA_GCP_PROJECT: ${DOC_INFRA_GCP_PROJECT:-}
+      DOC_INFRA_AZURE_TENANT: ${DOC_INFRA_AZURE_TENANT:-}
+      DOC_INFRA_AZURE_CLIENT_ID: ${DOC_INFRA_AZURE_CLIENT_ID:-}
+      DOC_INFRA_AZURE_CLIENT_SECRET: ${DOC_INFRA_AZURE_CLIENT_SECRET:-}
+      DOC_INFRA_AZURE_SUBSCRIPTION: ${DOC_INFRA_AZURE_SUBSCRIPTION:-}
+      DOC_INFRA_AZURE_RESOURCE_GROUP: ${DOC_INFRA_AZURE_RESOURCE_GROUP:-}
+    depends_on: [rbac]
+
+  # Feature flags and runtime configuration for the services this platform creates. DOC is the
+  # store; an Unleash, Flagsmith or OpenFeature provider is read beside it when one is configured
+  # on the plugin's own Settings page.
+  flags:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-flags
+    image: doc/flags:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_FLAGS_DEFAULT_ENVIRONMENT: ${DOC_FLAGS_DEFAULT_ENVIRONMENT:-}
+    depends_on: [rbac]
+
+  # DORA metrics for every service, team and organisation, from the delivery data `github` and
+  # `ghe` read. It holds no credentials: the Plugins page's Enable turns it on with GitHub's
+  # delivery data, which reads with GitHub's own token or App.
+  dora:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-dora
+    image: doc/dora:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # CI/CD/CT metrics for every service, team and organisation, from the GitHub Actions workflow
+  # runs `github` and `ghe` read. Like DORA it holds no credentials: the Plugins page's Enable turns
+  # it on with GitHub's pipeline data.
+  cicd:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-cicd
+    image: doc/cicd:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Reliability: each service's availability, MTTR, RTO and RPO against its objectives, from health
+  # checks and what automations report, and DOC's own from its status history. It checks the
+  # health URLs services are given, so it needs to reach them.
+  reliability:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-reliability
+    image: doc/reliability:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # End of life: where each release of what every service runs stands — supported, ending soon or
+  # past its end of life — from endoflife.date, which it needs to reach.
+  eol:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-eol
+    image: doc/eol:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Jira Cloud's releases and the issues in them, for the delivery roadmap. Its URL and token are
+  # set on its Settings page, like GitHub's.
+  jira:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-jira
+    image: doc/jira:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # The same for Jira Data Center and Server, started with `--profile jira-dc`.
+  jira-dc:
+    <<: *plugin
+    profiles: [jira-dc]
+    build:
+      <<: *build
+      args:
+        BIN: doc-jira
+        FEATURES: dc
+    image: doc/jira-dc:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # The delivery roadmap: releases from Jira, and whether each service in one is ready, asked of
+  # cicd, reliability, eol and dora. It holds no credentials: Enable turns it on with Jira's
+  # release data.
+  roadmap:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-roadmap
+    image: doc/roadmap:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Repository insights: runs ccc over each repository after every merge into main, through the
+  # archive links github and ghe give it, so no repository has to add anything. The image carries
+  # ccc, pinned to a release and checked against its checksum, and git, with which a scan works out
+  # what changed since the one before.
+  insights:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-insights
+        CCC_VERSION: ${CCC_VERSION:-v1.4.4}
+        CCC_SHA256_AMD64: ${CCC_SHA256_AMD64:-abf9a8c35941515baa57742e8ebe9ce0e4f7ff94a70b38ebde17cb2661b42518}
+        CCC_SHA256_ARM64: ${CCC_SHA256_ARM64:-76bc566b2b8bce42b0003325a0566e05aa0d7f87a9b4d0f25824cb239fcf8983}
+    image: doc/insights:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Faux data: made-up delivery, pipelines, reliability, end of life and releases for DORA, CI/CD/CT,
+  # reliability, eol and the roadmap, each switched on by a toggle on its Settings page. It reads
+  # nothing outside DOC and stores nothing.
+  faux-data:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-faux-data
+    image: doc/faux-data:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Software templates (Backstage's Software Templates, written as a DOC plugin): the templates a
+  # platform creates from, and every run of one. The GitHub token is only for templates that publish
+  # a repository; one that writes to the Catalogue alone needs nothing here.
+  templates:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-software-templates
+    image: doc/software-templates:${PLUGIN_TAG:-dev}
+    environment:
+      <<: *plugin-env
+      DOC_TEMPLATES_GITHUB_TOKEN: ${DOC_TEMPLATES_GITHUB_TOKEN:-}
+      DOC_TEMPLATES_GITHUB_OWNER: ${DOC_TEMPLATES_GITHUB_OWNER:-}
+      DOC_TEMPLATES_GITHUB_API: ${DOC_TEMPLATES_GITHUB_API:-}
+      DOC_TEMPLATES_OTLP_ENDPOINT: ${DOC_TEMPLATES_OTLP_ENDPOINT:-}
+      DOC_TEMPLATES_OTLP_PROTOCOL: ${DOC_TEMPLATES_OTLP_PROTOCOL:-}
+      DOC_TEMPLATES_ENVIRONMENT: ${DOC_TEMPLATES_ENVIRONMENT:-}
+      DOC_TEMPLATES_SERVICE_NAMESPACE: ${DOC_TEMPLATES_SERVICE_NAMESPACE:-}
+      DOC_TEMPLATES_DOC_URL: ${DOC_TEMPLATES_DOC_URL:-}
+    depends_on: [rbac]
+
+  # DNS: answers for the domains DOC owns from the records on its page, and forwards every other
+  # name to the upstream servers in its settings, for the networks allowed to ask. Nothing listens
+  # until the DNS server feature is on. Questions from this machine reach the container from
+  # Docker's gateway, which is in the private ranges forwarding is allowed for by default.
+  dns:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-dns
+    image: doc/dns:${PLUGIN_TAG:-dev}
+    ports:
+      - "${DNS_BIND:-127.0.0.1}:${DNS_PORT:-1053}:1053/udp"
+      - "${DNS_BIND:-127.0.0.1}:${DNS_PORT:-1053}:1053/tcp"
+    depends_on: [rbac]
+
+  # Kubernetes: each cluster's namespaces, deployments and pods, read with a read-only service
+  # account whose kubeconfig is added on the plugin's Settings page. The API servers must be
+  # reachable from this container: a kind cluster on this machine, at 127.0.0.1, is not.
+  kubernetes:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-kubernetes
+    image: doc/kubernetes:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Grafana: dashboards drawn in DOC from their own queries. It holds no credential: it calls
+  # Grafana through a proxied vendor account in Secret Storage, as itself, through core.
+  grafana:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-grafana
+    image: doc/grafana:${PLUGIN_TAG:-dev}
+    depends_on: [rbac, secrets]
+
+  # Rota: each team's rotas, daily to quarterly, the holidays its lead records, and the gaps those
+  # leave for the lead to fill. Shifts go on the team's calendar and the person's, through Calendar.
+  rota:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-rota
+    image: doc/rota:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Data Vacuum: an LLM takes Confluence, Backstage, Jira, Markdown and MkDocs into DOC, staged for
+  # an administrator to approve. Runs DOC drives call the Claude API, so the container needs to
+  # reach api.anthropic.com and whichever sources its settings name.
+  vacuum:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-vacuum
+    image: doc/vacuum:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Secret Storage: credentials kept once, sealed by core, for every plugin to take its settings
+  # from; and child tokens from Artifactory, GitHub Apps, AWS STS and Linode, so the container
+  # needs to reach whichever vendors are onboarded.
+  secrets:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-secrets
+    image: doc/secrets:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # Agent Smith: one MCP server for DOC, and jobs DOC runs with Claude as whoever set them, so the
+  # container needs to reach api.anthropic.com and the sources its settings name.
+  agent:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-agent
+    image: doc/agent:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  # The SDK's example plugin. `just plugin-deploy hello` starts a new container beside the running
+  # one, which hands over to it and exits 0. HELLO_FEATURES builds a variant, such as panic-on-load.
+  # What an organisation and its teams expect of the things they run, and how far each meets it.
+  maturity:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-maturity
+    image: doc/maturity:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+  hello:
+    <<: *plugin
+    build:
+      <<: *build
+      args:
+        BIN: doc-hello-plugin
+        MANIFEST: crates/core/plugin-sdk/examples/hello/Cargo.toml
+        FEATURES: ${HELLO_FEATURES:-}
+    image: doc/hello:${PLUGIN_TAG:-dev}
+    depends_on: [rbac]
+
+volumes:
+  # Filled by the bootstrap job in crates/core, which `just up` runs first.
+  secrets:
+    name: ${DOC_STACK:-doc}-core_secrets
+    external: true
+
+networks:
+  doc:
+    name: ${DOC_NETWORK:-doc}
+    external: true
