@@ -1,0 +1,40 @@
+name: ${DOC_STACK:-doc}-workers
+
+services:
+  # Runs the cron and background task pools against the same tables the backend serves, so a
+  # second replica needs nothing of its own: each claims work and leaves the rest alone.
+  workers:
+    build:
+      context: ../..
+      dockerfile: crates/core/Dockerfile
+      args:
+        BIN: doc-workers
+    image: doc/workers:${DOC_IMAGE_TAG:-dev}
+    restart: unless-stopped
+    # A QUIC pool per bus node needs far more descriptors than Docker's default 1024.
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
+    environment:
+      DOC_CONFIG: /config/doc.toml
+      DOC_SECRETS_DIR: /secrets
+      DOC_WORKER_NAME: ${DOC_WORKER_NAME:-workers}
+      DOC_FABRIC_MODE: ${WORKERS_FABRIC_MODE:-cluster}
+      DOC_DATABASE_URL: postgres://${DOC_APP_USER:-doc_app}:${DOC_APP_PASSWORD:-dev-only-change-me}@${POSTGRES_HOST:-postgres}:5432/${DOC_DB:-doc}
+      DOC_MIGRATION_DATABASE_URL: postgres://${DOC_OWNER_USER:-doc_owner}:${DOC_OWNER_PASSWORD:-dev-only-change-me}@${POSTGRES_HOST:-postgres}:5432/${DOC_DB:-doc}
+      RUST_LOG: ${DOC_WORKERS_LOG:-info,openraft=warn,quiche=warn,tokio_quiche=warn}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+    volumes:
+      - secrets:/secrets:ro
+      - ../../config:/config:ro
+    networks: [doc]
+
+volumes:
+  # Filled by the bootstrap job in crates/core, which `just up` runs first.
+  secrets:
+    name: ${DOC_STACK:-doc}-core_secrets
+    external: true
+
+networks:
+  doc:
+    name: ${DOC_NETWORK:-doc}
+    external: true
