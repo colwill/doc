@@ -1,0 +1,42 @@
+# DOC itself, for the demo in docs/demo-onboarding-doc.md:
+# `cli resources apply -f examples/doc/catalog.yaml`. Applying it again changes nothing.
+#
+# The same organisation as examples/catalog.yaml, worded the same, so applying both agrees.
+kind: Organisation
+name: platform
+title: Platform
+description: The tools and services every other team builds on.
+---
+# Teams are the platform's: applying this makes it on Teams, in the organisation it names.
+kind: Team
+name: doc-maintainers
+title: DOC maintainers
+description: Build and run DOC, its fabric, its workers and its plugins.
+organisation: platform
+---
+# A repository normally arrives from the GitHub sync. This one is not on GitHub, so it is named here.
+# Once it is, change the name to its owner/name there before applying, or the sync adds a second.
+kind: Repository
+name: local/rundoc
+title: DOC source
+description: The Rust workspace DOC is built from, with its docs, ADRs and deployment files.
+connections:
+  Teams: [doc-maintainers]
+---
+# Named `doc` because that is what DOC calls itself already: its own feature flags are read as the
+# service `doc`, so a flag set for this service is one DOC reads.
+kind: Service
+name: doc
+title: DOC
+description: >-
+  The Development, Organisation and Coordination platform: a small core that authenticates,
+  authorises, stores and routes, and plugins that provide the features.
+owner: doc-maintainers
+metadata:
+  tier: 1
+  lifecycle: experiment
+  version: 0.1.0
+connections:
+  Organisation: platform
+  Teams: [doc-maintainers]
+  Repositories: [local/rundoc]

@@ -1,0 +1,17 @@
+# The sample MkDocs project for MVP demo step 10: `cli kb import examples/mkdocs --resource service:card-gateway --wait`.
+site_name: Card gateway
+docs_dir: docs
+theme:
+  name: material
+markdown_extensions:
+  - tables
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Payment flow: architecture/payment-flow.md
+  - Runbook: runbook.md

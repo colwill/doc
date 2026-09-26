@@ -1,0 +1,201 @@
+{
+  "quadrants": [
+    { "id": "techniques", "name": "Techniques" },
+    { "id": "platforms", "name": "Platforms" },
+    { "id": "tools", "name": "Tools" },
+    { "id": "languages-and-frameworks", "name": "Languages & Frameworks" }
+  ],
+  "rings": [
+    { "id": "adopt", "name": "Adopt" },
+    { "id": "trial", "name": "Trial" },
+    { "id": "assess", "name": "Assess" },
+    { "id": "hold", "name": "Hold" }
+  ],
+  "entries": [
+    {
+      "key": "architecture-decision-records",
+      "title": "Architecture decision records",
+      "quadrant": "techniques",
+      "description": "Every change to how DOC is built starts as an ADR in `docs/adr`.",
+      "url": "https://adr.github.io/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01", "description": "Seventeen so far." }]
+    },
+    {
+      "key": "spikes-before-decisions",
+      "title": "Spikes before decisions",
+      "quadrant": "techniques",
+      "description": "An ADR that is uncertain is tried first under `spikes/`, and the spike is kept after the decision.",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "one-process-per-plugin",
+      "title": "One process per plugin",
+      "quadrant": "techniques",
+      "description": "Every feature is a plugin in a process of its own, which registers with the backend and can be hot-reloaded without the rest noticing.",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "server-rendered-pages",
+      "title": "Server-rendered pages",
+      "quadrant": "techniques",
+      "description": "Pages are HTML from the server, made interactive with htmx; there is no single-page app to build.",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "raft-replicated-buses",
+      "title": "Raft-replicated buses",
+      "quadrant": "techniques",
+      "description": "The Event, Service and Cache Buses are three-node Raft clusters; development runs them in memory instead.",
+      "timeline": [{ "ringId": "trial", "date": "2026-10-01" }]
+    },
+    {
+      "key": "accounts-in-configuration-files",
+      "title": "Sign-in accounts in configuration files",
+      "quadrant": "techniques",
+      "description": "Usernames and password hashes kept in `[auth.local]`.",
+      "timeline": [{ "ringId": "hold", "date": "2026-10-01", "description": "No longer read: people sign in with DOC accounts, which the `local` plugin keeps." }]
+    },
+    {
+      "key": "postgresql",
+      "title": "PostgreSQL",
+      "quadrant": "platforms",
+      "description": "Core's schemas and every plugin's collections, in two databases. Version 17.",
+      "url": "https://www.postgresql.org/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "docker-compose",
+      "title": "Docker Compose",
+      "quadrant": "platforms",
+      "description": "How DOC runs on one machine: `just up` starts storage, fabric, core, workers and plugins in that order.",
+      "url": "https://docs.docker.com/compose/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "kubernetes",
+      "title": "Kubernetes",
+      "quadrant": "platforms",
+      "description": "Manifests for DOC's system and its plugins are in `deploy/kubernetes`.",
+      "url": "https://kubernetes.io/",
+      "timeline": [{ "ringId": "trial", "date": "2026-10-01" }]
+    },
+    {
+      "key": "grafana-lgtm",
+      "title": "Grafana LGTM",
+      "quadrant": "platforms",
+      "description": "Traces, metrics and logs from every part of DOC, with DOC's dashboards, in one container beside the stack.",
+      "url": "https://github.com/grafana/docker-otel-lgtm",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "just",
+      "title": "just",
+      "quadrant": "tools",
+      "description": "Every way of building, checking and running DOC is a recipe in the `justfile`.",
+      "url": "https://just.systems",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "cargo-watch",
+      "title": "cargo-watch",
+      "quadrant": "tools",
+      "description": "`just dev` rebuilds and restarts the backend, frontend, workers and each plugin on every edit.",
+      "url": "https://github.com/watchexec/cargo-watch",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "cargo-deny",
+      "title": "cargo-deny",
+      "quadrant": "tools",
+      "description": "Advisories and licences for every crate in the build, as part of `just check`.",
+      "url": "https://github.com/EmbarkStudios/cargo-deny",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "mermaid",
+      "title": "Mermaid",
+      "quadrant": "tools",
+      "description": "The architecture snapshot's diagrams, rendered to PNGs by `just arch`.",
+      "url": "https://mermaid.js.org/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "ccc",
+      "title": "ccc",
+      "quadrant": "tools",
+      "description": "Code maps and insights, run by the `insights` plugin over each repository after a merge.",
+      "url": "https://github.com/colwill/ccc",
+      "timeline": [{ "ringId": "trial", "date": "2026-10-01" }]
+    },
+    {
+      "key": "rust",
+      "title": "Rust",
+      "quadrant": "languages-and-frameworks",
+      "description": "Everything DOC runs is Rust, on the toolchain pinned in `rust-toolchain.toml`.",
+      "url": "https://www.rust-lang.org/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "tokio",
+      "title": "Tokio",
+      "quadrant": "languages-and-frameworks",
+      "url": "https://tokio.rs/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "axum",
+      "title": "axum",
+      "quadrant": "languages-and-frameworks",
+      "description": "The backend's HTTP API and the frontend.",
+      "url": "https://github.com/tokio-rs/axum",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "askama",
+      "title": "Askama",
+      "quadrant": "languages-and-frameworks",
+      "description": "Templates checked at compile time, for the frontend and every plugin's pages.",
+      "url": "https://github.com/askama-rs/askama",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "htmx",
+      "title": "htmx",
+      "quadrant": "languages-and-frameworks",
+      "description": "Vendored and checked against recorded hashes (`just verify-assets`).",
+      "url": "https://htmx.org/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "sqlx",
+      "title": "SQLx",
+      "quadrant": "languages-and-frameworks",
+      "url": "https://github.com/launchbadge/sqlx",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    },
+    {
+      "key": "quiche",
+      "title": "quiche",
+      "quadrant": "languages-and-frameworks",
+      "description": "HTTP/3 over QUIC between the backend, its plugins and the bus nodes.",
+      "url": "https://github.com/cloudflare/quiche",
+      "timeline": [{ "ringId": "trial", "date": "2026-10-01" }]
+    },
+    {
+      "key": "openraft",
+      "title": "openraft",
+      "quadrant": "languages-and-frameworks",
+      "description": "The consensus under the three buses.",
+      "url": "https://github.com/databendlabs/openraft",
+      "timeline": [{ "ringId": "trial", "date": "2026-10-01" }]
+    },
+    {
+      "key": "opentelemetry",
+      "title": "OpenTelemetry",
+      "quadrant": "languages-and-frameworks",
+      "description": "Every part of DOC exports traces, metrics and logs over OTLP, and so does every service DOC's templates create.",
+      "url": "https://opentelemetry.io/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-10-01" }]
+    }
+  ]
+}

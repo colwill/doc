@@ -1,0 +1,95 @@
+{
+  "quadrants": [
+    { "id": "techniques", "name": "Techniques" },
+    { "id": "platforms", "name": "Platforms" },
+    { "id": "tools", "name": "Tools" },
+    { "id": "languages-and-frameworks", "name": "Languages & Frameworks" }
+  ],
+  "rings": [
+    { "id": "adopt", "name": "Adopt" },
+    { "id": "trial", "name": "Trial" },
+    { "id": "assess", "name": "Assess" },
+    { "id": "hold", "name": "Hold" }
+  ],
+  "entries": [
+    {
+      "key": "trunk-based-development",
+      "title": "Trunk-based development",
+      "quadrant": "techniques",
+      "description": "Short-lived branches merged to `main` at least daily, behind feature flags where needed.",
+      "timeline": [{ "ringId": "adopt", "date": "2026-03-02", "description": "Every team has moved over." }]
+    },
+    {
+      "key": "architecture-decision-records",
+      "title": "Architecture decision records",
+      "quadrant": "techniques",
+      "url": "https://adr.github.io/",
+      "timeline": [{ "ringId": "adopt", "date": "2026-01-12" }]
+    },
+    {
+      "key": "long-lived-feature-branches",
+      "title": "Long-lived feature branches",
+      "quadrant": "techniques",
+      "timeline": [{ "ringId": "hold", "date": "2026-03-02", "description": "Merge conflicts cost more than the isolation is worth." }]
+    },
+    {
+      "key": "kubernetes",
+      "title": "Kubernetes",
+      "quadrant": "platforms",
+      "url": "https://kubernetes.io/",
+      "timeline": [
+        { "ringId": "adopt", "date": "2026-06-01", "description": "The platform team runs it for everyone." },
+        { "ringId": "trial", "date": "2025-09-15" }
+      ]
+    },
+    {
+      "key": "postgresql",
+      "title": "PostgreSQL",
+      "quadrant": "platforms",
+      "url": "https://www.postgresql.org/",
+      "timeline": [{ "ringId": "adopt", "date": "2025-01-06" }]
+    },
+    {
+      "key": "opentelemetry",
+      "title": "OpenTelemetry",
+      "quadrant": "tools",
+      "url": "https://opentelemetry.io/",
+      "timeline": [{ "ringId": "trial", "date": "2026-07-20", "description": "Traces from DOC and two payment services." }]
+    },
+    {
+      "key": "cargo-deny",
+      "title": "cargo-deny",
+      "quadrant": "tools",
+      "url": "https://github.com/EmbarkStudios/cargo-deny",
+      "timeline": [{ "ringId": "adopt", "date": "2026-05-11" }]
+    },
+    {
+      "key": "rust",
+      "title": "Rust",
+      "quadrant": "languages-and-frameworks",
+      "url": "https://www.rust-lang.org/",
+      "description": "Our default for new services, and what DOC and its plugins are written in.",
+      "timeline": [
+        { "ringId": "adopt", "date": "2026-08-03", "description": "Three services in production for a year." },
+        { "ringId": "trial", "date": "2025-06-30" },
+        { "ringId": "assess", "date": "2024-11-04" }
+      ]
+    },
+    {
+      "key": "htmx",
+      "title": "HTMX",
+      "quadrant": "languages-and-frameworks",
+      "url": "https://htmx.org/",
+      "timeline": [{ "ringId": "trial", "date": "2026-02-16", "description": "DOC's pages are built with it." }]
+    },
+    {
+      "key": "angularjs",
+      "title": "AngularJS",
+      "quadrant": "languages-and-frameworks",
+      "timeline": [
+        { "ringId": "hold", "date": "2025-02-03", "description": "Out of support. Move what is left to HTMX." },
+        { "ringId": "adopt", "date": "2019-05-01" }
+      ]
+    }
+  ]
+}

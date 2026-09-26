@@ -1,0 +1,109 @@
+# The sample catalogue for MVP demo step 8: `cli resources apply -f examples/catalog.yaml`.
+# The roles are the payments-core groups made in step 4, so apply it after those exist.
+kind: Organisation
+name: payments
+title: Payments
+description: Taking card and bank payments, and settling them.
+---
+kind: Organisation
+name: platform
+title: Platform
+description: The tools and services every other team builds on.
+---
+# Teams are the platform's: applying this makes them there, in the organisation each names.
+kind: Team
+name: payments-core
+title: Payments Core
+description: Owns the card gateway and the ledger.
+email: payments-core@acme.example
+organisation: payments
+connections:
+  Roles: [kb/payments-core, resources/payments-core, water/payments-core, infra/payments-core]
+---
+kind: Team
+name: payments-risk
+title: Payments Risk
+description: Fraud checks, disputes and chargebacks.
+email: payments-risk@acme.example
+organisation: payments
+---
+kind: Team
+name: platform-enablement
+title: Platform Enablement
+description: Keeps DOC and the build pipelines running.
+email: platform@acme.example
+organisation: platform
+---
+# Repositories normally arrive from the GitHub sync; naming one here only fills in what it has not.
+kind: Repository
+name: acme/card-gateway
+connections:
+  Teams: [payments-core]
+---
+kind: Repository
+name: acme/ledger
+connections:
+  Teams: [payments-core]
+---
+kind: Repository
+name: acme/chargebacks
+connections:
+  Teams: [payments-risk]
+---
+kind: Repository
+name: acme/developer-portal
+connections:
+  Teams: [platform-enablement]
+---
+kind: Service
+name: card-gateway
+title: Card gateway
+description: Authorises, captures and refunds card payments.
+owner: payments-core
+metadata:
+  tier: 1
+  lifecycle: production
+  runbook: https://docs.acme.example/card-gateway/runbook
+connections:
+  Organisation: payments
+  Teams: [payments-core, payments-risk]
+  Repositories: [acme/card-gateway]
+---
+kind: Service
+name: ledger
+title: Ledger
+description: The double-entry record of every payment and payout.
+owner: payments-core
+metadata:
+  tier: 1
+  lifecycle: production
+connections:
+  Organisation: payments
+  Teams: [payments-core]
+  Repositories: [acme/ledger]
+---
+kind: Service
+name: chargebacks
+title: Chargebacks
+description: Handles disputes raised by card holders.
+owner: payments-risk
+metadata:
+  tier: 2
+  lifecycle: production
+connections:
+  Organisation: payments
+  Teams: [payments-risk]
+  Repositories: [acme/chargebacks]
+---
+kind: Service
+name: developer-portal
+title: Developer portal
+description: This platform, as the teams here run it.
+owner: platform-enablement
+metadata:
+  tier: 3
+  lifecycle: production
+connections:
+  Organisation: platform
+  Teams: [platform-enablement]
+  Repositories: [acme/developer-portal]
