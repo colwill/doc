@@ -1,0 +1,49 @@
+# Fills the secrets volume with the CA, every certificate and every plugin's registration token,
+# then exits. It runs to completion before the backend starts and before any plugin can register,
+# and it keeps whatever is already there — running it again only adds what a new plugin ID needs.
+#
+# A plugin added to `doc.toml` needs this Job run again, or it will have no token to register with.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: doc-bootstrap
+  namespace: doc-system
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: doc-bootstrap
+        app.kubernetes.io/part-of: doc
+    spec:
+      restartPolicy: OnFailure
+      # It writes the volume and hands it to the platform's user, so it runs as root and the
+      # rest do not.
+      securityContext:
+        runAsUser: 0
+      containers:
+        - name: bootstrap
+          image: doc/backend:dev
+          args: ["bootstrap"]
+          env:
+            - name: DOC_CONFIG
+              value: /config/doc.toml
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_SECRETS_UID
+              value: "10001"
+            - name: DOC_SECRETS_GID
+              value: "10001"
+          volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+        - name: config
+          configMap:
+            name: doc-config

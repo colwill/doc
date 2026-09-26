@@ -1,0 +1,313 @@
+# The platform itself: storage, the fabric, core and the workers, as one deployment called
+# `doc-system`. Every plugin is a deployment of its own (../plugins) that joins the same network
+# and reads the same secrets, so a plugin can be stopped, rebuilt and started again without
+# touching anything here.
+#
+#   docker compose -f deploy/compose/doc-system/compose.yaml --profile bootstrap run --rm bootstrap
+#   docker compose -f deploy/compose/doc-system/compose.yaml up -d --wait
+#
+# The network and the secrets volume are made here and used by name everywhere else, which is why
+# this is brought up first.
+name: ${DOC_STACK:-doc}-system
+
+x-image: &image
+  build:
+    context: ../../..
+    dockerfile: crates/core/Dockerfile
+  restart: unless-stopped
+  networks: [doc]
+
+x-bus: &bus
+  <<: *image
+  # A node holds a QUIC connection to every peer and client; Docker's default 1024 is too low.
+  ulimits:
+    nofile: { soft: 65535, hard: 65535 }
+  environment: &bus-env
+    DOC_SECRETS_DIR: /secrets
+    DOC_BIND: 0.0.0.0:4433
+    RUST_LOG: ${DOC_BUS_LOG:-info,openraft=warn,quiche=warn,tokio_quiche=warn}
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+
+services:
+  # ---- storage -------------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD:-dev-only-change-me}
+      POSTGRES_DB: ${DOC_DB:-doc}
+      DOC_DB: ${DOC_DB:-doc}
+      DOC_OWNER_USER: ${DOC_OWNER_USER:-doc_owner}
+      DOC_OWNER_PASSWORD: ${DOC_OWNER_PASSWORD:-dev-only-change-me}
+      DOC_APP_USER: ${DOC_APP_USER:-doc_app}
+      DOC_APP_PASSWORD: ${DOC_APP_PASSWORD:-dev-only-change-me}
+      DOC_PLUGINS_DB: ${DOC_PLUGINS_DB:-doc_plugins}
+      DOC_DATA_USER: ${DOC_DATA_USER:-doc_data}
+      DOC_DATA_PASSWORD: ${DOC_DATA_PASSWORD:-dev-only-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../../crates/storage/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    networks: [doc]
+
+  # ---- secrets -------------------------------------------------------------------------------
+  # Runs once and exits: fills the secrets volume with the CA, certificates and every plugin's
+  # registration token, then the plugin deployments mount it read-only. It is a profile of its own
+  # because `up --wait` would otherwise wait for a job that is meant to end.
+  bootstrap:
+    <<: *image
+    profiles: [bootstrap]
+    restart: "no"
+    command: ["bootstrap"]
+    user: "0:0"
+    environment:
+      DOC_CONFIG: /config/doc.toml
+      DOC_SECRETS_DIR: /secrets
+      DOC_SECRETS_UID: "10001"
+      DOC_SECRETS_GID: "10001"
+    volumes:
+      - secrets:/secrets
+      - ../../../config:/config:ro
+
+  # ---- fabric --------------------------------------------------------------------------------
+  eventbus-1:
+    <<: *bus
+    image: doc/eventbus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-eventbus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "1"
+      DOC_ADVERTISE: eventbus-1:4433
+      DOC_PEERS: 1=eventbus-1:4433,2=eventbus-2:4433,3=eventbus-3:4433
+    volumes: [eventbus-1-data:/data, secrets:/secrets:ro]
+
+  eventbus-2:
+    <<: *bus
+    image: doc/eventbus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-eventbus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "2"
+      DOC_ADVERTISE: eventbus-2:4433
+      DOC_PEERS: 1=eventbus-1:4433,2=eventbus-2:4433,3=eventbus-3:4433
+    volumes: [eventbus-2-data:/data, secrets:/secrets:ro]
+
+  eventbus-3:
+    <<: *bus
+    image: doc/eventbus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-eventbus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "3"
+      DOC_ADVERTISE: eventbus-3:4433
+      DOC_PEERS: 1=eventbus-1:4433,2=eventbus-2:4433,3=eventbus-3:4433
+    volumes: [eventbus-3-data:/data, secrets:/secrets:ro]
+
+  servicebus-1:
+    <<: *bus
+    image: doc/servicebus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-servicebus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "1"
+      DOC_ADVERTISE: servicebus-1:4433
+      DOC_PEERS: 1=servicebus-1:4433,2=servicebus-2:4433,3=servicebus-3:4433
+    volumes: [servicebus-1-data:/data, secrets:/secrets:ro]
+
+  servicebus-2:
+    <<: *bus
+    image: doc/servicebus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-servicebus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "2"
+      DOC_ADVERTISE: servicebus-2:4433
+      DOC_PEERS: 1=servicebus-1:4433,2=servicebus-2:4433,3=servicebus-3:4433
+    volumes: [servicebus-2-data:/data, secrets:/secrets:ro]
+
+  servicebus-3:
+    <<: *bus
+    image: doc/servicebus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-servicebus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "3"
+      DOC_ADVERTISE: servicebus-3:4433
+      DOC_PEERS: 1=servicebus-1:4433,2=servicebus-2:4433,3=servicebus-3:4433
+    volumes: [servicebus-3-data:/data, secrets:/secrets:ro]
+
+  cachebus-1:
+    <<: *bus
+    image: doc/cachebus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-cachebus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "1"
+      DOC_ADVERTISE: cachebus-1:4433
+      DOC_PEERS: 1=cachebus-1:4433,2=cachebus-2:4433,3=cachebus-3:4433
+    volumes: [cachebus-1-data:/data, secrets:/secrets:ro]
+
+  cachebus-2:
+    <<: *bus
+    image: doc/cachebus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-cachebus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "2"
+      DOC_ADVERTISE: cachebus-2:4433
+      DOC_PEERS: 1=cachebus-1:4433,2=cachebus-2:4433,3=cachebus-3:4433
+    volumes: [cachebus-2-data:/data, secrets:/secrets:ro]
+
+  cachebus-3:
+    <<: *bus
+    image: doc/cachebus:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-cachebus, FEATURES: server }
+    environment:
+      <<: *bus-env
+      DOC_NODE_ID: "3"
+      DOC_ADVERTISE: cachebus-3:4433
+      DOC_PEERS: 1=cachebus-1:4433,2=cachebus-2:4433,3=cachebus-3:4433
+    volumes: [cachebus-3-data:/data, secrets:/secrets:ro]
+
+  # Grafana with the OpenTelemetry pipeline behind it: logs, metrics and traces.
+  telemetry:
+    image: grafana/otel-lgtm:0.29.0
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    ports:
+      - "${TELEMETRY_BIND:-127.0.0.1}:${GRAFANA_PORT:-3900}:3000"
+    volumes:
+      - telemetry-data:/data
+      - ../../../crates/fabric/telemetry/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml:ro
+      - ../../../crates/fabric/telemetry/dashboards:/otel-lgtm/doc-dashboards:ro
+    networks: [doc]
+
+  # ---- core ----------------------------------------------------------------------------------
+  backend:
+    <<: *image
+    image: doc/backend:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-backend }
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
+    environment:
+      DOC_CONFIG: /config/doc.toml
+      DOC_SECRETS_DIR: /secrets
+      DOC_HTTP_ADDR: 0.0.0.0:8080
+      DOC_QUIC_ADDR: 0.0.0.0:4433
+      DOC_DATABASE_URL: postgres://${DOC_APP_USER:-doc_app}:${DOC_APP_PASSWORD:-dev-only-change-me}@postgres:5432/${DOC_DB:-doc}
+      DOC_FABRIC_MODE: ${DOC_FABRIC_MODE:-cluster}
+      RUST_LOG: ${DOC_BACKEND_LOG:-info,quiche=warn,tokio_quiche=warn}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+    volumes:
+      - secrets:/secrets:ro
+      - ../../../config:/config:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports:
+      - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_PORT:-8080}:8080"
+
+  frontend:
+    <<: *image
+    image: doc/frontend:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-frontend }
+    ulimits:
+      nofile: { soft: 65535, hard: 65535 }
+    environment:
+      DOC_CONFIG: /config/doc-frontend.toml
+      DOC_SECRETS_DIR: /secrets
+      DOC_HTTP_ADDR: 0.0.0.0:8081
+      DOC_BACKEND_URL: http://backend:8080
+      # Also how a plugin's own name is recognised: rbac.<this host> goes to /p/rbac/.
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+      DOC_INSTANCE_NAME: ${DOC_INSTANCE_NAME:-}
+      DOC_FABRIC_MODE: ${DOC_FABRIC_MODE:-cluster}
+      RUST_LOG: ${DOC_FRONTEND_LOG:-info}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+    volumes:
+      - secrets:/secrets:ro
+      - ../../../config:/config:ro
+    depends_on: [backend]
+    ports:
+      - "${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-8081}:8081"
+
+  # ---- workers -------------------------------------------------------------------------------
+  # Runs what plugins queue and what their schedules ask for. Without this, nothing that goes
+  # through `backend.task()` ever runs.
+  workers:
+    <<: *image
+    image: doc/workers:${DOC_IMAGE_TAG:-dev}
+    build:
+      context: ../../..
+      dockerfile: crates/core/Dockerfile
+      args: { BIN: doc-workers }
+    environment:
+      DOC_CONFIG: /config/doc.toml
+      DOC_SECRETS_DIR: /secrets
+      DOC_FABRIC_MODE: ${DOC_FABRIC_MODE:-cluster}
+      RUST_LOG: ${DOC_WORKERS_LOG:-info,quiche=warn,tokio_quiche=warn}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+    volumes:
+      - secrets:/secrets:ro
+      - ../../../config:/config:ro
+    depends_on: [backend]
+
+volumes:
+  postgres-data: {}
+  telemetry-data: {}
+  eventbus-1-data: {}
+  eventbus-2-data: {}
+  eventbus-3-data: {}
+  servicebus-1-data: {}
+  servicebus-2-data: {}
+  servicebus-3-data: {}
+  cachebus-1-data: {}
+  cachebus-2-data: {}
+  cachebus-3-data: {}
+  # Named so every plugin deployment can mount it by the same name from outside this project.
+  secrets:
+    name: ${DOC_STACK:-doc}-system-secrets
+
+networks:
+  doc:
+    name: ${DOC_NETWORK:-doc-system}

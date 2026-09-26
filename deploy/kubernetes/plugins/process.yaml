@@ -1,0 +1,80 @@
+# The process plugin: a deployment and a service of its own, connected to doc-system.
+#
+# The service is what the backend dials back on, so `DOC_PLUGIN_ADVERTISE` is that service's name.
+# The plugin reads its registration token and certificate from the same secrets volume the
+# bootstrap Job filled, which is why this namespace mounts the claim from doc-system.
+apiVersion: v1
+kind: Service
+metadata:
+  name: process
+  namespace: doc-plugins
+  labels:
+    app.kubernetes.io/name: process
+    app.kubernetes.io/part-of: doc
+spec:
+  selector:
+    app.kubernetes.io/name: process
+  ports:
+    - name: quic
+      port: 4440
+      protocol: UDP
+      targetPort: 4440
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: process
+  namespace: doc-plugins
+  labels:
+    app.kubernetes.io/name: process
+    app.kubernetes.io/part-of: doc
+spec:
+  # One: a plugin registers as itself, and a second copy of the same version would hand over to
+  # the first rather than share the work.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: process
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: process
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: process
+          image: doc/process:dev
+          ports:
+            - name: quic
+              containerPort: 4440
+              protocol: UDP
+          env:
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_BACKEND_QUIC
+              value: backend.doc-system.svc.cluster.local:4433
+            - name: DOC_PLUGIN_BIND
+              value: 0.0.0.0:4440
+            - name: DOC_PLUGIN_ADVERTISE
+              value: process.doc-plugins.svc.cluster.local:4440
+            - name: RUST_LOG
+              value: info,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+            - name: DOC_PUBLIC_URL
+              value: "http://127.0.0.1:8081"
+          volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets

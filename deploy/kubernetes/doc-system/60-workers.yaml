@@ -1,0 +1,50 @@
+# Runs what plugins queue and what their schedules ask for. Without this nothing that goes through
+# `backend.task()` ever runs: no import finishes, no sync starts, nothing is scored.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workers
+  namespace: doc-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: workers
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: workers
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: workers
+          image: doc/workers:dev
+          env:
+            - name: DOC_CONFIG
+              value: /config/doc.toml
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_FABRIC_MODE
+              value: cluster
+            - name: RUST_LOG
+              value: info,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+          envFrom:
+            - secretRef:
+                name: doc-database
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: config, mountPath: /config, readOnly: true }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 2Gi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+        - name: config
+          configMap:
+            name: doc-config

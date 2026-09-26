@@ -1,0 +1,16 @@
+# Two namespaces: the platform, and the plugins that connect to it. Keeping them apart is what
+# lets a plugin be given its own quota, its own network policy and its own service account
+# without any of that reaching the backend, the buses or the database.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: doc-system
+  labels:
+    app.kubernetes.io/part-of: doc
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: doc-plugins
+  labels:
+    app.kubernetes.io/part-of: doc

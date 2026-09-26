@@ -1,0 +1,212 @@
+# The API and plugin host, and the web frontend.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: doc-database
+  namespace: doc-system
+type: Opaque
+stringData:
+  DOC_DATABASE_URL: postgres://doc_app:dev-only-change-me@postgres.doc-system.svc.cluster.local:5432/doc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: doc-system
+spec:
+  selector:
+    app.kubernetes.io/name: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: quic
+      port: 4433
+      protocol: UDP
+      targetPort: 4433
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: doc-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: backend
+          image: doc/backend:dev
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: quic, containerPort: 4433, protocol: UDP }
+          env:
+            - name: DOC_CONFIG
+              value: /config/doc.toml
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_HTTP_ADDR
+              value: 0.0.0.0:8080
+            - name: DOC_QUIC_ADDR
+              value: 0.0.0.0:4433
+            - name: DOC_FABRIC_MODE
+              value: cluster
+            - name: RUST_LOG
+              value: info,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+          envFrom:
+            - secretRef:
+                name: doc-database
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: config, mountPath: /config, readOnly: true }
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits: { memory: 4Gi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+        - name: config
+          configMap:
+            name: doc-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: doc-system
+spec:
+  selector:
+    app.kubernetes.io/name: frontend
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: doc-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: frontend
+          image: doc/frontend:dev
+          ports:
+            - { name: http, containerPort: 8081 }
+          env:
+            - name: DOC_CONFIG
+              value: /config/doc-frontend.toml
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_HTTP_ADDR
+              value: 0.0.0.0:8081
+            - name: DOC_BACKEND_URL
+              value: http://backend.doc-system.svc.cluster.local:8080
+            # Where people reach DOC. Also how a plugin's own name is recognised: a request for
+            # rbac.<this host> is sent to /p/rbac/ (DOC-SPEC §9.2).
+            - name: DOC_PUBLIC_URL
+              value: https://rundoc.sh
+            - name: DOC_FABRIC_MODE
+              value: cluster
+            - name: RUST_LOG
+              value: info
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+          volumeMounts:
+            - { name: secrets, mountPath: /secrets, readOnly: true }
+            - { name: config, mountPath: /config, readOnly: true }
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+        - name: config
+          configMap:
+            name: doc-config
+---
+# The way in. Swap the class and the host for whatever this cluster runs; a plugin's own name
+# (rbac.rundoc.sh) needs the wildcard, which is what the second rule is for.
+#
+# DNS over HTTPS is answered by the backend, which hands each question to the dns plugin; the
+# frontend has no /api of its own, so those two paths go straight to the backend. Only those two:
+# the rest of the API is not published here. The public one answers only where the deployment
+# allows dns `public-routes` in config/doc.toml and sets DOC_DNS_PUBLIC_RESOLVER on the plugin.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: doc
+  namespace: doc-system
+spec:
+  rules:
+    - host: rundoc.sh
+      http:
+        paths:
+          - path: /api/v1/plugins/dns/api/dns-query
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /api/v1/plugins/dns/public/dns-query
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 8081
+    - host: "*.rundoc.sh"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 8081

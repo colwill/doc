@@ -1,0 +1,136 @@
+# The dns plugin: a deployment and a service of its own, connected to doc-system, and a second
+# service, dns-server, that people and resolvers ask DNS questions on.
+#
+# The service is what the backend dials back on, so `DOC_PLUGIN_ADVERTISE` is that service's name.
+# The plugin reads its registration token and certificate from the same secrets volume the
+# bootstrap Job filled, which is why this namespace mounts the claim from doc-system.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns
+  namespace: doc-plugins
+  labels:
+    app.kubernetes.io/name: dns
+    app.kubernetes.io/part-of: doc
+spec:
+  selector:
+    app.kubernetes.io/name: dns
+  ports:
+    - name: quic
+      port: 4440
+      protocol: UDP
+      targetPort: 4440
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns
+  namespace: doc-plugins
+  labels:
+    app.kubernetes.io/name: dns
+    app.kubernetes.io/part-of: doc
+spec:
+  # One: a plugin registers as itself, and a second copy of the same version would hand over to
+  # the first rather than share the work.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dns
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dns
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: dns
+          image: doc/dns:dev
+          ports:
+            - name: quic
+              containerPort: 4440
+              protocol: UDP
+            # The DNS server's default Listen on, 0.0.0.0:1053; dns-server below sends 53 here.
+            # Nothing answers until its DNS server feature is on.
+            - name: dns-udp
+              containerPort: 1053
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 1053
+              protocol: TCP
+          env:
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_BACKEND_QUIC
+              value: backend.doc-system.svc.cluster.local:4433
+            - name: DOC_PLUGIN_BIND
+              value: 0.0.0.0:4440
+            - name: DOC_PLUGIN_ADVERTISE
+              value: dns.doc-plugins.svc.cluster.local:4440
+            - name: RUST_LOG
+              value: info,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+            # Where DNS over HTTPS is reached from outside, for the page to give as its URL: the
+            # ingress sends the two dns-query paths under this host to the backend.
+            - name: DOC_API_PUBLIC_URL
+              value: https://rundoc.sh
+          volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+---
+# The name server itself, which people and resolvers ask directly rather than through the backend:
+# port 53 over UDP and TCP, sent to the 1053 the plugin listens on without special rights.
+#
+# A LoadBalancer is a NodePort as well. Where the cluster has nothing to give it an address — kind,
+# or bare metal without MetalLB — EXTERNAL-IP stays pending, and the node running the pod still
+# answers on 30053.
+#
+# `externalTrafficPolicy: Local` is what keeps DOC from being an open resolver. Forward only for
+# decides by the asker's address, and the default policy swaps that for a node's, which is in the
+# private ranges forwarding is allowed for, so every asker on the internet would pass. Local keeps
+# the asker's own address; the price is that only the node running the pod answers.
+#
+# Most clouds give a LoadBalancer a public address. For one only the company network can reach,
+# add the annotation this cloud reads:
+#   AWS, with its Load Balancer Controller  service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+#   GKE                                     networking.gke.io/load-balancer-type: Internal
+#   AKS                                     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+#
+# UDP and TCP behind one load balancer needs Kubernetes 1.26 or later and a load balancer that
+# carries both. Where it does not, split this into one Service per protocol.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-server
+  namespace: doc-plugins
+  labels:
+    app.kubernetes.io/name: dns
+    app.kubernetes.io/part-of: doc
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    app.kubernetes.io/name: dns
+  ports:
+    - name: dns-udp
+      port: 53
+      protocol: UDP
+      targetPort: dns-udp
+      nodePort: 30053
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+      targetPort: dns-tcp
+      nodePort: 30053

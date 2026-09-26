@@ -1,0 +1,323 @@
+# The fabric: three nodes of each bus, and the telemetry pipeline behind them.
+#
+# Each bus is a StatefulSet because a node's identity and its data are its own: `eventbus-0` keeps
+# being node 1 across a restart, with the same volume and the same name for its peers to dial. The
+# node ID is the pod's ordinal plus one, since the buses count from one and Kubernetes from zero.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eventbus
+  namespace: doc-system
+spec:
+  # Headless: every node is dialled by its own name, so there is nothing to load-balance.
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: eventbus
+  ports:
+    - name: quic
+      port: 4433
+      protocol: UDP
+      targetPort: 4433
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eventbus
+  namespace: doc-system
+spec:
+  serviceName: eventbus
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: eventbus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: eventbus
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: eventbus
+          image: doc/eventbus:dev
+          # The ordinal is the end of the pod's name; the buses number their nodes from one.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export DOC_NODE_ID="$((${HOSTNAME##*-} + 1))"
+              exec /usr/local/bin/status
+          ports:
+            - name: quic
+              containerPort: 4433
+              protocol: UDP
+          env:
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_BIND
+              value: 0.0.0.0:4433
+            - name: DOC_ADVERTISE
+              value: $(POD_NAME).eventbus.doc-system.svc.cluster.local:4433
+            - name: DOC_PEERS
+              value: 1=eventbus-0.eventbus.doc-system.svc.cluster.local:4433,2=eventbus-1.eventbus.doc-system.svc.cluster.local:4433,3=eventbus-2.eventbus.doc-system.svc.cluster.local:4433
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: RUST_LOG
+              value: info,openraft=warn,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: servicebus
+  namespace: doc-system
+spec:
+  # Headless: every node is dialled by its own name, so there is nothing to load-balance.
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: servicebus
+  ports:
+    - name: quic
+      port: 4433
+      protocol: UDP
+      targetPort: 4433
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: servicebus
+  namespace: doc-system
+spec:
+  serviceName: servicebus
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: servicebus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: servicebus
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: servicebus
+          image: doc/servicebus:dev
+          # The ordinal is the end of the pod's name; the buses number their nodes from one.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export DOC_NODE_ID="$((${HOSTNAME##*-} + 1))"
+              exec /usr/local/bin/status
+          ports:
+            - name: quic
+              containerPort: 4433
+              protocol: UDP
+          env:
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_BIND
+              value: 0.0.0.0:4433
+            - name: DOC_ADVERTISE
+              value: $(POD_NAME).servicebus.doc-system.svc.cluster.local:4433
+            - name: DOC_PEERS
+              value: 1=servicebus-0.servicebus.doc-system.svc.cluster.local:4433,2=servicebus-1.servicebus.doc-system.svc.cluster.local:4433,3=servicebus-2.servicebus.doc-system.svc.cluster.local:4433
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: RUST_LOG
+              value: info,openraft=warn,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cachebus
+  namespace: doc-system
+spec:
+  # Headless: every node is dialled by its own name, so there is nothing to load-balance.
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: cachebus
+  ports:
+    - name: quic
+      port: 4433
+      protocol: UDP
+      targetPort: 4433
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cachebus
+  namespace: doc-system
+spec:
+  serviceName: cachebus
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cachebus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cachebus
+        app.kubernetes.io/part-of: doc
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: cachebus
+          image: doc/cachebus:dev
+          # The ordinal is the end of the pod's name; the buses number their nodes from one.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export DOC_NODE_ID="$((${HOSTNAME##*-} + 1))"
+              exec /usr/local/bin/status
+          ports:
+            - name: quic
+              containerPort: 4433
+              protocol: UDP
+          env:
+            - name: DOC_SECRETS_DIR
+              value: /secrets
+            - name: DOC_BIND
+              value: 0.0.0.0:4433
+            - name: DOC_ADVERTISE
+              value: $(POD_NAME).cachebus.doc-system.svc.cluster.local:4433
+            - name: DOC_PEERS
+              value: 1=cachebus-0.cachebus.doc-system.svc.cluster.local:4433,2=cachebus-1.cachebus.doc-system.svc.cluster.local:4433,3=cachebus-2.cachebus.doc-system.svc.cluster.local:4433
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: RUST_LOG
+              value: info,openraft=warn,quiche=warn,tokio_quiche=warn
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://telemetry.doc-system.svc.cluster.local:4318
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: secrets
+          persistentVolumeClaim:
+            claimName: doc-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telemetry
+  namespace: doc-system
+spec:
+  selector:
+    app.kubernetes.io/name: telemetry
+  ports:
+    - name: grafana
+      port: 3000
+      targetPort: 3000
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry
+  namespace: doc-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: telemetry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: telemetry
+        app.kubernetes.io/part-of: doc
+    spec:
+      containers:
+        - name: telemetry
+          image: grafana/otel-lgtm:0.29.0
+          ports:
+            - { name: grafana, containerPort: 3000 }
+            - { name: otlp-grpc, containerPort: 4317 }
+            - { name: otlp-http, containerPort: 4318 }
+          env:
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
+          resources:
+            requests: { cpu: 100m, memory: 512Mi }
+            limits: { memory: 2Gi }

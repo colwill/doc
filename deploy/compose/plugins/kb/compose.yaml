@@ -1,0 +1,42 @@
+# The kb plugin.
+#
+# A deployment of its own, joined to the `doc-system` network and reading the secrets that
+# deployment made. Bring `doc-system` up first, then:
+#
+#   docker compose -f deploy/compose/plugins/kb/compose.yaml up -d --build
+#
+# Stopping it stops only this plugin; the platform and every other plugin carry on.
+name: ${DOC_STACK:-doc}-kb
+
+services:
+  kb:
+    build:
+      context: ../../../..
+      dockerfile: crates/core/Dockerfile
+      args:
+        BIN: doc-knowledge-base
+    image: doc/kb:${PLUGIN_TAG:-dev}
+    # On failure only: a version that exits 0 after handing over to a newer one stays stopped.
+    restart: on-failure
+    environment:
+      DOC_SECRETS_DIR: /secrets
+      DOC_BACKEND_QUIC: backend:4433
+      DOC_PLUGIN_BIND: 0.0.0.0:4440
+      DOC_PLUGIN_ADVERTISE: kb:4440
+      RUST_LOG: ${DOC_PLUGIN_LOG:-info,quiche=warn,tokio_quiche=warn}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4318
+      DOC_PUBLIC_URL: ${DOC_PUBLIC_URL:-http://127.0.0.1:8081}
+    volumes:
+      - secrets:/secrets:ro
+    networks: [doc]
+
+volumes:
+  # Made by the doc-system deployment's bootstrap job; read-only here.
+  secrets:
+    name: ${DOC_STACK:-doc}-system-secrets
+    external: true
+
+networks:
+  doc:
+    name: ${DOC_NETWORK:-doc-system}
+    external: true
