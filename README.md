@@ -1,3 +1,6 @@
+<p align="center" style="width:100%"><a href="https://github.com/colwill/rundoc" target="_blank"><img src="logo.png" alt="RUNDOC Logo"></a></p>
+
+
 # DOC
 
 DOC (RUNDOC) is a Development, Organisation and Coordination platform that brings an organisation's resources, access control,
